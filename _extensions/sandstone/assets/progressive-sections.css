@@ -29,6 +29,27 @@ main section.level2.page-columns.lr-disabled {
   display: grid !important;
 }
 
+/* Hide level-1 parent sections that contain level-2 children */
+main section.level1:has(> section.level2):not(.lr-visible):not(.lr-disabled) {
+  display: none !important;
+}
+
+main section.level1.lr-visible {
+  display: block !important;
+}
+
+main section.level1.page-columns.lr-visible {
+  display: grid !important;
+}
+
+main section.level1.lr-disabled {
+  display: block !important;
+}
+
+main section.level1.page-columns.lr-disabled {
+  display: grid !important;
+}
+
 .lr-controls {
   margin-top: var(--spacing-sm);
   margin-bottom: var(--spacing-sm);

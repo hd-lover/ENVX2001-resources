@@ -22,6 +22,13 @@
     );
   }
 
+  function getLevel1Parents(mainEl) {
+    var allLevel1 = Array.from(mainEl.querySelectorAll('section.level1'));
+    return allLevel1.filter(function (l1) {
+      return l1.querySelector('section.level2') !== null;
+    });
+  }
+
   function getTopLevelSections(mainEl) {
     const allLevel2 = Array.from(mainEl.querySelectorAll('section.level2'));
     return allLevel2.filter((section) => {
@@ -74,6 +81,22 @@
         controls.style.display = 'flex';
       } else {
         controls.style.display = 'none';
+      }
+    });
+
+    // Show/hide level-1 parent sections based on child visibility
+    var level1Parents = getLevel1Parents(getMainEl());
+    level1Parents.forEach(function (l1) {
+      var childLevel2s = l1.querySelectorAll('section.level2');
+      var anyChildVisible = Array.from(childLevel2s).some(function (l2) {
+        return l2.classList.contains('lr-visible');
+      });
+      if (anyChildVisible) {
+        l1.classList.add('lr-visible');
+        l1.style.display = l1.classList.contains('page-columns') ? 'grid' : 'block';
+      } else {
+        l1.classList.remove('lr-visible');
+        l1.style.display = 'none';
       }
     });
 
@@ -165,6 +188,14 @@
       }
     });
 
+    // Show level-1 parent sections
+    var level1Parents = getLevel1Parents(getMainEl());
+    level1Parents.forEach(function (l1) {
+      l1.classList.add('lr-disabled');
+      l1.classList.remove('lr-visible');
+      l1.style.display = l1.classList.contains('page-columns') ? 'grid' : 'block';
+    });
+
     // Save preference
     try {
       localStorage.setItem(STORAGE_KEY, 'false');
@@ -180,6 +211,12 @@
     // Remove disabled class from all sections
     sections.forEach(function (section) {
       section.classList.remove('lr-disabled');
+    });
+
+    // Reset level-1 parents so CSS can hide them again
+    var level1Parents = getLevel1Parents(getMainEl());
+    level1Parents.forEach(function (l1) {
+      l1.classList.remove('lr-disabled');
     });
 
     // Reset to first section only
@@ -385,6 +422,12 @@
           section.style.display = 'block';
         }
       });
+      // Also show level-1 parents
+      var level1Parents = getLevel1Parents(mainEl);
+      level1Parents.forEach(function (l1) {
+        l1.classList.add('lr-disabled');
+        l1.style.display = l1.classList.contains('page-columns') ? 'grid' : 'block';
+      });
       return;
     }
 
@@ -430,6 +473,10 @@
       // Hide all sections first, then reveal first one
       sections.forEach(function (section) {
         section.style.display = 'none';
+      });
+      var level1Parents = getLevel1Parents(mainEl);
+      level1Parents.forEach(function (l1) {
+        l1.style.display = 'none';
       });
       revealUpTo(sections, 0);
     } else {
