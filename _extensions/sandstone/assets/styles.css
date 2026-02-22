@@ -159,3 +159,14 @@ code:not(.sourceCode) {
   border: 1px solid color-mix(in srgb, var(--usyd-charcoal) 10%, transparent);
   border-radius: 0;
 }
+
+/* Fix wrapped code alignment when line numbers are enabled.
+   Quarto's default `left: -4em` on numbered spans causes continuation
+   lines to start under line numbers instead of aligning with code text.
+   Mirror the print-only fix (text-indent + padding-left) for screen. */
+pre.numberSource code > span {
+  display: inline-block;
+  min-width: 100%;
+  text-indent: -5em;
+  padding-left: 5em;
+}
