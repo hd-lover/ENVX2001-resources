@@ -13,7 +13,8 @@ contributes:
       html-math-method: katex
       code-overflow: wrap
       code-block-border-left: false
-      code-block-bg: false
+      code-block-bg: true
+      code-line-numbers: true
       code-summary: "Show the code"
       fontsize: 11pt
       toc: true

@@ -24,7 +24,6 @@ website:
   page-footer:
     # center: "Site built with [Quarto](https://quarto.org/)."
     right: The University of Sydney
-    left: "Built using the SOLES Quarto handbook template"
 
   navbar:
     title: ENVX2001 Resources

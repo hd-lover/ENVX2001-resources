@@ -72,8 +72,8 @@ ul.task-list li input[type="checkbox"] {
   font-size: 0.9em;
 }
 
-/* Code blocks - flat minimalist style with header and charcoal border */
-/* Code and Output blocks - shared styles */
+/* TEMPORARILY COMMENTED OUT — testing default Quarto code block styles */
+/*
 div.sourceCode,
 .cell-output-stdout {
   position: relative;
@@ -92,7 +92,6 @@ div.sourceCode::before,
   color: var(--usyd-charcoal);
 }
 
-/* Code blocks - flat minimalist style with header and charcoal border */
 div.sourceCode {
   background-color: var(--usyd-lightgrey) !important;
   margin-top: 1.5em;
@@ -104,6 +103,7 @@ div.sourceCode::before {
 }
 
 div.sourceCode pre {
+  padding: var(--spacing-sm);
   padding-top: 0.5em;
   padding-bottom: 1em;
   font-size: 0.9em;
@@ -114,7 +114,6 @@ div.sourceCode pre code {
   color: var(--usyd-black);
 }
 
-/* Standalone pre blocks (non-highlighted code) */
 pre:not(.sourceCode) {
   background-color: var(--usyd-lightgrey);
   border: none;
@@ -122,15 +121,12 @@ pre:not(.sourceCode) {
   padding: var(--spacing-sm);
 }
 
-/* Inline code */
 code:not(.sourceCode) {
   background-color: var(--usyd-lightgrey);
   border-radius: 0;
   padding: 0.1em 0.3em;
 }
 
-/* Code output blocks - white style with header (mirrors input blocks) */
-/* Code output blocks - white style with header (mirrors input blocks) */
 .cell-output-stdout {
   background-color: var(--usyd-white);
   margin-top: 0;
@@ -155,4 +151,11 @@ code:not(.sourceCode) {
 .cell-output-stdout pre code {
   background-color: transparent;
   color: var(--usyd-black);
+}
+*/
+
+/* Code output border */
+.cell-output-stdout pre {
+  border: 1px solid color-mix(in srgb, var(--usyd-charcoal) 10%, transparent);
+  border-radius: 0;
 }
