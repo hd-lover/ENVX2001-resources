@@ -335,7 +335,7 @@ Before we move onto the next section, now is a good time to take a 5-minute brea
 
 A study by Ripple et al. (2025) found new evidence to support the already popular idea that wolves are a keystone species in Yellowstone National Park. By modelling the rate of willow regrowth before and after wolves were reintroduced to the park, Ripple and his team found that the wolves had an enormous, positive effect on the park's ecosystem [@ripple2025].
 
-However, Ripple's study was criticized by another group of scientists; Daniel MacNulty and his team argued that Ripple's methods were flawed, and that while the wolves of Yellowstone National Park may have caused a weak trophic cascade in some areas of the park, this effect was not nearly as strong or as universal as Ripple had claimed [@macnulty2025].
+However, Ripple's study was criticised by another group of scientists; Daniel MacNulty and his team argued that Ripple's methods were flawed, and that while the wolves of Yellowstone National Park may have caused a weak trophic cascade in some areas of the park, this effect was not nearly as strong or as universal as Ripple had claimed [@macnulty2025].
 
 ![Grey wolf in Yellowstone National Park, from Wikimedia Commons (2013), by Mike van Dalen.](images/wolves-yellowstone.jpg)
 
