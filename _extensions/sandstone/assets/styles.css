@@ -170,3 +170,10 @@ pre.numberSource code > span {
   text-indent: -5em;
   padding-left: 5em;
 }
+
+code,
+pre,
+pre code,
+kbd {
+  font-variant-ligatures: none;
+}
