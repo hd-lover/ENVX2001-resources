@@ -55,14 +55,10 @@ Let's go through these concepts together!
 
 # Samples, populations
 
-![Photo by <a href="https://unsplash.com/@brock222?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Richard Lee</a> on <a href="https://unsplash.com/photos/a-flock-of-birds-flying-over-a-dry-grass-field-XHxIXsIYEsQ?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Unsplash</a>](images/snowgeese.jpg)
-
 ## Populations
 
 - **All** the possible units and their associated observations of interest
 - Scientists are often interested in making *inferences* about populations, but measuring every unit is impractical
-
-
 
 ### Samples
 - A collection of observations from any population is a sample, and the number of observations in it is the **sample size**
@@ -78,9 +74,8 @@ Let's go through these concepts together!
 - In practice, we usually don't know the true population parameters, so we use sample statistics as our best estimates
 - Drawing conclusions about a population from sample data is called **statistical inference**
 
-
 ::: fragment
-*Not all statistical techniques are inferential -- some are purely descriptive (e.g. summarising data with graphs or tables) -- but inference is the main focus in second year.*
+*Not all statistical techniques are inferential -- some are purely descriptive (e.g. summarising data with graphs or tables) -- but inference is the main focus of this course.*
 :::
 
 
@@ -123,18 +118,8 @@ Converting a numerical variable to a categorical one means **losing information*
 - Going the other way (categorical → numerical) doesn't lose data, but it does **add assumptions** -- e.g. that your categories have a meaningful order
 :::
 
-::: {.fragment}
-Let's have a look in R.
-:::
-
 
 # Distribution of data
-The study of how data are distributed -- pioneered by mathematicians such as Gauss -- underpins much of modern statistics. 
-
-![Photo from Wikipedia.](images/gauss.jpg){fig-align="center"}
-
-
-
 ## Types of probability distributions
 Populations can be described by probability distributions. You may have encountered these common ones in first-year statistics:
 
@@ -389,12 +374,6 @@ Notice the use of $n-1$ in sample variance and standard deviation
 :::
 
 ## Why n-1?
-
-::::: columns
-::: {.column width="40%"}
-![Portrait of Friedrich Wilhelm Bessel (1784--1846)](images/bessel.jpg){fig-align="center"}
-:::
-::: {.column width="60%"}
 - Sample variance uses $n-1$ instead of $n$ in the denominator
 - This correction ([Bessel's correction](https://en.wikipedia.org/wiki/Bessel%27s_correction)) accounts for bias when estimating the mean from the sample itself
 
@@ -402,8 +381,6 @@ Notice the use of $n-1$ in sample variance and standard deviation
 - Here's the logic: once you know the mean and all but one value, the last value is determined -- it must satisfy the mean. Only $n-1$ values are truly free to vary
 - These independent values are your **degrees of freedom**
 :::
-:::
-:::::
 
 # Sampling distributions and CLT
 
@@ -416,7 +393,6 @@ Imagine you collected your sample of 30 trees, calculated the mean height, then 
 - It shows how much your estimate (the sample mean) varies due to sampling randomness
 - This foundation of statistical inference lets you quantify confidence in your estimates
 :::
-
 
 ## Sampling distribution of the mean
 
@@ -653,18 +629,14 @@ skewed |>
 ```{r}
 #| code-fold: true
 
-sampling_dist <- skewed |>
+skewed |>
   infer::rep_sample_n(
     size = 50,
     reps = 1000
   ) |>
   group_by(replicate) |>
-  summarise(xbar = mean(x))
-
-sample_mean <- mean(sampling_dist$xbar)
-theoretical_mean <- 2 # population mean for gamma(2,1)
-
-ggplot(sampling_dist, aes(x = xbar)) +
+  summarise(xbar = mean(x)) |>
+  ggplot(aes(x = xbar)) +
   geom_density(
     fill = "orangered",
     alpha = 0.5, bins = 50
@@ -672,24 +644,12 @@ ggplot(sampling_dist, aes(x = xbar)) +
   stat_function(
     fun = dnorm,
     args = list(
-      mean = theoretical_mean,
+      mean = 2, # population mean for gamma(2,1)
       sd = sqrt(2) / sqrt(50) # theoretical SE for gamma(2,1)
     ),
     linewidth = 1,
     color = "blue",
     linetype = "dashed"
-  ) +
-  geom_vline(xintercept = theoretical_mean, color = "blue", linetype = "dashed") +
-  geom_vline(xintercept = sample_mean, color = "red", linetype = "solid") +
-  annotate("text",
-    x = theoretical_mean, y = Inf,
-    label = sprintf("Normal: %.2f", theoretical_mean),
-    vjust = 2, hjust = -0.1, color = "blue"
-  ) +
-  annotate("text",
-    x = sample_mean, y = Inf,
-    label = sprintf("Sample: %.2f", sample_mean),
-    vjust = 3.5, hjust = -0.1, color = "red"
   ) +
   xlab("Mean height (m)")
 ```
@@ -766,16 +726,13 @@ More variable populations (e.g. tree heights ranging from 1 m to 50 m) produce m
 
 ## CLT drives statistical inference
 
-
 The CLT enables inference about the population mean without knowing the population distribution.
 
 - With sufficient observations, the sampling distribution of the mean is approximately normal
 - The centre of that distribution is the true population mean
 - The standard error measures the spread -- how precise your estimate is
 
-
 # Standard error and confidence intervals
-
 
 ## Standard Error of the Mean
 - The standard deviation of the sampling distribution -- how much sample means vary across samples
@@ -861,5 +818,3 @@ We will learn more about confidence intervals in the next lecture.
 
 # Thanks for listening! Questions?
 This presentation is based on the [SOLES Quarto reveal.js template](https://github.com/usyd-soles-edu/soles-revealjs) and is licensed under a [Creative Commons Attribution 4.0 International License][cc-by]
-
-[cc-by]: https://creativecommons.org/licenses/by/4.0/
