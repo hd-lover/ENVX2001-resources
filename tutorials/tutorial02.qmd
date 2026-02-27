@@ -8,7 +8,7 @@ format:
 
 ## Welcome {.unnumbered}
 
-In this tutorial you will use a real dataset to compute confidence intervals and see why group structure matters when estimating a population parameter.
+In this tutorial you will compute confidence intervals from a real dataset and see what happens when you ignore group structure in your sample.
 
 You will learn how to:
 
@@ -34,7 +34,7 @@ If you have not installed DAAG before, run `install.packages("DAAG")` in the con
 
 # Confidence intervals
 
-A confidence interval is a range of plausible values for a population parameter, such as a mean, based on sample data. Instead of a single number, it tells you how much uncertainty there is in the estimate.
+A confidence interval gives you a range of plausible values for something you cannot measure directly — like the true mean of a population. It tells you how precise your estimate is, based on the data you have.
 
 ## Exercise 1: What confidence intervals tell us {.unnumbered}
 
@@ -46,7 +46,7 @@ Start by inspecting the dataset:
 str(possum)
 ```
 
-There are 104 observations and 14 variables, including morphological measurements like head length, skull width, and tail length. We will focus on head length first.
+There are 104 observations and 14 variables, including measurements of head length, skull width, and tail length. We will focus on head length.
 
 Compute a 95% confidence interval for the mean head length:
 
@@ -58,9 +58,9 @@ The sample mean head length is 92.6 mm. The 95% confidence interval is approxima
 
 What does this interval actually mean? If we repeated this study many times --- catching a fresh group of 104 possums each time --- about 95% of the intervals we compute would contain the true population mean.
 
-A common misconception is that there is a 95% probability the true mean lies inside this particular interval. That is not correct. The true mean is a fixed value --- it is either inside the interval or it is not. We just do not know which.
+You might think this means there is a 95% probability the true mean lies inside this particular interval. Not quite. The true mean is a fixed value --- it is either inside the interval or it is not. We just do not know which.
 
-Put simply: we are reasonably confident that the average head length of mountain brushtail possums in this region is somewhere between 91.9 and 93.3 mm.
+So we are reasonably confident that the average head length of mountain brushtail possums in this region is somewhere between 91.9 and 93.3 mm.
 
 ::: {.column-margin}
 The 95% refers to the long-run success rate of the method, not the probability for any single interval.
@@ -86,7 +86,7 @@ samp50 <- sample(possum$hdlngth, 50)
 t.test(samp50)
 ```
 
-Compare the widths. With 10 possums the interval is roughly 5.6 mm wide, with 50 it narrows to about 2.0 mm, and with all 104 it is only 1.4 mm. More data gives a more precise estimate.
+Compare the widths. With 10 possums the interval is roughly 5.6 mm wide. With 50 it narrows to about 2.0 mm. With all 104 it is only 1.4 mm. More data, narrower interval.
 
 This happens because the standard error is SD / $\sqrt{n}$. As $n$ increases, the standard error shrinks, and so does the confidence interval. This is what `t.test()` computes internally.
 
@@ -130,7 +130,7 @@ t.test(possum$earconch[possum$Pop == "Vic"])
 t.test(possum$earconch[possum$Pop == "other"])
 ```
 
-The Victorian possums have a mean ear conch length of about 52.2 mm, while the other population averages about 44.9 mm --- a difference of over 7 mm. The pooled confidence interval of [47.3, 48.9] sits between the two groups and does not accurately describe either population.
+The Victorian possums have a mean ear conch length of about 52.2 mm. The other population averages about 44.9 mm --- over 7 mm shorter. The pooled confidence interval of [47.3, 48.9] sits between the two groups. It does not describe either population well.
 
 A boxplot makes the separation clear:
 
@@ -158,4 +158,4 @@ You should be able to explain why computing a single confidence interval for a p
 
 ## Wrap-up {.unnumbered}
 
-In this tutorial you computed confidence intervals, saw how sample size affects precision, and discovered why group structure matters. You will use all of these ideas in the lab.
+In this tutorial you computed confidence intervals and saw why sample size and group structure both matter. You will use these ideas in the lab.
