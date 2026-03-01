@@ -37,7 +37,7 @@ execute:
 :::
 
 ::: fragment
-### Not *always* the case, but still a good technique.
+### Not always the best approach, but still a good starting point.
 :::
 
 
@@ -45,7 +45,7 @@ execute:
 ## Simple random sampling {auto-animate=true}
 **Each unit has an equal chance of being selected.**
 
-### Not *always* the case, but still a good technique.
+### Not always the best approach, but still a good starting point.
 
 ## Simple random sampling: potential problems
 
@@ -98,7 +98,7 @@ With simple random sampling:
 ::: fragment
 ### Different land types
 - Land type A covers 62% of the area, land type B covers 38%
-- Type A has a **higher** chance of being selected with simple random sampling
+- With simple random sampling, we would expect more samples from Type A simply because it covers a larger area — but this is not guaranteed
 - **Can we use this information to our advantage?**
 :::
 
@@ -193,6 +193,10 @@ All of these steps must account for our stratified design.
 :::
 
 
+::: {.callout-note}
+From here we use $\bar{y}$ rather than $\bar{x}$ for the sample mean — this is conventional in sampling design literature and helps distinguish stratified estimates from simple estimates.
+:::
+
 ## The statistical workflow for stratified sampling
 
 ### Four key steps:
@@ -216,7 +220,7 @@ All of these steps must account for our stratified design.
 
 - We need to "weigh" the estimates from each stratum to account for the different stratum sizes and inclusion probabilities.
 - Most of the time, we use the stratum size as the weight to calculate **weighted estimates**.
-- The *overall* population estimate is the sum of the weighted estimates from each stratum, i.e. we *pool the individual strata information into a single, overall population estimate*.
+- The *overall* population estimate is the sum of the weighted estimates from each stratum, that is, we *pool the individual strata information into a single, overall population estimate*.
 
 ::: fragment
 ### Example
@@ -294,7 +298,7 @@ This is like saying: "62% of our land has soil carbon like land type A, and 38% 
 $$SE(\bar y_{s}) = \sqrt{\color{blue}{{\sum_{i=1}^L w_i^2}} \times \frac{s_i^2}{n_i}}$$
 
 ::: {.callout-note}
-### What's different?
+### What is different?
 - Instead of a single variance term, we use the sum of weighted variances from each stratum
 - The $\color{blue}{w_i^2}$ term ensures we account for the relative size of each stratum
 - Each stratum contributes its own variance ($s_i^2$) and sample size ($n_i$)
@@ -309,11 +313,11 @@ $$df = n - L$$
 where $n$ is the total number of samples and $L$ is the number of strata.
 
 ::: fragment
-- The degrees of freedom tells us how much "free information" we have for making estimates
-- For stratified sampling, we lose one degree of freedom for each stratum
-- **Example:** If we have 12 samples in 3 strata:
-  - The degrees of freedom is $12 - 3 = 9$
-  - Think of it this way: 9 samples can be placed anywhere, but we must have at least 1 sample in each of the 3 strata
+- The degrees of freedom tells us how much independent information we have for estimating uncertainty
+- For stratified sampling, we lose one degree of freedom for each stratum mean we estimate
+- **Example:** If we have 12 samples across 3 strata:
+  - $df = 12 - 3 = 9$
+  - We lose 3 degrees of freedom because we estimate one mean per stratum
 :::
 
 ::: fragment
@@ -336,7 +340,7 @@ where $L$ is the number of strata, $n$ is the total number of samples, and $\bar
 **In simple terms:**
 
 ::: incremental 
-- We're creating a range where we're 95% confident the true population mean lies
+- We are creating a range where we are 95% confident the true population mean lies
 - We start with our best estimate (the pooled mean $\bar y_{s}$)
 - We add and subtract a "margin of error" (which depends on our sample size and variability)
 - The margin of error = $t$-critical value × standard error
@@ -391,6 +395,7 @@ knitr::kable(compare)
 ## Visual comparison of 95% confidence intervals
 
 ```{r}
+#| code-fold: true
 #| fig-height: 4
 #| fig-width: 10
 #| fig-align: center
@@ -398,7 +403,7 @@ knitr::kable(compare)
 # Creating a visual comparison of confidence intervals
 ggplot(compare, aes(x = Design, y = Mean)) +
   geom_point(size = 3) +
-  geom_errorbar(aes(ymin = L95, ymax = U95), width = 0.2, size = 1) +
+  geom_errorbar(aes(ymin = L95, ymax = U95), width = 0.2, linewidth = 1) +
   labs(title = "95% Confidence Intervals by Sampling Design",
        y = "Soil Carbon (tonnes/ha)",
        x = "") +
@@ -495,7 +500,7 @@ $$Var(\Delta{\bar y}) = Var(\bar y_2) + Var(\bar y_1) - 2 \times Cov(\bar y_2, \
 **In simple terms:**
 
 - The uncertainty in our change estimate comes from the uncertainties in both measurements
-- However, if we sample the same sites twice, they are related to each other (covariance)
+- However, if we sample the same sites twice, they are related to each other (covariance — we will define this shortly)
 - This relationship usually reduces the overall uncertainty in our change estimate
 :::
 
@@ -548,23 +553,27 @@ $$95\%\ CI = \Delta \bar y \pm t^{0.025}_{n-1} \times SE(\Delta \bar y)$$
 ### In plain language:
 - We have our best estimate of the change (the difference between the two means)
 - We add and subtract a margin of error to create a range
-- We're 95% confident that the true change falls within this range
+- We are 95% confident that the true change falls within this range
 :::
 
 ::: fragment
 ### The standard error of the change $SE(\Delta \bar y)$
 - This tells us how precise our estimate of the change is
-- It's complicated to calculate by hand, especially when we visit the same sites twice
+- It is complicated to calculate by hand, especially when we visit the same sites twice
 - If we visit the same sites twice, we need to account for their relationship (covariance)
 :::
 
 ::: fragment
-**Good news!** You don't need to calculate this by hand!
+**Good news!** You do not need to calculate this by hand.
 
-- R can do these calculations for you using the `t.test()` function
-- For same sites: use `paired = TRUE` option
-- For different sites: use `paired = FALSE` option
-- We'll practice this in the lab!
+- R handles these calculations using the `t.test()` function
+- For same sites: use `paired = TRUE`
+- For different sites: use `paired = FALSE`
+:::
+
+::: {.callout-tip}
+## R connection
+`t.test()` with `paired = TRUE` performs a paired *t*-test — you will use this in Lab 02 to analyse monitoring data.
 :::
 
 
