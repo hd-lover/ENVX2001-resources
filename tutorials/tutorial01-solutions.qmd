@@ -1,6 +1,7 @@
 ---
 title: "Tutorial 01 — Instructor notes"
 format:
+  sandstone-html: default
   sandstone-typst:
     toc: true
 execute:

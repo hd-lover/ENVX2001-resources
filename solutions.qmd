@@ -9,6 +9,7 @@ section-divs: false
 | Week | Tutorial | HTML |
 |------|----------|------|
 | 1 | Introduction to Quarto | [Tutorial 01](tutorials/tutorial01-solutions.html) |
+| 2 | Confidence Intervals and Sampling | [Tutorial 02](tutorials/tutorial02-solutions.html) |
 
 ## Lab solutions
 

@@ -1,0 +1,202 @@
+---
+title: "Tutorial 02 — Instructor notes"
+format:
+  sandstone-html: default
+  sandstone-typst:
+    toc: true
+execute:
+  eval: false
+---
+
+Companion document for tutors running Tutorial 02. Mirrors each exercise with talking points, expected output at each checkpoint, and common problems.
+
+Student document: [Tutorial 02](tutorial02.qmd)
+
+## Before you start
+
+Get these sorted before students arrive:
+
+- Have RStudio open with a fresh session.
+- Make sure the `DAAG` package is installed. Run `install.packages("DAAG")` if you have not done so already — you do not want to troubleshoot installations during the tutorial.
+- Load the possum dataset and check it renders: `library(DAAG); data(possum)`. You will refer to it throughout.
+- Skim the student document if you have not recently. The two exercises build on each other, so you will need to keep the thread going.
+
+
+## Exercise 1: What confidence intervals tell us
+
+### Part A --- Compute and interpret
+
+#### What to do
+
+Load the dataset and run through `str(possum)` to show the structure. Then compute the 95% CI for head length using `t.test(possum$hdlngth)`.
+
+```r
+library(DAAG)
+data(possum)
+str(possum)
+```
+
+```r
+t.test(possum$hdlngth)
+```
+
+#### What to say
+
+- Walk through the `t.test()` output: sample mean (92.6 mm), confidence interval [91.9, 93.3], and the t-statistic. Students do not need to worry about the t-statistic yet — focus on the mean and the interval.
+- Spend time on the interpretation. The most common mistake is saying "there is a 95% probability the true mean is in this interval." That is not what it means. The true mean is fixed — it is either in the interval or it is not.
+- The correct interpretation: if we repeated this study many times, about 95% of the intervals we compute would contain the true mean. The 95% refers to the method's long-run success rate.
+- Use an analogy if it helps: a net that catches the fish 95% of the time. Once you have cast the net, the fish is either in it or not — but you trust the net because it works most of the time.
+
+#### Expected output
+
+`t.test()` prints the sample mean (92.6 mm), the 95% CI [91.9, 93.3], and a t-statistic with p-value (which students can ignore for now).
+
+#### Common issues
+
+::: {.callout-warning}
+**"could not find function 'data'"**
+Student has not loaded the `DAAG` package. They need `library(DAAG)` before `data(possum)`.
+:::
+
+
+
+### Part B --- What affects the width?
+
+#### What to do
+
+Draw random samples of 10 and 50 possums and compute confidence intervals for each. Compare widths across n = 10, n = 50, and the full n = 104.
+
+```r
+set.seed(2026)
+samp10 <- sample(possum$hdlngth, 10)
+t.test(samp10)
+```
+
+```r
+set.seed(2026)
+samp50 <- sample(possum$hdlngth, 50)
+t.test(samp50)
+```
+
+#### What to say
+
+- The key takeaway is that more data gives a narrower interval. With 10 possums the interval is roughly 5.6 mm wide. With 50 it is about 2.0 mm. With all 104 it is 1.4 mm.
+- Explain why: the standard error is SD / √n. As n increases, the standard error shrinks, and the interval gets tighter.
+- `set.seed()` makes the random sample reproducible. If students use a different seed, they will get a different sample — that is fine, but their numbers will not match yours exactly.
+- If time allows, invite a few students to change the seed and share their interval widths. This reinforces the idea that every sample gives a slightly different interval.
+
+#### Expected output
+
+Three confidence intervals with decreasing widths: ~5.6 mm (n = 10), ~2.0 mm (n = 50), ~1.4 mm (n = 104).
+
+#### Common issues
+
+::: {.callout-warning}
+**Different numbers from the student document.**
+Students who forget `set.seed(2026)` or use a different seed will get different sample means and interval widths. The pattern (wider with fewer observations) still holds — reassure them that the exact numbers do not matter.
+:::
+
+::: {.callout-warning}
+**"Why not always use the full dataset?"**
+Good question. In practice we rarely have the entire population — we work with whatever sample we can collect. The point of this exercise is to show that sample size affects precision, which matters when you are designing a study.
+:::
+
+
+## Exercise 2: When groups matter
+
+### Part A --- The pooled estimate
+
+#### What to do
+
+Compute a confidence interval for ear conch length across all 104 possums.
+
+```r
+t.test(possum$earconch)
+```
+
+#### What to say
+
+- The mean ear conch length across all possums is about 48.1 mm, with a 95% CI of [47.3, 48.9].
+- This looks like a reasonable estimate — until we check whether the data has structure we are ignoring.
+- Mention that these possums come from two distinct populations: Victorian sites and sites further north (NSW/QLD). Set up the next part by asking: "What happens if the two groups have different ear sizes?"
+
+#### Expected output
+
+`t.test()` output showing mean ≈ 48.1 mm, 95% CI ≈ [47.3, 48.9].
+
+#### Common issues
+
+::: {.callout-warning}
+**Students skip ahead.**
+Some students will jump straight to Part B. That is fine — the point of Part A is to set up the contrast. If they have already seen the split, ask them to articulate why the pooled estimate is misleading.
+:::
+
+
+### Part B --- Split by population
+
+#### What to do
+
+Compute separate confidence intervals for Victorian and non-Victorian possums, then show the boxplot.
+
+```r
+t.test(possum$earconch[possum$Pop == "Vic"])
+```
+
+```r
+t.test(possum$earconch[possum$Pop == "other"])
+```
+
+```r
+library(ggplot2)
+
+ggplot(possum, aes(x = Pop, y = earconch, fill = Pop)) +
+  geom_boxplot(show.legend = FALSE) +
+  labs(x = "Population", y = "Ear conch length (mm)") +
+  theme_bw()
+```
+
+#### What to say
+
+- Victorian possums have a mean ear conch length of about 52.2 mm. The other population averages about 44.9 mm — over 7 mm shorter.
+- The pooled CI of [47.3, 48.9] sits between the two groups. It does not describe either population accurately. It is an average of two different things.
+- The boxplot makes this obvious visually. Point out that the boxes barely overlap — these are genuinely different populations.
+- This is a classic example of where ignoring group structure gives a misleading summary. The overall mean is not "wrong" — it is just not useful if you care about either group specifically.
+
+#### Expected output
+
+Two separate CIs that do not overlap (Vic ≈ [51.5, 52.9], other ≈ [44.5, 45.3]). A boxplot showing clear separation between the two populations.
+
+#### Common issues
+
+::: {.callout-warning}
+**Subsetting syntax confusion.**
+`possum$earconch[possum$Pop == "Vic"]` is dense for students seeing it for the first time. Break it down: `possum$Pop == "Vic"` creates a logical vector, and the square brackets select the matching rows. If students struggle, show the logical vector first.
+:::
+
+::: {.callout-warning}
+**ggplot2 not loaded.**
+Students who skipped the `library(ggplot2)` line will get "could not find function 'ggplot'". The student document includes the library call in the code block, but some students strip it out when typing.
+:::
+
+
+### Part C --- Connection to the lab
+
+#### What to do
+
+This is a short wrap-up linking to the lab. No code to run — just a brief discussion.
+
+#### What to say
+
+- In the lab, students will learn stratified random sampling, which handles exactly this kind of structure.
+- The idea is straightforward: estimate each subgroup separately, then combine the estimates in a way that accounts for the group sizes.
+- This gives a more accurate overall estimate than pooling everything together and pretending the groups do not exist.
+- You do not need to teach stratification here — just plant the seed so students recognise the problem when they see the lab exercise.
+
+
+## Putting it all together
+
+### What to say
+
+- The two big ideas from today: (1) confidence intervals get narrower with more data, and (2) ignoring group structure can give misleading estimates.
+- Both of these come up in the lab this week. The CI width idea connects to sample size planning. The group structure idea connects to stratified sampling.
+- If students ask "when should I split by group?" — a good rule of thumb is to check whether there is a known grouping variable in the data. If the groups look different (as the boxplot showed), a pooled estimate can be misleading.
