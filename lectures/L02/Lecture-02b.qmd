@@ -92,39 +92,51 @@ If studying plant biodiversity in a national park:
 - Combine data to estimate overall biodiversity, weighting by each habitat's area
 :::
 
+## It's not as complicated as it sounds...
+
+```{=html}
+<style>
+#its-not-as-complicated-as-it-sounds .cell-output-display {
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+</style>
+```
+
+```{ojs}
+//| echo: false
+import { stratifiedStepsWidget } from "../../assets/js/sampling-widget.js"
+stratifiedStepsWidget()
+```
+
 ## Strata rules
 
 ### Strata are...
 
-::: incremental
+::: {.incremental}
 - **Mutually exclusive and collectively exhaustive** — every unit belongs to exactly one stratum, with no overlaps and nothing left out
 - **Homogeneous** — units within a stratum should be more similar to each other than to the population as a whole
 - **All sampled** — every stratum must be represented
 :::
 
-::: fragment
-![](images/stratified.png)
+
+## Which of these are good strata?
+
+The farmer wants to refine their soil carbon estimate. Which stratification would work?
+
+::: {.fragment}
+**A.** Soil type — clay soils vs. sandy soils
+
+**B.** Soil condition — wet patches, compacted areas, eroded areas
 :::
 
-## Good vs. poor stratification choices
-
-::: fragment
-## Everyday examples
-
-:::: {.columns}
-::: {.column width="50%"}
-### Good strata
-- **University students**: Undergrad, Masters, PhD
-- **Forest types**: Deciduous, Coniferous, Mixed
-- **Income levels**: Low, Medium, High
+::: {.fragment}
+**A works.** Every sample belongs to exactly one soil type. Carbon storage differs between clay and sandy soils, so the strata are distinct.
 :::
 
-::: {.column width="50%"}
-### Poor strata choices
-- **Interests**: Sports fans, Music lovers, Foodies (a person can be in multiple groups)
-- **Water quality**: Clean, Somewhat polluted (too subjective, not clearly defined)
-:::
-::::
+::: {.fragment}
+**B fails.** A patch of soil can be wet *and* compacted *and* eroded at the same time. The categories overlap — strata must be mutually exclusive.
 :::
 
 ## Advantages
