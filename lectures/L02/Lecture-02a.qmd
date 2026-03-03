@@ -93,8 +93,6 @@ A sampling design specifies the rules for how we select units from a population.
 - **Randomly sample units from the entire population.**
 - *Like putting all names in a hat and drawing some out randomly.*
 
-![](images/simple_random.png){fig-align="center" height=180}
-
 
 ## Sampling designs
 
@@ -105,7 +103,6 @@ A sampling design specifies the rules for how we select units from a population.
 - **Randomly sample units within each stratum using simple random sampling.**
 - *Like separating students by year level, then randomly selecting some from each year.*
 
-![](images/stratified.png){fig-align="center" height=180}
 
 
 
