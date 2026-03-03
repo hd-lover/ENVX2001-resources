@@ -5,7 +5,8 @@ date: last-modified
 date-format: "MMM YYYY"
 author: Januar Harianto
 format:
-  ochre-revealjs: default
+  ochre-revealjs:
+    slide-number: true
   ochre-typst:
     fig-format: png
 # format: revealjs
@@ -18,24 +19,17 @@ execute:
 
 # Welcome back
 
-## Before the break
+## Land types
 
-We used simple random sampling on the soil carbon data and found:
+The farmer decides to use stratified random sampling instead, dividing their property by land type.
 
-- SRS mean: **67.3 t/ha**, 95% CI: **(49.87, 84.73)**
-- That interval is wide — about ±26% of the mean
+![](images/datastory.png){width="50%"}
 
-We ended with a question: **can we do better with a smarter sampling design?**
-
-## What is next
-
-1. Why simple random sampling does not always work well
-2. Stratified random sampling — using known groups to sample more efficiently
-3. Monitoring — estimating change over time
+- Land type A covers 62% of the area, land type B covers 38%
+- They sample randomly within each land type
+- For comparison, assume the same 7 locations happen to be selected
 
 
-# Simple random sampling works..
-Until it doesn't.
 
 ## Random sampling on a landscape
 
@@ -53,22 +47,16 @@ Until it doesn't.
 ```{ojs}
 //| echo: false
 import { samplingWidget } from "../../assets/js/sampling-widget.js"
-samplingWidget()
+samplingWidget({
+  split: 0.62,
+  labelA: "Land type A",
+  labelB: "Land type B",
+  nStart: 7,
+  nMax: 30
+})
 ```
 
-How do we guarantee that with few samples, we get a good representation of the landscape?
-
-## The farmer has extra information
-
-![](images/datastory.png){width="50%"}
-
-::: fragment
-The farmer knows there are two land types on the property:
-
-- Land type A covers 62% of the area, land type B covers 38%
-- With simple random sampling, we would expect more samples from type A — but this is not guaranteed
-- **Can we use this information to sample more efficiently?**
-:::
+With two distinct land types, how do we guarantee both are represented in our sample?
 
 
 # ~~Simple~~ Stratified random sampling
@@ -92,60 +80,24 @@ If studying plant biodiversity in a national park:
 - Combine data to estimate overall biodiversity, weighting by each habitat's area
 :::
 
-## It's not as complicated as it sounds...
-
-```{=html}
-<style>
-#its-not-as-complicated-as-it-sounds .cell-output-display {
-  border: none;
-  padding: 0;
-  margin: 0;
-}
-</style>
-```
-
-```{ojs}
-//| echo: false
-import { stratifiedStepsWidget } from "../../assets/js/sampling-widget.js"
-stratifiedStepsWidget()
-```
-
 ## Strata rules
 
 ### Strata are...
 
 ::: {.incremental}
-- **Mutually exclusive and collectively exhaustive** — every unit belongs to exactly one stratum, with no overlaps and nothing left out
-- **Homogeneous** — units within a stratum should be more similar to each other than to the population as a whole
-- **All sampled** — every stratum must be represented
+- **Mutually exclusive and collectively exhaustive**: every unit belongs to exactly one stratum, with no overlaps and nothing left out
+- **Homogeneous**: units within a stratum should be more similar to each other than to the population as a whole
+- **All sampled**: every stratum must be represented
 :::
 
-
-## Which of these are good strata?
-
-The farmer wants to refine their soil carbon estimate. Which stratification would work?
-
-::: {.fragment}
-**A.** Soil type — clay soils vs. sandy soils
-
-**B.** Soil condition — wet patches, compacted areas, eroded areas
-:::
-
-::: {.fragment}
-**A works.** Every sample belongs to exactly one soil type. Carbon storage differs between clay and sandy soils, so the strata are distinct.
-:::
-
-::: {.fragment}
-**B fails.** A patch of soil can be wet *and* compacted *and* eroded at the same time. The categories overlap — strata must be mutually exclusive.
-:::
 
 ## Advantages
 
 Stratified random sampling addresses three problems at once:
 
-- **Bias** — every stratum is sampled, so the sample is representative of the population
-- **Accuracy** — each stratum is represented by a minimum number of units
-- **Insight** — we can compare strata and make inferences about subgroups
+- **Bias**: every stratum is sampled, so the sample is representative of the population
+- **Accuracy**: each stratum is represented by a minimum number of units
+- **Insight**: we can compare strata and make inferences about subgroups
 
 :::fragment
 ### Does this make simple random sampling obsolete?
@@ -158,18 +110,19 @@ No. With large enough samples, the two methods converge. Simple random sampling 
 
 ## The workflow
 
-Once we have our stratified sample, the calculations follow the same logic as simple random sampling — but each step must account for the stratified design.
+Once we have our stratified sample, the calculations follow the same logic as simple random sampling, but each step must account for the stratified design.
 
 ::: fragment
-1. **Pooled mean** ($\bar{y}_{s}$) — weight each stratum mean by the stratum's share of the population
-2. **Pooled standard error** — $SE(\bar{y}_{s}) = \sqrt{\sum w_i^2 \times \frac{s_i^2}{n_i}}$
-3. ***t*-critical value** — based on $df = n - L$ and $\alpha = 0.05$
-4. **Confidence interval** — $\bar{y}_{s} \pm t_{n-L} \times SE(\bar{y}_{s})$
+1. **Pooled mean** ($\bar{x}_{s}$): weight each stratum mean by the stratum's share of the population
+2. **Pooled standard error**: $SE(\bar{x}_{s}) = \sqrt{\sum w_i^2 \times \frac{s_i^2}{n_i}}$
+3. ***t*-critical value**: based on $df = n - L$ and $\alpha = 0.05$
+4. **Confidence interval**: $\bar{x}_{s} \pm t_{n-L} \times SE(\bar{x}_{s})$
+
 :::
 
-::: {.callout-note}
-From here we use $\bar{y}$ rather than $\bar{x}$ for the sample mean — this is conventional in sampling design literature and helps distinguish stratified estimates from simple estimates.
-:::
+
+
+
 
 ## Accounting for strata using "weight"
 
@@ -177,42 +130,26 @@ From here we use $\bar{y}$ rather than $\bar{x}$ for the sample mean — this is
 - Most of the time, we use the stratum's share of the total area (or population) as the weight.
 - The overall population estimate is the sum of the weighted estimates from each stratum.
 
-::: fragment
-### Example
-::: incremental
 
-- A forest has two tree types: A (60% of the population) and B (40%).
-- We want to estimate the **mean height** of the trees.
-- We take 10 height measurements: 7 from type A and 3 from type B.
-- The **pooled estimate** for mean height is: $$0.6 \times \text{mean height of A} + 0.4 \times \text{mean height of B}$$
-:::
-:::
 
 ## Soil carbon: setting up the data
 
-Soil carbon content was measured at 7 locations. The amounts were:
-48, 56, 90, 78, 86, 71, 42 tonnes per hectare (t/ha).
-
-![](images/datastory.png){width="50%"}
-
-::: fragment
-We know which land type each sample came from:
+The farmer collects the same 7 measurements as before. This time, each value is assigned to its land type:
 
 ```{r}
 #| code-fold: false
 landA <- c(90, 78, 86, 71)  # stratum A samples (62% of the area)
 landB <- c(48, 56, 42)      # stratum B samples (38% of the area)
 ```
-:::
 
-## Pooled mean $\bar y_{s}$
+## Pooled mean $\bar x_{s}$
 
 > The pooled mean is our best estimate of the overall population mean, taking into account the different stratum sizes.
 
 ::: fragment
-$$\bar{y}_{s} = \sum_{i=1}^L \bar{y}_i \times w_i$$
+$$\bar{x}_{s} = \sum_{i=1}^L \bar{x}_i \times w_i$$
 
-We calculate the mean for each stratum ($\bar{y}_i$), multiply by its weight ($w_i$), and add them together.
+We calculate the mean for each stratum ($\bar{x}_i$), multiply by its weight ($w_i$), and add them together.
 :::
 
 ## Calculating pooled mean: soil carbon example
@@ -233,12 +170,11 @@ weighted_mean <- mean(landA) * weight[1] + mean(landB) * weight[2]
 weighted_mean
 ```
 
-62% of the land has soil carbon like type A, and 38% like type B — the overall estimate reflects both in those proportions.
 :::
 
-## Pooled standard error of the mean $SE(\bar y_{s})$
+## Pooled standard error of the mean $SE(\bar x_{s})$
 
-$$SE(\bar y_{s}) = \sqrt{\color{blue}{{\sum_{i=1}^L w_i^2}} \times \frac{s_i^2}{n_i}}$$
+$$SE(\bar x_{s}) = \sqrt{\color{blue}{{\sum_{i=1}^L w_i^2}} \times \frac{s_i^2}{n_i}}$$
 
 ::: {.callout-note}
 ### What is different from simple random sampling?
@@ -247,6 +183,23 @@ $$SE(\bar y_{s}) = \sqrt{\color{blue}{{\sum_{i=1}^L w_i^2}} \times \frac{s_i^2}{
 - Each stratum contributes its own variance ($s_i^2$) and sample size ($n_i$)
 :::
 
+## It is not as complicated as it sounds...
+
+```{=html}
+<style>
+#it-is-not-as-complicated-as-it-sounds .cell-output-display {
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+</style>
+```
+
+```{ojs}
+//| echo: false
+import { stratifiedStepsWidget } from "../../assets/js/sampling-widget.js"
+stratifiedStepsWidget()
+```
 
 ## $t$-critical value
 ### Degrees of freedom $df$
@@ -270,22 +223,7 @@ t_crit
 
 :::
 
-## 95 % Confidence interval for stratified random sampling
-
-### The formula
-$$95\%\ CI = \bar y_{s} \pm t^{0.025}_{n-L} \times SE(\bar y_{s})$$
-
-where $L$ is the number of strata, $n$ is the total number of samples, and $\bar y_{s}$ is the pooled mean.
-
-::: incremental
-- Start with the pooled mean ($\bar y_{s}$)
-- Add and subtract the margin of error ($t$-critical $\times$ pooled SE)
-- The result is the range where we are 95% confident the true population mean lies
-:::
-
-## 95 % Confidence interval for stratified random sampling
-
-### Putting it all together
+## Putting it all together in R
 
 ```{r}
 varA <- var(landA) / length(landA)  # variance of the mean for A
@@ -304,7 +242,7 @@ ci
 
 ## Simple random vs. stratified random sampling
 
-We applied stratified random sampling to the same soil carbon data from the first half. How do the results compare?
+The farmer sampled the same 7 locations using a stratified design. How do the results compare to simple random sampling?
 
 ```{r}
 #| code-fold: true
@@ -313,10 +251,10 @@ library(tidyverse)
 # Manually printing the results below as SRS data is in previous lecture
 compare <- tibble(
   Design = c("Simple Random", "Stratified Random"),
-  Mean = c(67.29, 68.9),
-  `Var (mean)` = c(50.83, 9.30),
-  L95 = c(49.85, 61),
-  U95 = c(84.73, 76.7),
+  Mean = c(67.29, 68.87),
+  `Var (mean)` = c(50.80, 9.25),
+  L95 = c(49.85, 61.05),
+  U95 = c(84.73, 76.69),
   df = c(6, 5))
 knitr::kable(compare)
 
@@ -342,9 +280,8 @@ ggplot(compare, aes(x = Design, y = Mean)) +
 
 ::: fragment
 ### Key differences
-- Both methods give similar estimates of the mean (~67–69 t/ha)
-- Stratified sampling produces a much narrower confidence interval
-- The variance of the mean is about 5 times smaller with stratified sampling
+- Same locations, same measurements, different design
+- Stratified sampling gives a variance about 5 times smaller
 :::
 
 ## Efficiency
@@ -358,11 +295,11 @@ $$\text{Efficiency} = \frac{\text{Variance of SRS}}{\text{Variance of Stratified
 - An efficiency of 5 means you would need 5 times as many SRS samples to match the stratified precision
 :::
 
-::: fragment
-### In R
+
+## Efficiency (In R)
 
 ```{r}
-efficiency <- 50.83 / 9.30
+efficiency <- 50.80 / 9.25
 efficiency
 ```
 
@@ -372,32 +309,26 @@ How many SRS samples would we need for the same precision?
 round(7 * efficiency, 0)
 ```
 About 38 samples with SRS to match what 7 stratified samples achieved.
-:::
+
 
 ## Tips on implementation
 
-- The hardest part is identifying good strata and assigning units to them
-- Common stratification variables in environmental science:
-  - **Spatial**: elevation bands, soil types, vegetation zones
-  - **Temporal**: seasons, time of day, growth stages
-  - **Management**: treatment types, land-use history
-- **Sample allocation**: distribute samples across strata in proportion to:
-  - the size of the strata (e.g. 60% of area = 60% of samples)
-  - the variance within strata (more samples where variation is higher)
+- The hardest part is choosing good strata (e.g. soil types, elevation bands, land use)
+- Allocate samples in proportion to each stratum's size
+- If one stratum is more variable, give it more samples
 
 
-# The farmer comes back
+# A year later...
 
-## A year later...
-
-The farmer now has a good estimate of soil carbon on the property. But a year has passed, and new management practices have been introduced.
+## Repeating the survey
+The farmer now has a solid baseline. They know their soil carbon is around 69 t/ha with a tight confidence interval. A year passes. They introduce cover cropping and want to know: **has soil carbon changed?**
 
 ::: fragment
-**New question:** has soil carbon changed?
+This is the second type of observational study we met in the first half, a **monitoring study**. Instead of estimating a single value, we are estimating *change*.
 :::
 
 ::: fragment
-To answer this, the farmer measures the same property again. This is a **monitoring study** — we are estimating *change* rather than a single value.
+To answer this question, the farmer measures the same property again.
 :::
 
 ## Same sites or new sites?
@@ -409,73 +340,58 @@ To answer this, the farmer measures the same property again. This is a **monitor
 - This choice affects how we analyse the data
 :::
 
-## Change in mean $\Delta \bar y$
+## Change in mean $\Delta \bar x$
 
 > The difference between the means of the two sets of measurements.
 
-$$\Delta \bar y = \bar y_2 - \bar y_1$$
+$$\Delta \bar x = \bar x_2 - \bar x_1$$
 
-where $\bar y_2$ and $\bar y_1$ are the means of the second and first set of measurements, respectively.
+where $\bar x_2$ and $\bar x_1$ are the means of the second and first set of measurements, respectively.
 
-## How precise is our estimate of change?
+## Why same sites give better estimates
 
-### Variance of the change in mean $Var(\Delta{\bar y})$
-
-$$Var(\Delta{\bar y}) = Var(\bar y_2) + Var(\bar y_1) - 2 \times Cov(\bar y_2, \bar y_1)$$
-
-::: fragment
-The uncertainty comes from both measurements. But if we sample the same sites twice, the **covariance** term usually *reduces* the overall uncertainty.
-:::
+- Site 1 had 90 t/ha last year and 95 t/ha this year — a change of +5
+- We do not care that site 1 is naturally carbon-rich, only that it went up
 
 ::: fragment
-What is covariance? Consider three of the farmer's sites:
-
-- Site 1: First visit = 90 t/ha, Second visit = 95 t/ha
-- Site 2: First visit = 48 t/ha, Second visit = 52 t/ha
-- Site 3: First visit = 71 t/ha, Second visit = 75 t/ha
-
-Sites with high carbon in the first measurement still have high carbon in the second. This positive relationship is covariance — and it reduces uncertainty in the estimate of change.
+- Computing the difference at each site removes natural variation between sites
+- This is why paired sampling gives tighter confidence intervals
 :::
 
 ## Paired vs independent sampling
 
-### Quick decision guide
-
-1. **Same sites?** Use paired approach:
-   - Sites are the same in both visits
-   - Use paired *t*-test
-   - Account for covariance between visits
-
-2. **Different sites?** Use independent approach:
-   - New random sites in second visit
-   - Use two-sample *t*-test
-   - No covariance between visits
+- **Same sites** → paired *t*-test
+- **Different sites** → two-sample *t*-test
 
 ::: fragment
-Returning to the same sites (paired sampling) usually gives more precise estimates because it removes site-to-site variation.
+- Paired sampling is usually more precise
+- Each site is its own baseline, so natural differences drop out
 :::
 
-## Confidence interval for change
+## Analysing change in R
 
-$$95\%\ CI = \Delta \bar y \pm t^{0.025}_{n-1} \times SE(\Delta \bar y)$$
+R handles both approaches through `t.test()`:
 
-::: fragment
-The standard error of the change, $SE(\Delta \bar y)$, accounts for the relationship between the two measurements when the same sites are visited. This is not straightforward to calculate by hand.
-:::
-
-::: fragment
-In practice, R handles these calculations using `t.test()`:
-
-- For same sites: `paired = TRUE`
-- For different sites: `paired = FALSE`
-:::
+- Same sites: `t.test(after, before, paired = TRUE)`
+- Different sites: `t.test(after, before, paired = FALSE)`
 
 ::: {.callout-tip}
 ## R connection
-`t.test()` with `paired = TRUE` performs a paired *t*-test — you will use this in Lab 02 to analyse monitoring data.
+`t.test()` with `paired = TRUE` performs a paired *t*-test. You will use this in Lab 02 to analyse monitoring data.
 :::
 
 
+
+## The farmer's journey
+
+Today we followed one farmer through four problems, and each problem needed a new statistical tool:
+
+1. **"How do I choose where to sample?"** → Simple random sampling
+2. **"How confident am I in the result?"** → Confidence intervals
+3. **"Can I get a better estimate?"** → Stratified random sampling
+4. **"Has anything changed?"** → Monitoring and paired comparisons
+
+Each concept built on the last. The same logic (estimate, quantify uncertainty, improve) runs through every sampling study you will encounter in this course.
 
 ## Thanks!
 ### Questions?

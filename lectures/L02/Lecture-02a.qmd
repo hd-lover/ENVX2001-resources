@@ -5,7 +5,8 @@ date: last-modified
 date-format: "MMM YYYY"
 author: Januar Harianto
 format:
-  ochre-revealjs: default
+  ochre-revealjs:
+    slide-number: true
   ochre-typst:
     fig-format: png
 # format: revealjs
@@ -30,21 +31,36 @@ theme_set(theme_cowplot())
 - [ ] **Population vs. sample**: the complete set vs. the subset we measure
 - [ ] **Parameters** ($\mu$, $\sigma$) vs. **statistics** ($\bar{x}$, $s$)
 - [ ] **Central tendency and spread**: mean, variance, standard deviation
-- [ ] **Standard error**: how precisely we estimate the mean — decreases with larger samples
-- [ ] **Confidence intervals** -- we will build on last week's introduction today
+- [ ] **Standard error**: how precisely we estimate the mean (decreases with larger samples)
+- [ ] **Confidence intervals**: we will build on last week's introduction today
 
 # Today
 
+Sampling designs... or why confidence intervals are important in stats
+
 ## By the end of today
+
+We will:
 
 1. Calculate and interpret confidence intervals for a population mean
 2. Compare simple random and stratified random sampling designs
 3. Determine how to estimate change over time using monitoring data
 
-# Observational studies
+# Soil carbon
 
-## Overview
+## Estimating soil carbon
 
+![](images/datastory.png)
+
+A farmer wants to estimate the average soil carbon on their property to apply for a carbon credit scheme. Their budget allows for 7 measurement sites.
+
+**Where should they sample, and how confident can they be in the result?**
+
+## Observational studies
+
+The farmer cannot change their land, so they measure it as it is. This makes their study an **observational study**.
+
+::: fragment
 :::: columns
 ::: {.column width="50%"}
 ### Observational study
@@ -59,13 +75,13 @@ theme_set(theme_cowplot())
 - E.g. clinical trials, field experiments
 :::
 ::::
+:::
 
-We focus on observational studies this week to understand how sampling studies work in practice.
+## Two types of observational study
 
-
-## Observational studies: two common types
-
-We do not manipulate anything — we measure what is already there.
+- Right now, the farmer is taking a single snapshot of their property, a **survey**.
+- Later, they might return to measure again over several years, a **monitoring study**.
+- We will come back to monitoring in the second half.
 
 ::: {.fragment}
 :::: columns
@@ -84,42 +100,26 @@ We do not manipulate anything — we measure what is already there.
 ::::
 :::
 
-## Sampling designs
+# Choosing where to sample
 
-A sampling design specifies the rules for how we select units from a population. There are several approaches — here are two common ones.
+## Simple random sampling
 
-### 1. Simple random sampling
+The farmer needs a plan for choosing their 7 sites. The simplest approach: **simple random sampling**.
+
 - Each unit has an equal chance of being selected.
 - **Randomly sample units from the entire population.**
 - *Like putting all names in a hat and drawing some out randomly.*
 
-
-## Sampling designs
-
-A sampling design specifies the rules for how we select units from a population. There are several approaches — here are two common ones.
-
-### 2. Stratified random sampling
-- The population is first divided into *strata* (groups with similar characteristics).
-- **Randomly sample units within each stratum using simple random sampling.**
-- *Like separating students by year level, then randomly selecting some from each year.*
-
-
-
-
-
-
 ## What is "random" sampling?
 
-::: fragment
-Random does **not** mean haphazard or arbitrary. In statistics, random sampling means every unit in the population has a known, non-zero chance of being selected.
-:::
+The farmer might be tempted to just walk to convenient spots, but that would bias the sample. Convenient locations are often atypical: near paths, buildings, or water sources.
 
 ::: {.fragment .fade-up}
 ### So what makes a sample truly "random"?
 :::
 
 ::: fragment
-Within a population, **all** units must have a probability greater than zero of being selected — that is, nothing can be excluded by design.
+Within a population, **all** units must have a probability greater than zero of being selected. Nothing can be excluded by design.
 
 - For **simple random sampling**, this probability is **equal** for every unit.
 - We call this probability the **inclusion probability**.
@@ -128,19 +128,44 @@ Within a population, **all** units must have a probability greater than zero of 
 ## How do we achieve random sampling?
 
 ::: fragment
-Random sampling requires a formal procedure — not just picking samples that "feel" representative.
+Random sampling requires a formal procedure, not just picking samples that "feel" representative.
 :::
 
 ::: fragment
 ### Tools for random selection
-- **Random number generator** -- for example, R's `sample()` function
-- **Random number table** -- a pre-generated list of random digits
+- **Random number generator**: for example, R's `sample()` function
+- **Random number table**: a pre-generated list of random digits
 - The selection method must be **reproducible** and **unbiased**
 :::
 
+::: fragment
+Using R's `sample()` function, the farmer randomly selects 7 grid cells from a map of their property.
+:::
 
-# Interpreting sampled data
+## The farmer collects data
 
+The farmer uses simple random sampling to select 7 grid cells, then measures soil carbon at each site.
+
+The measurements: 48, 56, 90, 78, 86, 71, 42 t/ha.
+
+```{r}
+#| code-fold: false
+soil <- c(48, 56, 90, 78, 86, 71, 42)
+soil
+```
+
+# How confident is the estimate?
+
+## The farmer's mean
+
+The farmer calculates the mean:
+
+```{r}
+#| code-fold: false
+mean(soil)
+```
+
+The result is 67.3 t/ha. But is this number the *true* average for the whole property?
 
 ## How much should we trust an estimate?
 
@@ -153,7 +178,7 @@ Should we trust them equally?
 ::: fragment
 
 ### The problem of a *single* estimate
-A single number on its own does not tell us anything about uncertainty. We need a way to combine our estimate with how precise it is — and that is what confidence intervals do.
+A single number on its own does not tell us anything about uncertainty. We need a way to combine our estimate with how precise it is. That is what confidence intervals do.
 :::
 
 # Confidence intervals
@@ -161,7 +186,7 @@ A single number on its own does not tell us anything about uncertainty. We need 
 
 ## Combining an estimate with its precision
 
-A **confidence interval (CI)** gives us a range of plausible values for the population parameter — not just a single best guess.
+A **confidence interval (CI)** gives us a range of plausible values for the population parameter, rather than a single best guess.
 
 It combines three things:
 
@@ -173,11 +198,11 @@ It combines three things:
 
 ### The three ingredients, formally
 
-1. [**Sample mean** ($\bar{x}$)]{style="color: #e64626;"} — our estimate of the population parameter
+1. [**Sample mean** ($\bar{x}$)]{style="color: #e64626;"}: our estimate of the population parameter
 
-2. [**Standard error of the mean** ($SE_{\bar{x}} = s / \sqrt{n}$)]{style="color: #e64626;"} — how precise that estimate is
+2. [**Standard error of the mean** ($SE_{\bar{x}} = s / \sqrt{n}$)]{style="color: #e64626;"}: how precise that estimate is
 
-3. [**Critical value** ($t_{n-1}$)]{style="color: #e64626;"} — from the *t*-distribution at our chosen confidence level (e.g. 95%). We use *t* rather than the normal distribution because we estimate $\sigma$ from the sample.
+3. [**Critical value** ($t_{n-1}$)]{style="color: #e64626;"}: from the *t*-distribution at our chosen confidence level (e.g. 95%). We use *t* rather than the normal distribution because we estimate $\sigma$ from the sample.
 
 ## CI formula
 
@@ -187,7 +212,7 @@ $$
 \bar{x} \pm \left(t_{n-1} \times \frac{s}{\sqrt{n}}\right)
 $$
 
-The $t_{n-1} \times SE_{\bar{x}}$ part is the **margin of error** — the "plus or minus" value you often see in survey results (±3%).
+The $t_{n-1} \times SE_{\bar{x}}$ part is the **margin of error**, the "plus or minus" value you often see in survey results (±3%).
 
 ::: fragment
 To use this formula, we need to understand two things: **degrees of freedom** and the ***t*-distribution**.
@@ -195,33 +220,38 @@ To use this formula, we need to understand two things: **degrees of freedom** an
 
 ## Degrees of freedom
 
-The number of values in a sample that are free to vary while still maintaining the same statistic.
+The farmer estimated one thing from their sample: the mean. That uses up one **degree of freedom**:
 
 $$
 \text{df} = n - 1
 $$
 
-where $n$ is the sample size.
+For the farmer: $df = 7 - 1 = 6$. This number determines which *t*-distribution we use, and therefore how wide the CI is.
 
 ::: fragment
-### Example
+### Why $n - 1$?
 Imagine you have 4 numbers with a mean of 5:
 
 - You can freely choose the first three numbers: 3, 10, and 7
-- But the fourth number MUST be 0 to make the mean equal 5
-  - (3 + 10 + 7 + 0) ÷ 4 = 5
+- But the fourth number MUST be 0 to make the mean equal 5: $(3 + 10 + 7 + 0) \div 4 = 5$
 - So only 3 numbers ($n - 1$) can be freely chosen = 3 degrees of freedom
 :::
 
-## The *t*-distribution and critical value
+## Why not use the normal distribution?
 
-The *t*-distribution accounts for uncertainty when estimating from small samples. It looks like the normal "bell curve" but with **heavier tails** — more probability in the extremes.
+The farmer only has 7 samples, so they do not know the true population standard deviation. They have to estimate it from the sample, and that adds uncertainty.
 
-- With few samples (small $n$), the *t*-distribution is wider (more uncertainty)
-- As sample size increases, it approaches the normal distribution
-- The **critical value** $t_{n-1}$ comes from this distribution and determines how wide the CI is
+The *t*-distribution accounts for this extra uncertainty. It has **heavier tails** than the normal, meaning more probability in the extremes.
+
+::: incremental
+- The farmer's $df = 6$ gives a critical value of **2.447** (compared to 1.96 from the normal)
+- This makes the CI wider, which is more honest about how uncertain a small sample really is
+- With larger samples, the *t* and normal distributions converge, and the difference stops mattering around $n = 30$
+:::
 
 ## The *t*-distribution in action
+
+The solid curve is the *t*-distribution; the dashed curve is the normal. At $df = 6$ (the farmer's case), the tails are noticeably heavier. As $df$ increases, the two curves converge.
 
 ![](images/t-distribution.gif){fig-align="center"}
 
@@ -287,29 +317,34 @@ A confidence interval is like a fishing net:
 - A spear (single point estimate) is *less* likely to catch the fish
 - The net width represents our uncertainty about the true value
 
-Of course, the true value does not move — it is our interval that shifts from sample to sample.
+Of course, the true value does not move. It is our interval that shifts from sample to sample.
 
 **Common misunderstanding**: A 95% CI does NOT mean there is a 95% chance the true value is inside the interval. It means that if you took 100 different samples and built 100 different CIs, about 95 of them would contain the true value.
 
+## What does 95% confidence look like?
 
-
-# Data story: soil carbon
-## Soil carbon
-
-![](images/datastory.png)
-
-A farmer wants to estimate the average soil carbon across their property. Budget allows for only 7 sites, so we use simple random sampling.
-
-The measurements: 48, 56, 90, 78, 86, 71, 42 t/ha.
-
-```{r}
-soil <- c(48, 56, 90, 78, 86, 71, 42)
-soil
+```{=html}
+<style>
+#what-does-95-confidence-look-like .cell-output-display {
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+</style>
 ```
 
-**What is the mean soil carbon content and how confident are we in this estimate?**
+```{ojs}
+//| echo: false
+import { ciCoverageWidget } from "../../assets/js/ci-widget.js"
+ciCoverageWidget()
+```
 
-## Mean and 95% CI
+Each click draws a new random sample from the population, computes a 95% CI, and checks whether it captures the true mean.
+
+
+## The farmer's 95% confidence interval
+
+Applying the CI formula to the farmer's data:
 
 ::: incremental
 1. Mean: $\bar{x} \approx 67.3$ t/ha
@@ -321,7 +356,7 @@ soil
 ::: fragment
 We report: **67.3 t/ha with a 95% CI of (49.87, 84.73).**
 
-The interval is wide — about ±26% of the mean — so there is quite a bit of uncertainty in our estimate.
+The interval is wide (about ±26% of the mean), so there is quite a bit of uncertainty in our estimate.
 :::
 
 ## In R
@@ -336,24 +371,41 @@ ci <- mean_soil + c(-1, 1) * (t_crit * se_soil)
 ci
 ```
 
-Most statistical functions in R already compute confidence intervals because of how central they are to inference. Understanding the manual calculation is still important — it is what these functions do behind the scenes.
+Most statistical functions in R already compute confidence intervals. Understanding the manual calculation is still important because it is what these functions do behind the scenes.
 
-::: {.callout-tip}
-## R connection
-`mean()`, `sd()`, and `qt()` are the key functions for CI calculations — you will use them in Lab 02.
-:::
 
-## Questions
+## Where does this leave us?
 
-- Our margin of error is about 17.43 t/ha. Is that precise enough?
-- What drives CI width — sample size, variability, or both?
-- **Can we do better with a smarter sampling design?**
+The CI is too wide for the farmer to qualify for carbon credits (perhaps). What drives CI width: sample size, variability, or both?
 
-# Break (10-15 minutes)
-*When we return, we will explore stratified random sampling, and how dividing our sampling area into meaningful groups can improve our precision.*
+**Can we do better with a different sampling design?**
+
+## What drives CI width?
+
+```{=html}
+<style>
+#what-drives-ci-width .cell-output-display {
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+</style>
+```
+
+```{ojs}
+//| echo: false
+import { ciWidthWidget } from "../../assets/js/ci-widget.js"
+ciWidthWidget()
+```
+
+
+Increasing sample size (if possible) would be the most straightforward way to reduce the CI width. However, the farmer only has budget for 7 sites. Can we reduce the variability instead?
+
+# Break (10–15 minutes)
+
 
 ## Thanks
-This presentation is based on the [SOLES Quarto reveal.js template][soles-revealjs] and is licensed under a [Creative Commons Attribution 4.0 International License][cc-by] 
+This presentation is based on the [SOLES Quarto reveal.js template][soles-revealjs] and is licensed under a [Creative Commons Attribution 4.0 International License][cc-by]
 
 
 <!-- Links -->
