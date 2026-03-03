@@ -124,12 +124,7 @@ t.test(possum$earconch)
 
 `t.test()` output showing mean ≈ 48.1 mm, 95% CI ≈ [47.3, 48.9].
 
-#### Common issues
 
-::: {.callout-warning}
-**Students skip ahead.**
-Some students will jump straight to Part B. That is fine — the point of Part A is to set up the contrast. If they have already seen the split, ask them to articulate why the pooled estimate is misleading.
-:::
 
 
 ### Part B --- Split by population
