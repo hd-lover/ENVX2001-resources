@@ -40,7 +40,7 @@ We can check the first two from the data. Independence comes from the study desi
 The diagnostics are the same whether we fit a *t*-test or an ANOVA. Run each block and the tutor will walk through the output.
 
 ::: {.column-margin}
-The `sleep` dataset records the change in hours of sleep for 20 patients across two drug groups. It is built into R, so no file download is needed.
+The `sleep` dataset records the change in hours of sleep for 10 patients under two drug treatments (20 observations total). It is built into R, so no file download is needed.
 :::
 
 ::: {.panel-tabset}
