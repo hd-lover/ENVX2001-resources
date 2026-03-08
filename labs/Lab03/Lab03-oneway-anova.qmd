@@ -1,113 +1,137 @@
 ---
 title: Lab 03
 # revised-by:
+subtitle: ENVX2001 Applied Statistical Methods
+description: The University of Sydney
+toc: true
+toc-depth: 3
 resources:
   - data/diatoms.xlsx
+  - data/chick_marigold.xlsx
+  - data/lambs.csv
 ---
 
-In this week's lab we will work through the experimental design workflow for a one-way ANOVA.
+# Welcome!
 
-## Learning outcomes
-In this lab, you will work towards achieving learning outcomes...
-
-### Lab objectives
-At the end of the lab, students should be able to:
-
-- Understand the workflow involved in conducting a one-way Analysis of Variance (ANOVA), including data exploration, model fitting, and interpretation of results.
-- Analyse an experiment with a 1-way ANOVA and interpret the results.
-- Explain situations when a 2-sample t-test gives the same results as a 1-way ANOVA.
-
-## Prerequisites
-
-The following packages are used for this lab: `readxl`, `ggplot2`, `dplyr` and `tidyr`. To install these packages, run the following code **in the console**.
-
-```r
-install.packages(c("readxl", "ggplot2", "dplyr", "tidyr"))
-```
+This week we will analyse diatom diversity in streams, compare comb weights in chicks, and test immunoglobulin levels across lamb breeds using one-way ANOVA.
 
 You will come across two types of tasks in this lab. **Worked Examples** have solutions you can expand and check straight away. **Exercises** do not --- solutions for these will be posted on Friday evening.
 
-## Exercise 1 -- diatoms
+As always, don't forget to take regular breaks in between sections. A good rule of thumb is to work for 20-25 minutes, then take a 5-minute break. This will help you stay focused and avoid burnout.
 
+## Learning outcomes
 
-Medley & Clements (1998) sampled 34 locations along streams for diversity of diatoms. Each site was classified according to the Zn concentration in the water. There were 4 classes; background, low, medium and high. Were there *differences* between each of the groupings in term of diatom diversity? Let's find out.
+In this lab, we will learn how to:
 
+1. Explore grouped data using summary statistics and graphical summaries.
+2. Fit a one-way ANOVA using `aov()` and interpret the ANOVA table.
+3. Perform post-hoc comparisons using `emmeans`.
+4. Explain when a two-sample *t*-test gives the same results as a one-way ANOVA.
 
-::: {.question}
+## Specific goals
 
-### Worked Example 1 -- Data import
-Import the `Diatoms` worksheet from the `diatoms.xlsx` file into R. 
+By the end of this lab, you should be able to:
 
-If you have difficulty with this step, see the [data import guide](../tutorials/data-import.html).
+- [ ] Convert character variables to factors using `as.factor()`
+- [ ] Calculate group means and standard deviations
+- [ ] Produce boxplots for grouped data
+- [ ] Fit a one-way ANOVA and read the output table
+- [ ] Use `emmeans` for post-hoc testing
+- [ ] Compare *t*-test and ANOVA results for a two-group design
+
+## Preparation
+
+This lab uses `tidyverse`, `readxl`, and `emmeans`. Install any you are missing by running the following **in the console**:
 
 ```r
+install.packages(c("tidyverse", "readxl", "emmeans"))
+```
+
+### Downloads
+
+| File | Used in | Download |
+|---|---|---|
+| `diatoms.xlsx` | Sections 1--2 | [Download](data/diatoms.xlsx) |
+| `chick_marigold.xlsx` | Section 3 | [Download](data/chick_marigold.xlsx) |
+| `lambs.csv` | Section 4 | [Download](data/lambs.csv) |
+
+Save all files into a folder called `data` inside your project folder.
+
+
+# 1. Exploring diatom diversity (~15 min)
+
+Coal miners once carried canaries underground as indicators of air toxicity. Diatoms are the freshwater equivalent, acting as bioindicators whose diversity changes with water quality. Medley and Clements (1998) surveyed 34 streams in the Rocky Mountains of Colorado, where decades of mining had left zinc leaching into the water, and counted diatom species at each site. Does zinc contamination reduce diatom diversity?
+
+## Getting started
+
+Let us warm up. This section is a quick refresher on data import, summary statistics, and plotting and should be straightforward if you have been following the labs in the past couple of weeks. If you have any questions, ask your tutor or post on Ed Discussion.
+
+::: {.question}
+### Worked Example 1
+
+Import the `Diatoms` worksheet from `diatoms.xlsx`, check the data structure with `str()`, and convert the character variables `Zinc` and `Stream` to factors. Use the code chunk below as a template for your own report.
+
+::: {.column-margin}
+If you have difficulty importing, see the [data import guide](../tutorials/data-import.html).
+:::
+
+```r
+library(tidyverse)
 library(readxl)
 
-# You will need to look at the Excel file and work out 
-# the correct worksheet name and range:
+# Look at the Excel file to work out the worksheet name and range:
 diatoms <- read_excel(
-    path = "diatoms.xlsx",
+    path = "data/diatoms.xlsx",
     sheet = ...,
     range = ...
 )
-```
 
+str(diatoms)
+
+# Convert character variables to factors:
+diatoms <- diatoms |>
+    mutate(
+        Zinc = as.factor(Zinc),
+        Stream = as.factor(Stream)
+    )
+```
 
 :::
 
+::: {.callout-tip collapse="true"}
+### Solution
+
+```r
+library(tidyverse)
+library(readxl)
+
+diatoms <- read_excel(
+    path = "data/diatoms.xlsx",
+    sheet = "Diatoms",
+    range = "A1:D35"
+)
+
+str(diatoms)
+
+diatoms <- diatoms |>
+    mutate(
+        Zinc = as.factor(Zinc),
+        Stream = as.factor(Stream)
+    )
+```
+:::
 
 ```{r}
-#| echo: false
 #| include: false
 
-# Don't remove this code chunk, it is loaded silently
+library(tidyverse)
 library(readxl)
 diatoms <- read_excel(
     path = "data/diatoms.xlsx",
     sheet = "Diatoms",
     range = "A1:D35"
 )
-```
-
-
-### Workflow 
-We will briefly go through a typical analytical workflow which involves data exploration, model fitting, checking of model assumptions[^assump] and interpretation of the results.
-
-[^assump]: Assumptions will be covered formally next week when we look at model residuals.
-
-### Data exploration 
-
-#### Data structure 
-Checking the structure of the data is the first step in any data analysis. This is done using the `str()` function in R.
-
-```r
-str(diatoms)
-```
-
-Of particular interest are the variables `Stream` and `Zinc`, which have been classified as characters (`chr`).
-
-```{r}
-#| output: true
-#| echo: false
-str(diatoms)
-```
-
-These variables are most likely factors and should be converted to such. This can be done using `as.factor()`.
-
-```{r}
-#| output: true
-diatoms$Zinc <- as.factor(diatoms$Zinc)
-diatoms$Stream <- as.factor(diatoms$Stream)
-```
-
-
-
-::: callout-tip
-**The `tidyverse` approach** -- We can use the `mutate()` function to convert the `Zinc` and `Stream` variables to factors.
-
-```r
-library(dplyr)
-diatoms <- diatoms %>%
+diatoms <- diatoms |>
     mutate(
         Zinc = as.factor(Zinc),
         Stream = as.factor(Stream)
@@ -115,561 +139,423 @@ diatoms <- diatoms %>%
 ```
 
 
+## Exploring the data
+
+Before running any formal test, it helps to look at summary statistics and plots to see what patterns emerge.
+
+::: {.question}
+### Exercise 1
+
+Calculate the mean and standard deviation of `Diversity` for each level of `Zinc`. What do the values suggest about differences between groups?
 :::
 
-We can then check if the conversion was successful by using the `str()` function again.
+
+:::: {.content-visible when-profile="solution"}
+::: {.ans}
+#### Solution
 
 ```{r}
-#| output: true
-
-str(diatoms)
-```
-
-
-#### Summary statistics
-
-Use `summary()` for a quick overview of common statistical measures for each variable in the data frame. However it is not informative when we are interested in differences between groups or factors as it only gives the summary statistics for the entire data set.
-
-```{r}
-#| output: true
-
-summary(diatoms)
-```
-
-
-
-It is more useful to calculate summary statistics for each level of Zn contamination, as we are interested in differences between the mean of each group.
-
-We can use the `tapply()` function to calculate the mean and standard deviation for each level of `Zinc`. This has to be done separately for each summary statistic (mean and standard deviation).
-
-The general structure of the `tapply()` function is 3 arguments which are described below based on the code above:
-
-- the response variable on which we wish to apply the function, `diatoms$Diversity`;
-- the categorical variable which indicates the groups we wish to separately apply the function to, `diatoms$Zinc`;
-- the function we are using, `mean()`.
-
-```{r}
-#| output: true
-
-tapply(
-    X = diatoms$Diversity,
-    INDEX = diatoms$Zinc,
-    FUN = mean
-)
-tapply(
-    X = diatoms$Diversity,
-    INDEX = diatoms$Zinc,
-    FUN = sd
-)
-```
-
-::: callout-tip
-**The `tidyverse` approach** -- Use the `group_by()` and `summarise()` functions to calculate the mean and standard deviation for each level of `Zinc`. The code is longer, but readable as you can see the sequence of operations.
-
-```r
-diatoms %>%
-    group_by(Zinc) %>%
+diatoms |>
+    group_by(Zinc) |>
     summarise(
         mean = mean(Diversity),
         sd = sd(Diversity)
     )
 ```
+
+The mean diversity for the `HIGH` zinc level is noticeably lower than the other groups, suggesting that high zinc concentrations may reduce diatom diversity. The standard deviations are fairly uniform (ratio of largest to smallest is less than 2), so the assumption of constant variance appears reasonable.
 :::
+::::
 
+Even before doing any formal statistics, summary statistics are useful decision tools. If the means are very different and the standard deviations are small, we might already have a good idea that there are differences between groups, and knowing the distribution of the data can help us decide which test to use and how to check assumptions.
 
-#### Graphical summaries 
+However, numbers alone can be hard to interpret. This is where plotting comes in to present the data in a more intuitive way. A boxplot is a good choice for grouped data, as it shows the median, interquartile range, and potential outliers.
 
-Numerical summaries are nice, but visual summaries are often more informative and are the **summary of choice** for publication. They can also help us to check the assumptions of the statistical test (although sometimes this is not possible until we have fitted the model). 
-
-In the case of ANOVA model we are interested in the distribution of the response variable for each level of the factor. The table below gives heuristic rules about which graphical summary to use based on the number of observations. 
-
-```{r}
-#| echo: false
-#| output: true
-observations <- c("1-5", "6-20", "20 or more")
-graphics <- c("plot raw data", "boxplot", "histogram")
-command <- c(
-    "`stripchart()` or `geom_jitter()`",
-    "`boxplot()` or `geom_boxplot()`",
-    "`hist()` or `geom_histogram()`"
-)
-gdata <- cbind(observations, graphics, command)
-knitr::kable(gdata)
-```
-
-We will show examples of both the histogram and boxplot for the diatom data. We recommend that you use `ggplot2` for your graphical summaries as it is more flexible and has a more consistent syntax than base R graphics. However, we will show both approaches here.
-
-##### Histogram As there are less than 10 observations per group the histogram may not be very informative. However, it may still be useful for checking the normality of the data. You may be able to see the limitations of the histogram for small sample sizes.
-
-::: callout-tip
-
-To calculate the number of observations per group:
-
-```r
-tapply(
-    X = diatoms$Diversity,
-    INDEX = diatoms$Zinc,
-    FUN = length
-)
-```
-
-:::
-
-
-::: panel-tabset
-## ggplot2
-
-```{r}
-#| output: true
-
-library(ggplot2)
-ggplot(diatoms, aes(x = Diversity)) +
-    geom_histogram(binwidth = .3) +
-    facet_wrap(~Zinc)
-```
-
-## base R (no loops)
-
-```{r}
-#| output: true
-
-par(mfrow = c(2, 2))
-hist(
-    x = diatoms$Diversity[diatoms$Zinc == "BACK"],
-    main = "Zinc: BACK",
-    xlab = "Diversity"
-)
-hist(
-    x = diatoms$Diversity[diatoms$Zinc == "HIGH"],
-    main = "Zinc: HIGH",
-    xlab = "Diversity"
-)
-hist(
-    x = diatoms$Diversity[diatoms$Zinc == "LOW"],
-    main = "Zinc: LOW",
-    xlab = "Diversity"
-)
-hist(
-    x = diatoms$Diversity[diatoms$Zinc == "MED"],
-    main = "Zinc: MED",
-    xlab = "Diversity"
-)
-```
-
-## base R (loops)
-
-```{r}
-#| output: true
-
-par(mfrow = c(2, 2))
-for (i in levels(diatoms$Zinc)) {
-    hist(
-        x = diatoms$Diversity[diatoms$Zinc == i],
-        main = paste("Zinc:", i),
-        xlab = "Diversity"
-    )
-}
-```
-
-:::
-
-
-##### Boxplot A more appropriate plot for this data is the boxplot. If we want to format the plot for publication we should make the plot clear by adding axis labels and a figure caption.
-
-::: panel-tabset
-## base R
-
-```{r fig-diatom1}
-#| output: true
-#| fig-cap: Boxplot of diatom diversity by Zinc concentration.
-#| cap-location: bottom
-
-boxplot(
-    Diversity ~ Zinc,
-    data = diatoms,
-    ylab = "Diversity",
-    xlab = "Zinc concentration"
-)
-```
-
-## ggplot2
-
-```{r fig-diatom2}
-#| output: true
-#| fig-cap: Boxplot of diatom diversity by Zinc concentration.
-#| cap-location: bottom
-
-ggplot(diatoms, aes(x = Zinc, y = Diversity)) +
-    geom_boxplot() +
-    ylab("Diversity") +
-    theme_minimal(base_size = 12)
-```
-
-:::
-
-::: {.question}
-### Exercise 1
-
-What can you say about the the different levels of Zinc from looking at the mean and standard deviation values when running the following?
-
-```r
-tapply(
-    X = diatoms$Diversity,
-    INDEX = diatoms$Zinc,
-    FUN = mean
-)
-
-tapply(
-    X = diatoms$Diversity,
-    INDEX = diatoms$Zinc,
-    FUN = sd
-)
-```
-:::
-
-::: {.content-visible when-profile="solution"}
-::: {.ans}
-### Solution
-
-The mean diatom diversity for the `HIGH` level of Zn concentration is much smaller than the other groupings indicating that there is something happening, more formal hypothesis testing is needed to determine whether this is significant.
-
-In terms of the variance of each group these are quite uniform.
-
-Note: the assumption of constant variance (more on this next week) is likely to be met. For example, the ratio of the largest standard deviation to the smallest standard deviation (0.503/0.427) is less than 2.
-:::
-:::
-
-
+##
 ::: {.question}
 ### Exercise 2
 
-Can you interpret and describe the boxplot above?
+Produce a boxplot of `Diversity` grouped by `Zinc`. Add appropriate axis labels. What does the plot tell you about differences between groups?
 :::
 
-::: {.content-visible when-profile="solution"}
+::: {.column-margin}
+With fewer than 10 observations per group, boxplots are often more informative than histograms.
+:::
+
+:::: {.content-visible when-profile="solution"}
 ::: {.ans}
-### Solution
-- Based on the median values the smallest diversity is associated with the `HIGH` level of Zn concentration.
-- The $Q_1$ and $Q_3$ (the "box part") for the `HIGH` level of Zn do not overlap with the others levels of Zn, but the boxes overlap with each other for the other levels. This is some initial evidence that it will be likely that all the different levels of Zn will have the same diversity with the exception of the `HIGH` level of Zn.
-:::
-:::
-
-
-### Model fitting 
-A 1-way ANOVA involves one treatment (or grouping) factor.  The model we are fitting is:
-
-$$y_{i,j} =\mu_i+\epsilon_{i,j}$$
-
-where:
-
-1. $y_{i,j}$ is the response for observation *j* in treatment (or group) *i*,
-2. $\mu_j$ is the mean of treatment (or group) *i*,
-3. $\epsilon_{i,j}$ is the residual term which is an independent random variable that has a mean of 0, constant variance and is normally distributed.  This can be expressed shorthand as $\sim N(0,\sigma_2)$.  The residual MS estimates $\sigma_2$.
-
-The statistical hypotheses we are testing are:
-
-$$H_{0}: \mu_1 = \mu_2 = ... \mu_t$$
-$$H_{1}: \text{not all } \mu_j \text{ are equal}$$
-
-where $\mu_j$ is the mean diatom diversity for each level of Zn concentration.
-
-The code below fits the ANOVA model using the `aov()` function and saves the it to an object called `anova.diatoms`.  We can then extract the ANOVA table using the `summary` function.
-
+#### Solution
 
 ```{r}
-#| output: true
-anova.diatoms <- aov(formula = Diversity ~ Zinc, data = diatoms)
+#| label: fig-diatom-boxplot
+#| fig-cap: Boxplot of diatom diversity by zinc concentration.
+
+ggplot(diatoms, aes(x = Zinc, y = Diversity)) +
+    geom_boxplot() +
+    labs(x = "Zinc concentration", y = "Diversity")
+```
+
+- The median diversity for the `HIGH` zinc group is noticeably lower than the other groups.
+- The boxes (Q1 to Q3) for the `HIGH` group do not overlap with those of the other groups, but the remaining groups overlap with each other. This is initial evidence that high zinc concentration is associated with lower diatom diversity.
+:::
+::::
+
+
+Take this opportunity to explore the data further if you like. You could make a histogram of the `Diversity` values within each `Zinc` group, or calculate other summary statistics such as the range or interquartile range. The more you understand the data before fitting a model, the better you will be able to interpret the results and check assumptions.
+
+Once you are done, take a quick break. It is important to step away from the screen regularly.
+
+# 2. Testing for differences (~25 min)
+
+We noticed (hopefully) in Section 1 that the `HIGH` zinc group has lower diatom diversity than the others. But is that difference real, or could it be random variation? A one-way ANOVA will test this formally.
+
+## The ANOVA model
+
+A one-way ANOVA tests whether the means of several groups are all equal. The model is:
+
+$$y_{i,j} = \mu_i + \varepsilon_{i,j}$$
+
+where $y_{i,j}$ is the diversity for observation $j$ in zinc group $i$, $\mu_i$ is the mean of group $i$, and $\varepsilon_{i,j}$ is the residual.
+
+The hypotheses are:
+
+$$H_0: \mu_1 = \mu_2 = \ldots = \mu_t$$
+$$H_1: \text{not all } \mu_i \text{ are equal}$$
+
+::: {.column-margin}
+We will cover model assumptions formally next week when we look at residual diagnostics.
+:::
+
+## Fitting the model
+
+In general, we "fit a model" when we test hypotheses, because models explain the relationships between data in a manner that is more flexible than fitting mathematical equations.
+
+::: {.question}
+### Worked Example 2
+
+Fit a one-way ANOVA to test whether diatom diversity differs across zinc levels. Use `aov()` to fit the model and `summary()` to view the ANOVA table. Try to interpret the ANOVA table before looking at the solution below.
+
+::: {.column-margin}
+The general formula is `aov(response ~ group, data = ...)`.
+:::
+
+:::
+
+::: {.callout-tip collapse="true"}
+### Solution
+
+```{r}
+anova.diatoms <- aov(Diversity ~ Zinc, data = diatoms)
 summary(anova.diatoms)
 ```
 
-### Assumptions and interpretation of results 
-The assumptions of the ANOVA model are:
+The ANOVA table shows:
 
-- The residuals are independent,
-- The residuals are normally distributed,
-- The residuals have constant variance.
+- **Df**: degrees of freedom. Treatment df = number of groups minus 1 (4 − 1 = 3). Residual df = total observations minus number of groups (34 − 4 = 30).
+- **Sum Sq**: how much variation is explained by the grouping (Zinc) versus left unexplained (Residuals).
+- **Mean Sq**: Sum Sq divided by Df. This gives the average variation per degree of freedom.
+- **F value**: the ratio of treatment Mean Sq to residual Mean Sq. A large F suggests that group differences are bigger than random noise.
+- **Pr(>F)**: the P-value. If this is below 0.05, we reject $H_0$.
+:::
 
-Based on the boxplots and histograms during data exploration, the assumptions of normality and equal variances are met. We will discuss assumptions again in greater detail next week when we start to look at residuals.
+## Interpreting the results
 
-**We can only interpret the results of the ANOVA model if the assumptions are met.** We can report the results the following way:
+The assumptions of the ANOVA (normality, equal variances, independence) appear reasonable based on our exploration in Section 1. The standard deviations were similar across groups, and nothing in the boxplot suggested serious departures from normality.
 
-> **Reporting**: The results indicate that there are significant differences between the levels of Zn concentration in terms of diatom diversity (*F* = 3.9, *df* = 3, 30, *P* = 0.02).
+**However**, we should always formally check the assumptions by looking at model residuals. We will cover this in more detail next week, but here is a quick look at normality and equal variance using the approach from Tutorial 3.
 
-### Post-hoc testing 
-The ANOVA test only tells us that there are differences between the groups, but it does not tell us which groups are different. We can use the `emmeans` package to perform post-hoc testing. 
+::: {.panel-tabset}
+
+### QQ plot
 
 ```{r}
-#| output: true
+#| label: fig-diatom-qq
+#| fig-cap: "Normal QQ plot of residuals from the diatom ANOVA model."
 
+qqnorm(residuals(anova.diatoms), main = "")
+qqline(residuals(anova.diatoms), col = "red")
+```
+
+### Shapiro-Wilk test
+
+```{r}
+shapiro.test(residuals(anova.diatoms))
+```
+
+:::
+
+The QQ plot shows points falling roughly along the line, and the Shapiro-Wilk test is not significant (*P* > 0.05), so normality is reasonable. We already checked the SD ratio in Section 1 and found it was below 2, supporting equal variances.
+
+::: {.question}
+### Exercise 3
+
+Based on the ANOVA output from Worked Example 2, is there a significant difference in diatom diversity across zinc levels? Write a one-sentence reporting statement that includes the F statistic, degrees of freedom, and P-value.
+:::
+
+::: {.column-margin}
+A reporting statement typically follows this pattern: "There was a significant difference in [response] across [groups] (*F* = ..., *df* = ..., *P* = ...)."
+:::
+
+:::: {.content-visible when-profile="solution"}
+::: {.ans}
+#### Solution
+
+There are significant differences between the levels of zinc concentration in terms of diatom diversity (*F* = 3.9, *df* = 3, 30, *P* = 0.02).
+:::
+::::
+
+## Post-hoc comparisons
+
+The ANOVA tells us that at least one group mean differs from the others, but not which ones. We use post-hoc testing to find out.
+
+::: {.question}
+### Worked Example 3
+
+Use the `emmeans` package to compute estimated marginal means and their confidence intervals for each zinc level. Then visualise the results with `plot()`.
+
+::: {.column-margin}
+`emmeans(model, "factor_name")` takes a fitted model and the name of the grouping variable.
+:::
+
+:::
+
+::: {.callout-tip collapse="true"}
+### Solution
+
+```{r}
 library(emmeans)
 posthoc <- emmeans(anova.diatoms, "Zinc")
 posthoc
 ```
 
-The output of the `emmeans` function gives us the estimated marginal means for each level of `Zinc` and the 95% confidence intervals. The confidence intervals for the `HIGH` level of Zn concentration do not overlap with the other levels of Zn concentration, indicating that the `HIGH` level of Zn concentration is significantly different from the other levels.
-
-> **Reporting**: The post-hoc test indicates that the `HIGH` level of Zn concentration is significantly different from the other levels of Zn concentration. There are no other significant differences.
-
-We can visualise the results of the post-hoc testing using the `plot` function, if you prefer a visual representation.
+The output shows the estimated mean diversity for each zinc level, along with the standard error and 95% confidence interval. Groups whose confidence intervals do not overlap are likely to be significantly different.
 
 ```{r}
-#| output: true
 plot(posthoc)
 ```
+:::
+
+##
+::: {.question}
+### Exercise 4
+
+Based on the `emmeans` output from Worked Example 3, which zinc levels differ from each other? How can you tell from the confidence intervals?
+:::
+
+:::: {.content-visible when-profile="solution"}
+::: {.ans}
+#### Solution
+
+The 95% confidence interval for the `HIGH` zinc level does not overlap with the confidence intervals of the other levels (BACK, LOW, MED). This indicates that the `HIGH` group has significantly lower diatom diversity. The confidence intervals for BACK, LOW, and MED overlap with each other, so we cannot conclude that they differ.
+:::
+::::
 
 
-## Exercise 2 -- chicks
-
-An experiment was designed to compare 15-day mean comb weights (g) of two lots of male chicks, one receiving sex hormone A (testosterone), the other C (dehydroandrosterone). While we usually analyse these data by using a (pooled) two-sample t-test, a single factor analysis of variance approach could be used (with two levels of the treatment factor). We will compare the results from both analyses.
-
-The data is found in the *Comb* worksheet of the `chick_marigold.xlsx` file. Download it below:
+**Now is a good time to take a 5-minute break.**
 
 
-Read the data and save it as `comb`. It should look like below:
+# 3. Comparing *t*-tests and ANOVA (~20 min)
+
+So far we have used ANOVA on data with four groups. But what happens when there are only two? In Lecture 03a we learned the two-sample *t*-test, and in Lecture 03b we learned ANOVA. This section shows they give the same answer when there are two groups.
+
+An experiment compared 15-day mean comb weights (g) of male chicks receiving one of two hormones: A (testosterone) or C (dehydroandrosterone). With only two groups, we could use either a pooled two-sample *t*-test or a one-way ANOVA.
+
+## The data
+
+Read the *Comb* worksheet from `chick_marigold.xlsx` and convert `Hormone` to a factor:
 
 ```{r}
-#| include: false
-
-comb <- readxl::read_excel("data/chick_marigold.xlsx", sheet = "Comb")
-```
-
-```{r}
-#| output: true
+comb <- read_excel("data/chick_marigold.xlsx", sheet = "Comb") |>
+    mutate(Hormone = as.factor(Hormone))
 comb
 ```
 
-
-::: {.question}
-### Exercise 3
-
-Perform some checks to verify the two-sample t-test (or one-way ANOVA) is appropriate, i.e. investigate the shape of the distributions, and the standard deviations.
-:::
-
-
-::: {.content-visible when-profile="solution"}
-::: {.ans}
-### Solution
-
-```{r}
-library(readxl)
-combs <- read_excel("data/chick_marigold.xlsx", sheet = "Comb")
-str(combs)
-combs$Hormone <- as.factor(combs$Hormone)
-```
-
-```{r}
-aggregate(CombWt ~ Hormone, summary, data = combs)
-aggregate(CombWt ~ Hormone, sd, data = combs)
-boxplot(CombWt ~ Hormone, ylab = "Comb weight (g)", data = combs)
-```
-
-Descriptive statistics and boxplot would indicate that the two-sample t-test (or one-way ANOVA) would be appropriate as they appear to meet model assumptions of normality and equal variance.
-:::
-:::
-
-
-::: {.question}
-### Exercise 4
-In R, perform a 2-sample t-test using the `t.test()` function, and use the `var.equal = TRUE` argument to ensure a standard 2-sample t-test is performed. Interpret the output.
-:::
-
-
-::: {.content-visible when-profile="solution"}
-::: {.ans}
-### Solution
-
-```{r}
-t.test(CombWt ~ Hormone, var.equal = TRUE, data = combs)
-```
-
-- The t-test (*t* = 3.38, *df* = 20, *P* = 0.003) indicates that the means are significantly different, with the chicks given Hormone A (mean = 97 g) having a significantly higher weight than those given Hormone C (mean 56 g).
-- The estimated difference is 41 g, but the 95% CI for this estimate is between 15.7 and 66.3 g (A above C).
-- Since this 95% CI does not include zero, this also indicates the means differ significantly.
-:::
-:::
-
-
+##
 ::: {.question}
 ### Exercise 5
 
-Next, perform a one-way ANOVA using the `aov` function, followed by `summary`, and interpret the results.
+Before running any test, check whether the assumptions of normality and equal variance are reasonable. Produce a boxplot and calculate the standard deviations for each hormone group.
 :::
 
-::: {.content-visible when-profile="solution"}
+:::: {.content-visible when-profile="solution"}
 ::: {.ans}
-### Solution
+#### Solution
 
 ```{r}
-combs.aov <- aov(CombWt ~ Hormone, data = combs)
-summary(combs.aov)
+ggplot(comb, aes(x = Hormone, y = CombWt)) +
+    geom_boxplot() +
+    labs(x = "Hormone", y = "Comb weight (g)")
 ```
 
-The results (*F* = 11.4, *df* = 1, 20, *P* = 0.003) indicates that the means are significantly different, with the chicks given Hormone A (mean = 97 g) having a significantly higher weight than those given Hormone C (mean 56 g).
-:::
-:::
+```{r}
+comb |>
+    group_by(Hormone) |>
+    summarise(
+        mean = mean(CombWt),
+        sd = sd(CombWt)
+    )
+```
 
+The distributions look roughly symmetrical with no outliers. The ratio of the larger SD to the smaller is less than 2, so the equal variance assumption is reasonable.
+:::
+::::
+
+##
 ::: {.question}
 ### Exercise 6
 
-Compare the t-test and ANOVA outputs. What do you notice about:
+Run a pooled two-sample *t*-test using `t.test(..., var.equal = TRUE)` and a one-way ANOVA using `aov()` on the same data. Compare:
 
-i.	the degrees of freedom;
-ii.	the P-value?
+i. the degrees of freedom,
+ii. the P-values, and
+iii. the relationship between the *t* statistic and the *F* statistic.
+
+When there are two groups, $F = t^2$. Verify this for your results.
 :::
 
+::: {.column-margin}
+Use `var.equal = TRUE` in `t.test()` to get the pooled (Student's) *t*-test, which matches the ANOVA assumption of equal variances.
+:::
 
-
-::: {.content-visible when-profile="solution"}
+:::: {.content-visible when-profile="solution"}
 ::: {.ans}
-### Solution
+#### Solution
 
-i. The *df* of *t* are 20, the denominator *df* for the ANOVA *F* statistic is also 20.
-ii. They are the same (*P*-value = 0.03) for both tests.
+```{r}
+t.test(CombWt ~ Hormone, var.equal = TRUE, data = comb)
+```
+
+```{r}
+comb.aov <- aov(CombWt ~ Hormone, data = comb)
+summary(comb.aov)
+```
+
+i. The *t*-test has *df* = 20. The ANOVA residual *df* is also 20. The treatment *df* is 1 (two groups minus one).
+ii. Both P-values are 0.003.
+iii. $F = t^2$: $(3.38)^2 = 11.4 = F_\text{obs}$.
+
+When there are only two groups, the *t*-test and one-way ANOVA are mathematically equivalent. The ANOVA generalises the *t*-test to more than two groups.
 :::
-:::
-
-::: {.question}
-### Exercise 7
-
-When there are only two treatment groups, the observed *F* and *t* values are related by *F* = $t^2$. Demonstrate this for the observed values in this exercise.
-:::
+::::
 
 
+Take a break!
 
-::: {.content-visible when-profile="solution"}
-::: {.ans}
-### Solution
+# 4. Lambs (~25 min)
 
-When there are only two treatment groups, the observed *F*- and *t*-values are related by *F* = $t^2$.
+This final section is a capstone exercise. You will work through the entire ANOVA workflow on a new dataset with minimal guidance, bringing together everything from Sections 1 to 3.
 
-Demonstration: ($t_{obs}$)2 = $(3.38)^2$ = $F_{obs}$ of 11.4.
-:::
-:::
+The levels of immunoglobulin (Ig) in blood serum (g/100 ml) in three breeds of newborn lambs have been investigated. A total of 44 lambs were sampled, with approximately equal numbers per breed. Does immunoglobulin level differ between breeds?
 
-## Exercise 3 -- lambs
+## The data
 
-**Work on this exercise in your own time.**
-
-The levels of immunoglobulin (Ig) in blood serum (g/100 ml) in 3 breeds of newborn lambs have been investigated. A total of 44 lambs were sampled, with approximately equal numbers per breed. The researcher wants to know whether or not there are significant differences in immunoglobulin levels between the breeds.
-
-The data is found in `lambs.csv`. Download the data if you have not done so:
-
-
-**Read the data into R and save it as `lambs`.** Use the `read_csv()` function which should be available when you load the `tidyverse` package.
-
-It should look like below:
+Here is a preview of the dataset. You will import it yourself as part of the exercise.
 
 ```{r}
 #| include: false
-# Read the file into R
-lambs <- readr::read_csv("data/lambs.csv")
+
+lambs <- read_csv("data/lambs.csv") |>
+    mutate(Breed = as.factor(Breed))
 ```
 
-
 ```{r}
-#| output: true
+#| echo: false
 lambs
 ```
 
-Based on the demonstrator walkthrough, analyse the `lambs` dataset and test the hypothesis that:
+##
+::: {.question}
+### Exercise 7
+
+Analyse the `lambs` dataset using the full ANOVA workflow. Test the hypothesis that:
 
 $$H_{0}: \mu_1 = \mu_2 = \mu_3$$
 $$H_{1}: \text{not all } \mu_j \text{ are equal}$$
 
 where $\mu_j$ is the mean Ig level for breed $j$.
 
-Remember to:
+Work through each step:
 
-- [ ] State your null and alternate hypotheses.
-- [ ] Plot an appropriate summary graph for the data.
-- [ ] Demonstrate the model fit using the `aov()` function.
-- [ ] Test assumptions, by checking sd values, or by looking at your exploratory plots (checking residuals is not necessary at this point).
-- [ ] Report your test statistic, degrees of freedom and p-value.
-- [ ] Report the statistical conclusion by addressing the null hypothesis.
-- [ ] Explain the results within a biological context to the data.
+- [ ] Read the data and convert `Breed` to a factor.
+- [ ] Produce a boxplot and calculate group means and standard deviations.
+- [ ] Check the equal variance assumption using the SD ratio.
+- [ ] Fit the model using `aov()` and report *F*, *df*, and *P*.
+- [ ] Run post-hoc comparisons using `emmeans()`.
+- [ ] Write a conclusion that addresses the null hypothesis and explains the results in a biological context.
+:::
 
-
-::: {.content-visible when-profile="solution"}
+:::: {.content-visible when-profile="solution"}
 ::: {.ans}
-### Answer
-First we read the data into R and the change the `Breed` variable to a `factor` after assesing the structure of the data.
+#### Solution
+
+Read the data and convert `Breed` to a factor:
+
 ```{r}
 #| message: false
-library(readxl)
-lambs <- readr::read_csv("data/lambs.csv")
+
+lambs <- read_csv("data/lambs.csv") |>
+    mutate(Breed = as.factor(Breed))
 str(lambs)
-lambs$Breed <- as.factor(lambs$Breed)
 ```
 
-Now we do some exploratory data analysis. The main purpose here is to test the assumptions for performing the ANOVA. The `summary()` function selects the appropriate format to summarise for each variable in the data frame `lambs`: quartiles etc for `Ig`, a continuous variable, and a frequency distribution for levels of `Breed`, a factor. Note the unequal number of observations per breed.
-```{r}
-summary(lambs)
-```
-
-We wish to see the summary statistics for each `Breed`.
-```{r}
-tapply(
-    X = lambs$Ig,
-    INDEX = lambs$Breed,
-    FUN = mean
-)
-```
-
-Note the median and mean for each `Breed` are similar which is an indicator of a symmetrical distribution. It is best to look at boxplots and below are these for each `Breed`. The equal length of the whiskers indicate that we can assume the data is normally distributed.
-```{r}
-boxplot(Ig ~ Breed, ylab = "Ig level (g/100 ml)", data = lambs)
-```
-
-Now to assess whether the variances are equal.
+Exploratory analysis:
 
 ```{r}
-vars <- tapply(
-    X = lambs$Ig,
-    INDEX = lambs$Breed,
-    FUN = sd
-)
-vars
-# ratio of largest to smallest
-max(vars) / min(vars)
+lambs |>
+    group_by(Breed) |>
+    summarise(
+        n = n(),
+        mean = mean(Ig),
+        sd = sd(Ig)
+    )
 ```
 
+```{r}
+ggplot(lambs, aes(x = Breed, y = Ig)) +
+    geom_boxplot() +
+    labs(x = "Breed", y = "Ig level (g/100 ml)")
+```
 
-The ratio of the largest (0.405) to smallest (0.352) is less than 2 so we can assume they are equal.
+The distributions look roughly symmetrical. Check equal variance:
 
+```{r}
+lamb_sds <- lambs |>
+    group_by(Breed) |>
+    summarise(sd = sd(Ig))
+max(lamb_sds$sd) / min(lamb_sds$sd)
+```
 
-Now we can perform the ANOVA. The statistical null and alternative hypotheses are:
+The ratio of the largest to smallest SD is less than 2, so we can assume equal variances.
 
-$$H_{0}: \mu_1 = \mu_2 = \mu_3$$
-$$H_{1}: \text{not all } \mu_j \text{ are equal}$$
-
-where $\mu_j$ is the mean Ig level for breed $j$.
-
+Fit the ANOVA:
 
 ```{r}
 lambs.aov <- aov(Ig ~ Breed, data = lambs)
 summary(lambs.aov)
 ```
 
-The *P*-value is below 0.05 so we reject the null hypothesis. Now explore which pair(s) of means are different.
+The P-value is below 0.05, so we reject $H_0$. Post-hoc comparisons:
 
 ```{r}
-#| warning: false
-#| message: false
-library(emmeans)
-emmeans(lambs.aov, "Breed")
-plot(emmeans(lambs.aov, "Breed"))
+posthoc_lambs <- emmeans(lambs.aov, "Breed")
+posthoc_lambs
+plot(posthoc_lambs)
 ```
 
-- Based on the the ANOVA table our conclusions are there are significant differences between the Ig means between the three breeds of lambs (*F* = 14.6; *df* = 2, 41; *P* < 0.0001).
-- The 95% CI of the the mean for Breed 1 does not overlap with the 95% CI of the other means.
-- Therefore, Breed 1 has substantially less immunoglobulin  (1.59 ± 0.10 g/100ml) than the other two: Breed 2: 2.23 ± 0.11 g/100ml, and Breed 3: 2.23 ± 0/.10 g/100ml (expressed as mean ± standard error).
+- There are significant differences in Ig levels across the three breeds (*F* = 14.6; *df* = 2, 41; *P* < 0.0001).
+- The 95% CI for Breed 1 does not overlap with the CIs for Breeds 2 and 3.
+- Breed 1 has substantially less immunoglobulin (1.59 ± 0.10 g/100 ml) than Breed 2 (2.23 ± 0.11 g/100 ml) and Breed 3 (2.23 ± 0.10 g/100 ml). This could have implications for disease susceptibility in newborn lambs of different breeds.
 :::
-:::
+::::
 
 
-## Thanks!
+# Conclusion
 
-Did you know you can also knit to PDF? Check the documentation for [R Markdown](https://bookdown.org/yihui/rmarkdown/pdf-document.html) or [Quarto](https://quarto.org/docs/output-formats/pdf-basics.html) for more information.
+## Closing thoughts
+
+In this lab we worked through the full one-way ANOVA workflow: exploring grouped data, fitting a model with `aov()`, checking assumptions, running post-hoc comparisons with `emmeans`, and reporting results. We also saw that a two-sample *t*-test and a one-way ANOVA with two groups are mathematically equivalent ($F = t^2$, same P-value and residual degrees of freedom).
+
+Next week we will look at model residuals in more detail and learn formal diagnostic checks for the ANOVA assumptions.
 
 ### Attribution
 
@@ -678,13 +564,3 @@ This lab was developed using resources that are available under a [Creative Comm
   [Creative Commons Attribution 4.0 International license]: http://creativecommons.org/licenses/by/4.0/
   [SOLES Open Educational Resources repository]: https://github.com/usyd-soles-edu/
 
-<button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne">
-**Click here for session information**
-</button><div id="collapseOne" class="accordion-collapse collapse"><div>
-
-```{r}
-#| output: true
-sessionInfo()
-```
-
-</div></div>

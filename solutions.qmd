@@ -10,6 +10,7 @@ section-divs: false
 |------|----------|------|
 | 1 | Introduction to Quarto | [Tutorial 01](tutorials/tutorial01-solutions.html) |
 | 2 | Confidence Intervals and Sampling | [Tutorial 02](tutorials/tutorial02-solutions.html) |
+| 3 | Assumptions and the ANOVA Table | [Tutorial 03](tutorials/tutorial03-solutions.html) |
 
 ## Lab solutions
 
