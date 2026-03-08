@@ -1,513 +1,250 @@
 ---
 title: "Tutorial 03"
 # reviewed-by:
+format:
+  sandstone-html:
+    code-tools: true
 ---
 
-## Welcome 
+## Welcome {.unnumbered}
 
-**Welcome to Tutorial 03**. In this tutorial we will show you how to:
+In this tutorial we will learn the diagnostic tools for checking assumptions behind *t*-tests and ANOVA, then take apart an ANOVA table to understand what every number means.
 
-1.  Import data in various ways into R, focusing on MS Excel files
-2.  Manually calculate a one-way Analysis of Variance (ANOVA)
+You will learn how to:
 
-## Getting started
-
-::: column-margin
-In some instances you will see notes like this one in the margin, which often contain useful tips or reminders.
-:::
-
-- These tutorials are designed to be comprehensive yet accessible. I recommend following along and grasping the statistical concepts as much as you can. 
-- You will need to **create your own Quarto (recommended) or R Markdown document** to complete the exercises. In RStudio, go to 
-  - `File -> New File -> Quarto Document...` or 
-  - `File -> New File -> R Markdown...` and follow the intuitive prompts.
-- **For those of you who are interested in furthering your data science skills and are keen to learn more**, I have included optional sections. These techniques are *not* necessary for you to get through ENVX2001 — **we do *not* cover code in the exams**. Nevertheless these skills come handy in report writing and data analysis and can be a great addition to your projects.
-- If you have any suggestions for improvement, please let me know! Send me an email (you can find my details on Canvas).
-
-# Reading MS Excel files
-
-We will work with the `diatoms.xlsx` file in this section. Download the file from Canvas or your course materials.
-
-## Introduction
-
-::: callout-note
-Starting this week you will be regularly reading data from both `.csv` and `.xlsx` files for your labs and assignments. We have found that many students struggle with this even though they have been taught how to do it in ENVX1002, so we have created this section as a refresher, focusing on the more complex `.xlsx` file format. If you already know how to import files like a pro, feel free to skip ahead.
-:::
-
-Data import in R can be tricky because it involves learning how to work with file paths and working directories. In this section we will import the `Diatoms` worksheet from the `diatoms.xlsx` file. This data has been mixed with other information such as exploratory work and calculations, so we will need to specify the range of cells that we are interested in to import the data appropriately.
-
-![We need to separate the raw data (which we are interested in) from other information such as exploratory work and calculations (which we may *not* be interested in). Screenshot taken directly from the `diatoms.xlsx` file.](images/diatoms-excel.jpeg){#fig-diatoms-excel}
-
-## Find the working directory
-
-Use `getwd()` to check the current working directory. This is the location on your computer where R will look for files.
-
-```r
-getwd()
-```
-
-- If you are working with a document file (like a Quarto or R Markdown file), the working directory is the location of the document file.
-- If you are working with a script file (like an R script), the working directory might be different! You can use `setwd()` to change the working directory, **but this is not recommended**[^setwd]. Instead, use RStudio projects to set the working directory — see Tutorial 1 for more information or check out the [documentation](https://support.posit.co/hc/en-us/articles/200526207-Using-RStudio-Projects) from Posit.
-
-[^setwd]: The `setwd()` function is not recommended because it is not reproducible: it can cause issues when sharing your code with others, or when working on different computers. Instead, use RStudio projects to set the working directory.
-
-
-## Move the file
-
-Move `diatoms.xlsx` to the working directory. This will simplify the file path for data import.
-
-![Place data in the working directory to simplify the file path for data import. In this screenshot, `diatoms.xlsx` has been placed in the folder that contains an `.Rproj` file.](images/data-location.jpeg){#fig-data-location}
-
-Then, use `read_excel()` from the `readxl` package to read the file, noting the file path, the worksheet name, and the range of cells that contain the data. Below we have assigned the output to an object called `diatoms`.
+1. Identify the three assumptions of *t*-tests and ANOVA.
+2. Use R to produce diagnostic plots and numerical checks.
+3. Read diagnostics and decide whether assumptions are met.
+4. Read an ANOVA table and interpret the F ratio and degrees of freedom.
 
 ```{r}
-library(readxl)
-diatoms <- read_excel("data/diatoms.xlsx",
-    sheet = "Diatoms",
-    range = "A1:D35"
-)
+#| label: setup
+#| include: false
+# No packages needed for this tutorial
 ```
 
 
-## Moving the file and updating the path
+# Checking assumptions
 
-Suppose you want to organise your project files and put all data files in a single folder. You can do this by creating a new folder in the same directory as your Quarto file, and moving the data file(s) into it.
+What assumptions do *t*-tests and ANOVA make? There are three:
 
-Here, we create a folder called `data` and move the `diatoms.xlsx` file into it. 
+1. **Normality**: the residuals follow a normal distribution.
+2. **Equal variance**: the spread of observations is roughly the same across groups.
+3. **Independence**: the observations do not influence each other.
 
-![Create a folder called `data` (but it can be any other name, really), and move your data file(s) to this folder. You will have to update the path to the file in the `read_excel()` function to read the data from the new location.](images/datafolder.gif){#fig-datafolder}
+We can check the first two from the data. Independence comes from the study design (random assignment, no repeated measures on the same subject), so we cannot diagnose it from a plot.
 
-We then update the path to the file in the `read_excel()` function by adding the folder name `data/` to the file path.
+
+## Exercise 1: Checking assumptions in R {.unnumbered}
+
+The diagnostics are the same whether we fit a *t*-test or an ANOVA. Run each block and the tutor will walk through the output.
+
+::: {.column-margin}
+The `sleep` dataset records the change in hours of sleep for 20 patients across two drug groups. It is built into R, so no file download is needed.
+:::
+
+::: {.panel-tabset}
+
+### t-test
+
+The `t.test()` object does not store residuals, so we check normality on the raw data in each group. This is equivalent to checking the residuals, since within each group the residuals are just the values minus the group mean (same shape, shifted to zero). With only two groups this is straightforward:
 
 ```{r}
+#| label: check-data
 #| eval: false
-diatoms <- read_excel(
-    path = "data/diatoms.xlsx",
-    sheet = "Diatoms",
-    range = "A1:D35"
-)
+str(sleep)
 ```
 
+```{r}
+#| label: ttest-normality
+#| eval: false
+# Subset the data into two groups
+group1 <- subset(sleep, group == "1")
+group2 <- subset(sleep, group == "2")
 
-## Exercises
+# QQ plot for Group 1
+qqnorm(group1$extra, main = "Group 1")
+qqline(group1$extra, col = "red")
 
-Here are some quick exercises to see if you can navigate your way around file paths in R.
+# QQ plot for Group 2
+qqnorm(group2$extra, main = "Group 2")
+qqline(group2$extra, col = "red")
 
-1. Create a new folder called `output` inside the `data` folder and move the `diatoms.xlsx` file into it. How will you update the `path` in the `read_excel()` function to reflect this change?
-2. Rename the `output` folder to `raw`.
-3. Rename the `data` folder to `diatoms` and update the code.
+# Shapiro-Wilk test for normality in Group 1
+shapiro.test(group1$extra)
 
----
+# Shapiro-Wilk test for normality in Group 2
+shapiro.test(group2$extra)
+```
+
+### ANOVA
+
+ANOVA and the *t*-test are mathematically equivalent when there are only two groups, so we can fit an ANOVA to the same data:
+
+```{r}
+#| label: fit-aov
+#| eval: false
+
+model <- aov(extra ~ group, data = sleep)
+```
+
+With `aov()`, residuals are built in:
+
+```{r}
+#| label: aov-residuals
+#| eval: false
+
+qqnorm(residuals(model), main = "")
+qqline(residuals(model), col = "red")
+shapiro.test(residuals(model))
+```
+
+:::
+
+**Equal variance** (this check is the same whether you used the *t*-test or ANOVA approach above):
+
+```{r}
+#| label: equal-var-checks
+#| eval: false
+
+boxplot(extra ~ group, data = sleep)
+
+# Using group1 and group2 from the t-test tab (or re-create them here)
+group1 <- subset(sleep, group == "1")
+group2 <- subset(sleep, group == "2")
+max(sd(group1$extra), sd(group2$extra)) /
+  min(sd(group1$extra), sd(group2$extra))
+```
+
+::: {.column-margin}
+The SD ratio rule of thumb: below 2 is generally acceptable.
+:::
+
+**Independence** cannot be checked from data. It comes from the study design: random assignment, no repeated measures on the same subject.
+
+R can also produce four diagnostic plots at once with `plot(aov(...))`, including the QQ plot and two others we have not covered yet. We will explore these in the lab next week.
+
+### Reading diagnostics {.unnumbered}
+
+Now that we know the code, can we read the output? The widget below generates random data with 2 to 4 groups, shows one diagnostic, and asks whether the assumption holds.
+
+```{ojs}
+//| echo: false
+import { assumptionCheckerWidget } from "../assets/js/assumption-checker.js"
+assumptionCheckerWidget()
+```
+
+::: {.callout-note}
+## Checkpoint
+We should be able to run the diagnostic checks in R, read the output, and decide whether the assumption is met.
+:::
+
 
 # The ANOVA table
 
-## Introduction
+When we run `summary(aov(...))` in R, we get an ANOVA table. Most people skip straight to the p-value, but every number in the table tells us something about the data and the experiment. The two most important things to understand are the **F ratio** (is there a real effect, or just noise?) and the **degrees of freedom** (how big was the experiment?).
 
-::: callout-note
-In this section you will use the summary statistics from an experiment to calculate the missing values in the ANOVA table *manually*.
-
-**Importantly**, the point of this exercise is to appreciate the ANOVA table and how it is constructed, *not so much to do the calculations*. For example, you should be able to answer the following questions:
-
-- What does the F-statistic tell us?
-- What is the difference between the treatment and residual sum of squares?
-- What is total mean squares ($MS_{tot}$) and what relationship does it have with the variance of the data?
-- Can the degrees of freedom tell us whether an experiment is balanced or unbalanced?
-
-In practice, R can perform an ANOVA and generate the table in a *split second*. Many people tend to ignore much of the table and focus on the p-value, which diminishes the value of all the other information in the table. We hope that by doing this exercise you will appreciate what is arguably one of the most popular statistical tests in the world. It can also help you assess the quality of any publication that uses ANOVA!
-
-**ANOVA table calculations and interpretation are *both* examinable.**
+::: {.column-margin}
+ANOVA table interpretation and basic calculations (the F ratio and degrees of freedom) are examinable.
 :::
 
-## A zombie apocalypse
 
-You and a small community have survived the zombie apocalypse. It is a world with no computers but you have many books and some goats. You have managed to perform an experiment to explore how best to feed your goats. You wish to analyse the data and have to do the ANOVA "by hand" and reconstruct an ANOVA table.
+## Exercise 2: The F ratio and degrees of freedom {.unnumbered}
 
-In your maize fodder crop experiment, you tested three planting densities (20, 30, 40 plants/unit area) across 15 similar plots resulting in a total of 5 plots per planting density. The sample means and standard deviations (kg of dry matter/plot) for each planting density are shown below:
+A researcher tested three planting densities of a maize fodder crop (low, medium, and high) across 15 plots, with 5 plots per density. The sample means and standard deviations (kg of dry matter per plot) are:
 
 ```{r}
+#| label: tbl-maize-summary
+#| tbl-cap: "Sample means and standard deviations of dry matter yield (kg per plot) for three planting densities of maize."
 #| echo: false
-#| output: true
-library(knitr)
-maize <- 
-  data.frame(
- Treatment = c("20 plants per unit area", 
-        "30 plants per unit area", 
-        "40 plants per unit area", 
-        "Overall"),
- Mean = c(17.58, 27.18, 27.14, 23.97),
- Std.Dev = c(2.70, 1.89, 2.02, 5.11),
- Variance = c(7.290, 3.577, 4.093, "-")
-)
 
+maize <-
+  data.frame(
+    Density = c("Low", "Medium", "High"),
+    Mean = c(17.58, 27.18, 27.14),
+    Std.Dev = c(2.70, 1.89, 2.02)
+  )
 knitr::kable(maize)
 ```
 
-You wish to perform an analysis of variance (ANOVA) to determine if the density of planting influenced the total dry weight of maize for the plot. The ANOVA table comes to mind and is mostly empty; below is what you have so far:
-
-::: column-margin
-Missing values in the ANOVA table have been labelled `a` to `i` for the purpose of this exercise.
-:::
+The low-density group produced noticeably less dry matter than the other two. But is that difference real, or could it be noise? Here is the ANOVA table R produces:
 
 ```{r}
-#| echo: false
-#| output: true
-Source_Variation <- c("Planting_Density", "Residual", "Total")
-Degree_Freedom <- c("$a$", "$b$", "$c$")
-Sum_Squares <- c("$d$", "$e$", "$f$")
-Mean_Square <- c("$152.96$", "$g$", "$h$")
-F_Statistic <- c("$i$", "-", "-")
-gdat <- cbind(Source = Source_Variation, df = Degree_Freedom, "sum  sq" = Sum_Squares, "mean sq" = Mean_Square, "F value" = F_Statistic)
-library(knitr)
-kable(gdat)
-```
-
-You want to calculate the missing values in the ANOVA table above given the following:
-
-- You have access to the summary statistics that make up the table.
-- Equations from the lectures, which you can use to calculate the missing values. Those equations are also provided in the table below.
-- The treatment MS value for `Planting_density` is known at 152.96.
-- The overall standard deviation is 5.11 for all the data. That is, if we were to pool all the data together, the standard deviation would be 5.11.
-- Hint: the total mean sum of squares $MS_{tot}$ is approximately the overall variance of the data.
-
-::: callout-tip
-The formulas for the ANOVA table are as follows:
-
-```{r}
-#| echo: false
-source <- c("Treatment", "Residual", "Total")
-df <- c("$t - 1$", "$N - t$", "$N - 1$")
-ss <- c("$SS_{trt}$", "$SS_{res}$", "$SS_{tot}$")
-ms <- c("$MS_{trt} = SS_{trt} / df_{trt}$", "$MS_{res} = SS_{res} / df_{res}$", "$MS_{tot} = SS_{tot} / df_{tot}$")
-f <- c("$MS_{trt}/MS_{res}$", "", "")
-df <- tibble::tibble(
-  Source = source,
-  Df = df,
-  "Sum Sq" = ss,
-  "Mean Sq" = ms,
-  "F value" = f
-)
-knitr::kable(df)
-```
-:::
-
-
-## Let's begin!
-
-::: {.callout-warning appearance="minimal" collapse="true"}
-## STEP 1: Degrees of freedom
-
-It's easy to fill in the **degrees of freedom** values for $Treatment$, $Residual$ and $Total$, so let's start with that. If: $$t = 3$$ $$N = 15$$ where $t$ is the number of treatments and $N$ is the total number of samples/replicates, then:
-
-- **Treatment df** $= t - 1 = 3 - 1 = 2$
-- **Residual df** $= N - t = 15 - 3 = 12$
-- **Total df** $= N - 1 = 15 - 1 = 14$
-
-```{r}
-#| echo: false
-#| message: false
-library(tidyverse)
-df <- 
-  df %>%
-  mutate(Df = c(
-    "$\\mathbf{2}$",
-    "$\\mathbf{12}$",
-    "$\\mathbf{14}$"
-  )) %>%
-  mutate("Sum Sq" = c(
-    "$d$",
-    "$e$",
-    "$f$"
-  )) %>%
-  mutate("Mean Sq" = c(
-    "$152.96$",
-    "$h$",
-    "$i$"
-  )) %>%
-  mutate("F value" = c(
-    "$i$",
-    "",
-    ""
-  ))
-knitr::kable(df)
-```
-
-:::
-
-::: {.callout-tip collapse="true"}
-## Test your understanding 1
-
-#### What does the degrees of freedom tell us about the balance of the experiment?
-
-If the sum of the degrees of freedom for the treatment and residual is equal to the total degrees of freedom, then the experiment is balanced. If not, then the experiment is unbalanced i.e. the number of replicates is not the same for each treatment.
-:::
-
-
-::: {.callout-warning appearance="minimal" collapse="true"}
-## STEP 2: Total mean sum of squares $MS_{tot}$
-
-To calculate total mean sum of squares $MS_{tot}$, we can use the overall standard deviation $s = 5.11$ to estimate the total variance, which is equivalent to the total mean square. We can calculate $MS_{tot}$ by squaring the overall standard deviation $s^2$: $$MS_{tot} = s^2_{tot} = 5.11^2 = 26.1121$$
-
-
-```{r}
+#| label: tbl-anova-maize
+#| tbl-cap: "One-way ANOVA for the effect of planting density on dry matter yield of maize."
 #| echo: false
 
-df <- 
-  df %>%
-  mutate(Df = c(
-    "$2$",
-    "$12$",
-    "$14$"
-  )) %>%
-  mutate("Sum Sq" = c(
-    "$d$",
-    "$e$",
-    "$f$"
-  )) %>%
-  mutate("Mean Sq" = c(
-    "$152.96$",
-    "$h$",
-    "$\\mathbf{26.11}$"
-  ))
-knitr::kable(df)
-```
-:::
-
-::: {.callout-tip collapse="true"}
-## Test your understanding 2
-
-#### When you look at the total mean square value, what does it tell you about the "spread" of the data?
-
-The total mean square is the variance of the data as a whole (i.e. not treatment-specific). It tells us how much the data varies from the **overall** mean. The larger the value, the more spread out the data is.
-
-A large value for $MS_{tot}$ can be due to a large treatment effect or a large residual effect. The F-statistic will help us determine which one it is.
-:::
-
-::: {.callout-warning appearance="minimal" collapse="true"}
-## STEP 3: Total $SS_{tot}$ and Treatment $SS_{trt}$ sum of squares 
-
-Since we know that a mean sum of squares is calculated by dividing the sum of squares by the degrees of freedom i.e. $$MS = \frac{SS}{df}$$ then, rearranging the equation we have: $$SS = MS \times df$$
-
-We can calculate the total sum of squares $SS_{tot}$ by multiplying the total mean square $MS_{tot}$ by the total degrees of freedom $df_{tot}$: $$SS_{tot} = MS_{tot} \times df_{tot} = 26.1121 \times 14 = 365.5694$$
-
-The same can be done for the treatment sum of squares $SS_{trt}$: $$SS_{trt} = MS_{trt} \times df_{trt} = 152.96 \times 2 = 305.92$$
-
-```{r}
-#| echo: false
-
-df <- 
-  df %>%
-  mutate(Df = c(
-    "$2$",
-    "$12$",
-    "$14$"
-  )) %>%
-  mutate("Sum Sq" = c(
-    "$\\mathbf{305.92}$",
-    "$e$",
-    "$\\mathbf{365.60}$"
-  )) %>%
-  mutate("Mean Sq" = c(
-    "$152.96$",
-    "$h$",
-    "$26.11$"
-  ))
-knitr::kable(df)
-```
-
-:::
-
-::: {.callout-tip collapse="true"}
-## Test your understanding 3
-
-#### What is the difference between the treatment and residual sum of squares?
-
-The treatment sum of squares $SS_{trt}$ is the variation between the treatment means and the overall mean. It tells us how much the treatment means differ from the overall mean.
-
-The residual sum of squares $SS_{res}$ is the variation between the individual observations and their treatment means. It tells us how much the individual observations differ from their treatment means.
-
-By simply looking at the sum of squares, we can tell how much of the variation is due to the treatment and how much is due to the residual. The F-statistic will help us determine which one is more important.
-:::
-
-::: {.callout-warning appearance="minimal" collapse="true"}
-## STEP 4: Residual $SS_{res}$ and $MS_{res}$
-
-Since total sum of squares $SS_{tot}$ is the sum of the treatment sum of squares $SS_{trt}$ and the residual sum of squares $SS_{res}$, we can calculate the residual sum of squares $SS_{res}$ by subtracting the treatment sum of squares $SS_{trt}$ from the total sum of squares $SS_{tot}$: $$SS_{res} = SS_{tot} - SS_{trt} = 365.5694 - 305.92 = 59.6494$$
-
-We can then calculate the residual mean square $MS_{res}$ by dividing the residual sum of squares $SS_{res}$ by the residual degrees of freedom $df_{res}$: $$MS_{res} = \frac{SS_{res}}{df_{res}} = \frac{59.6494}{12} = 4.970783$$
-
-```{r}
-#| echo: false
-
-df <- 
-  df %>%
-  mutate(Df = c(
-    "$2$",
-    "$12$",
-    "$14$"
-  )) %>%
-  mutate("Sum Sq" = c(
-    "$305.92$",
-    "$\\mathbf{59.65}$",
-    "$365.60$"
-  )) %>%
-  mutate("Mean Sq" = c(
-    "$152.96$",
-    "$\\mathbf{4.97}$",
-    "$26.11$"
-  ))
-knitr::kable(df)
-```
-:::
-
-::: {.callout-tip collapse="true"}
-## Test your understanding 4
-
-#### Why do we need to calculate mean sums of squares $MS$ if we already have the sum of squares $SS$?
-
-The mean sum of squares $MS$ is a measure of the variation in the data that is independent of the degrees of freedom i.e. standardised. This makes it easier to compare the variation between different treatments and the residual variation. The resulting F-statistic is therefore also independent of the degrees of freedom.
-:::
-
-::: {.callout-warning appearance="minimal" collapse="true"}
-## STEP 5: F-Statistic
-
-Finally, we can calculate the F-statistic by dividing the treatment mean square $MS_{trt}$ by the residual mean square $MS_{res}$: $$F = \frac{MS_{trt}}{MS_{res}} = \frac{152.96}{4.970783} = 30.7781$$
-
-```{r}
-#| echo: false
-
-df <- 
-  df %>%
-  mutate(Df = c(
-    "$2$",
-    "$12$",
-    "$14$"
-  )) %>%
-  mutate("Sum Sq" = c(
-    "$305.92$",
-    "$59.65$",
-    "$365.60$"
-  )) %>%
-  mutate("Mean Sq" = c(
-    "$152.96$",
-    "$4.97$",
-    "$26.11$"
-  )) %>%
-  mutate("F value" = c(
-    "$\\mathbf{30.78}$",
-    "",
-    ""
-  ))
-knitr::kable(df)
-```
-:::
-
-::: {.callout-tip collapse="true"}
-## Test your understanding 5
-
-#### What does the F-statistic tell us?
-
-The F-statistic is a measure of the variation between the treatment means and the residual variation. It tells us how much the treatment means differ from the overall mean relative to how much the individual observations differ from their treatment means. If the F-statistic is large (i.e. greater than 1), then the treatment means differ from the overall mean more than the individual observations differ from their treatment means. This means that the treatment means are significantly different from each other. The F-statistic is used to test the null hypothesis that the treatment means are equal.
-:::
-
-
-## Final ANOVA table
-
-```{r}
-#| echo: false
-
-df %>%
-  mutate("F value" = c(
-    "$30.78$",
-    "",
-    ""
-  )) %>%
-  kable()
-```
-
-
-
-## Bonus: doing it in R
-
-In code:
-
-```{r}
-# define known values
-N <- 15 # total no. of samples/replicates
-t <- 3 # no. of treatments
-ms_trt <- 152.96 # treatment MS
-sd_overall <- 5.11
- 
-df_trt <- t - 1    # a: treatment df
-df_residual <- N - t  # b: residual df
-df_total <- N - 1   # c: total df
-
-ms_total <- sd_overall^2    # h: total Mean Sq
-ss_total <- ms_total * df_total # f: total Sum Sq
-
-ss_trt <- ms_trt * df_trt    # d: treatment Sum Sq
-
-ss_residual <- ss_total - ss_trt    # e: residual Sum Sq
-ms_residual <- ss_residual/df_residual # g: residual Mean Sq 
-
-f_statistic <- ms_trt/ms_residual # i: F value
-
-
-```
-
-If we fill the table:
-
-```{r}
 knitr::kable(data.frame(
- Source = c("Treatment", "Residual", "Total"),
- Df = c(df_trt, df_residual, df_total),
- `Sum Sq` = round(c(ss_trt, ss_residual, ss_total), 1),
- `Mean Sq` = round(c(ms_trt, ms_residual, ms_total), 1),
- `F value` = c(round(f_statistic, 1), "", "")
+  Source = c("Treatment", "Residual"),
+  Df = c(2, 12),
+  `Sum Sq` = c(305.92, 59.65),
+  `Mean Sq` = c(152.96, 4.97),
+  `F value` = c("30.77", ""),
+  `Pr(>F)` = c("< 0.001", ""),
+  check.names = FALSE
 ))
 ```
 
-
-## Do you reject the null hypothesis?
-
-To determine whether we reject the null hypothesis, we need to compare the F-statistic to the F~critical~ value. The F~critical~ value is the value of F that we would expect to see if the null hypothesis were true. If the F-statistic is greater than the F~critical~ value, then we reject the null hypothesis.
-
-To obtain the F~critical~ value, we need the degrees of freedom for the treatment and residual and the alpha level (usually 0.05). We then look up the F~critical~ value in an F-distribution table or use the `qf()` function in R.
-
-::: column-margin
-Use [this resource](https://www.statology.org/f-critical-value-r/) to help you learn more about the `qf()` function in R.
-:::
+A second researcher tested three fertiliser blends on wheat yield using the same design (3 treatments, 5 plots each). Their table:
 
 ```{r}
-qf(p = .05, # critical or alpha p value
-  df1 = 2,  # treatment degrees of freedom
-  df2 = 12,  # residual degrees of freedom
-  lower.tail = FALSE) # use FALSE for probability that F-stat > F_crit
+#| label: tbl-anova-wheat
+#| tbl-cap: "One-way ANOVA for the effect of fertiliser blend on wheat yield."
+#| echo: false
+
+knitr::kable(data.frame(
+  Source = c("Treatment", "Residual"),
+  Df = c(2, 12),
+  `Sum Sq` = c(11.40, 60.00),
+  `Mean Sq` = c(5.70, 5.00),
+  `F value` = c("1.14", ""),
+  `Pr(>F)` = c("0.35", ""),
+  check.names = FALSE
+))
 ```
 
+### The F ratio {.unnumbered}
 
-Since our F-statistic is 30.78, which is higher than the F~critical~ value of 3.89, we can say that for our data P < 0.05 and we reject the null hypothesis that the treatment means are equal.
+The F value is a signal-to-noise ratio:
 
-## Which treatment means are different?
+$$F = \frac{MS_{trt}}{MS_{res}}$$
 
-To determine which treatment means are different, we can perform a post-hoc test such as Tukey's HSD test. This test will tell us which treatment means are significantly different from each other.
+$MS_{trt}$ (treatment mean square) measures how much the group means differ from the overall mean. $MS_{res}$ (residual mean square) measures the scatter within each group. When F is close to 1, the groups look no more different than random noise would produce. When F is large, the data suggest a real effect.
 
-Since we do not have access to R (in our zombie apocalypse scenario!), we will not be able to perform the Tukey's HSD test here. But can the original table give us a hint?
+In the maize table, $F = 152.96 \div 4.97 = 30.77$. The between-group signal is about 30 times larger than the within-group noise, and the p-value is tiny. Planting density clearly affects dry matter yield.
 
-```{r}
-knitr::kable(maize)
-```
+In the wheat table, $F = 5.70 \div 5.00 = 1.14$. The treatment variation is about the same size as the residual noise. The fertiliser blends made no detectable difference.
 
-From the table above we can see that the mean kg of dry matter per plot for the 30 and 40 plants per unit area are very similar. This suggests that the treatment means for 30 and 40 plants per unit area are not significantly different from each other. The treatment mean for 20 plants per unit area is probably significantly different from the other two treatments.
-
-But beware! This is only a hint and not a definitive answer. We need to perform a post-hoc test to be sure. This will be covered in the labs!
-
----
-
-# Done!
-
-### Thanks! {-}
-
-This is the end of the tutorial. 
-
-::: column-margin
-If you have any questions or suggestions, let me know during the lectures or via email. You know where to find me!
+::: {.column-margin}
+The sum of squares (Sum Sq) in the treatment and residual rows add up to the total variation in the data. The ANOVA table partitions all variation into two sources: differences between groups and scatter within groups.
 :::
+
+### Degrees of freedom {.unnumbered}
+
+The degrees of freedom tell us about the size and shape of the experiment:
+
+- **Treatment df** $= t - 1$, where $t$ is the number of groups. Both tables show df = 2, so both experiments compared 3 groups.
+- **Residual df** $= N - t$, where $N$ is the total number of observations. Both tables show df = 12, so $N = 12 + 3 = 15$ observations in each experiment.
+- Each group therefore had $15 \div 3 = 5$ replicates.
+
+### Try it yourself {.unnumbered}
+
+A colleague compared 4 watering regimes on tomato plants, with 6 plants per regime. Their ANOVA table shows $MS_{trt} = 45.2$ and $MS_{res} = 8.1$, but they forgot to include the F value and degrees of freedom.
+
+1. What are the treatment and residual degrees of freedom?
+2. Calculate the F ratio.
+3. The critical value at $\alpha = 0.05$ for these degrees of freedom is 3.10. Is the result significant?
+
+::: {.column-margin}
+If the observed F exceeds the critical value, we reject the null hypothesis at that significance level. You can find critical values in R with `qf(0.05, df1, df2, lower.tail = FALSE)`.
+:::
+
+::: {.callout-note}
+## Checkpoint
+We should be able to read an ANOVA table, explain what F measures (between-group variation divided by within-group variation), compute F from the mean squares, and work out the number of groups and observations from the degrees of freedom.
+:::
+
+
+## Wrap-up {.unnumbered}
+
+We covered the diagnostic tools for checking assumptions and learned to read an ANOVA table. In the lab, we will fit ANOVA models in R and use post-hoc tests to identify which groups differ.

@@ -14,7 +14,7 @@ In this lab, you will work towards achieving learning outcomes...
 At the end of the lab, students should be able to:
 
 - Understand the workflow involved in conducting a one-way Analysis of Variance (ANOVA), including data exploration, model fitting, and interpretation of results.
-- Analyse an experiment with a 1-way ANVOVA and interpret the results.
+- Analyse an experiment with a 1-way ANOVA and interpret the results.
 - Explain situations when a 2-sample t-test gives the same results as a 1-way ANOVA.
 
 ## Prerequisites
@@ -25,6 +25,8 @@ The following packages are used for this lab: `readxl`, `ggplot2`, `dplyr` and `
 install.packages(c("readxl", "ggplot2", "dplyr", "tidyr"))
 ```
 
+You will come across two types of tasks in this lab. **Worked Examples** have solutions you can expand and check straight away. **Exercises** do not --- solutions for these will be posted on Friday evening.
+
 ## Exercise 1 -- diatoms
 
 
@@ -33,10 +35,10 @@ Medley & Clements (1998) sampled 34 locations along streams for diversity of dia
 
 ::: {.question}
 
-### Practice 1 -- Data import
+### Worked Example 1 -- Data import
 Import the `Diatoms` worksheet from the `diatoms.xlsx` file into R. 
 
-If you have difficulty with this step please refer to this week's tutorial on importing MS Excel files.
+If you have difficulty with this step, see the [data import guide](../tutorials/data-import.html).
 
 ```r
 library(readxl)
@@ -175,8 +177,7 @@ diatoms %>%
 :::
 
 
-#### Graphical summaries {style="color:navy;"}
-
+#### Graphical summaries 
 
 Numerical summaries are nice, but visual summaries are often more informative and are the **summary of choice** for publication. They can also help us to check the assumptions of the statistical test (although sometimes this is not possible until we have fitted the model). 
 
@@ -198,8 +199,7 @@ knitr::kable(gdata)
 
 We will show examples of both the histogram and boxplot for the diatom data. We recommend that you use `ggplot2` for your graphical summaries as it is more flexible and has a more consistent syntax than base R graphics. However, we will show both approaches here.
 
-##### Histogram {style="color:navy;"}
-As there are less than 10 observations per group the histogram may not be very informative. However, it may still be useful for checking the normality of the data. You may be able to see the limitations of the histogram for small sample sizes.
+##### Histogram As there are less than 10 observations per group the histogram may not be very informative. However, it may still be useful for checking the normality of the data. You may be able to see the limitations of the histogram for small sample sizes.
 
 ::: callout-tip
 
@@ -274,8 +274,7 @@ for (i in levels(diatoms$Zinc)) {
 :::
 
 
-##### Boxplot {style="color:navy;"}
-A more appropriate plot for this data is the boxplot. If we want to format the plot for publication we should make the plot clear by adding axis labels and a figure caption.
+##### Boxplot A more appropriate plot for this data is the boxplot. If we want to format the plot for publication we should make the plot clear by adding axis labels and a figure caption.
 
 ::: panel-tabset
 ## base R
@@ -309,7 +308,7 @@ ggplot(diatoms, aes(x = Zinc, y = Diversity)) +
 :::
 
 ::: {.question}
-### Question 1
+### Exercise 1
 
 What can you say about the the different levels of Zinc from looking at the mean and standard deviation values when running the following?
 
@@ -330,7 +329,7 @@ tapply(
 
 ::: {.content-visible when-profile="solution"}
 ::: {.ans}
-### Solution 1
+### Solution
 
 The mean diatom diversity for the `HIGH` level of Zn concentration is much smaller than the other groupings indicating that there is something happening, more formal hypothesis testing is needed to determine whether this is significant.
 
@@ -342,22 +341,21 @@ Note: the assumption of constant variance (more on this next week) is likely to 
 
 
 ::: {.question}
-### Question 2
+### Exercise 2
 
 Can you interpret and describe the boxplot above?
 :::
 
 ::: {.content-visible when-profile="solution"}
 ::: {.ans}
-### Solution 2
+### Solution
 - Based on the median values the smallest diversity is associated with the `HIGH` level of Zn concentration.
 - The $Q_1$ and $Q_3$ (the "box part") for the `HIGH` level of Zn do not overlap with the others levels of Zn, but the boxes overlap with each other for the other levels. This is some initial evidence that it will be likely that all the different levels of Zn will have the same diversity with the exception of the `HIGH` level of Zn.
 :::
 :::
 
 
-### Model fitting {style="color:navy;"}
-
+### Model fitting 
 A 1-way ANOVA involves one treatment (or grouping) factor.  The model we are fitting is:
 
 $$y_{i,j} =\mu_i+\epsilon_{i,j}$$
@@ -384,8 +382,7 @@ anova.diatoms <- aov(formula = Diversity ~ Zinc, data = diatoms)
 summary(anova.diatoms)
 ```
 
-### Assumptions and interpretation of results {style="color:navy;"}
-
+### Assumptions and interpretation of results 
 The assumptions of the ANOVA model are:
 
 - The residuals are independent,
@@ -398,8 +395,7 @@ Based on the boxplots and histograms during data exploration, the assumptions of
 
 > **Reporting**: The results indicate that there are significant differences between the levels of Zn concentration in terms of diatom diversity (*F* = 3.9, *df* = 3, 30, *P* = 0.02).
 
-### Post-hoc testing {style="color:navy;"}
-
+### Post-hoc testing 
 The ANOVA test only tells us that there are differences between the groups, but it does not tell us which groups are different. We can use the `emmeans` package to perform post-hoc testing. 
 
 ```{r}
@@ -444,7 +440,7 @@ comb
 
 
 ::: {.question}
-### Question 3
+### Exercise 3
 
 Perform some checks to verify the two-sample t-test (or one-way ANOVA) is appropriate, i.e. investigate the shape of the distributions, and the standard deviations.
 :::
@@ -452,7 +448,7 @@ Perform some checks to verify the two-sample t-test (or one-way ANOVA) is approp
 
 ::: {.content-visible when-profile="solution"}
 ::: {.ans}
-### Solution 3
+### Solution
 
 ```{r}
 library(readxl)
@@ -473,14 +469,14 @@ Descriptive statistics and boxplot would indicate that the two-sample t-test (or
 
 
 ::: {.question}
-### Question 4
+### Exercise 4
 In R, perform a 2-sample t-test using the `t.test()` function, and use the `var.equal = TRUE` argument to ensure a standard 2-sample t-test is performed. Interpret the output.
 :::
 
 
 ::: {.content-visible when-profile="solution"}
 ::: {.ans}
-### Solution 4
+### Solution
 
 ```{r}
 t.test(CombWt ~ Hormone, var.equal = TRUE, data = combs)
@@ -494,14 +490,14 @@ t.test(CombWt ~ Hormone, var.equal = TRUE, data = combs)
 
 
 ::: {.question}
-### Question 5
+### Exercise 5
 
 Next, perform a one-way ANOVA using the `aov` function, followed by `summary`, and interpret the results.
 :::
 
 ::: {.content-visible when-profile="solution"}
 ::: {.ans}
-### Solution 5
+### Solution
 
 ```{r}
 combs.aov <- aov(CombWt ~ Hormone, data = combs)
@@ -513,7 +509,7 @@ The results (*F* = 11.4, *df* = 1, 20, *P* = 0.003) indicates that the means are
 :::
 
 ::: {.question}
-### Question 6
+### Exercise 6
 
 Compare the t-test and ANOVA outputs. What do you notice about:
 
@@ -525,7 +521,7 @@ ii.	the P-value?
 
 ::: {.content-visible when-profile="solution"}
 ::: {.ans}
-### Solution 6
+### Solution
 
 i. The *df* of *t* are 20, the denominator *df* for the ANOVA *F* statistic is also 20.
 ii. They are the same (*P*-value = 0.03) for both tests.
@@ -533,7 +529,7 @@ ii. They are the same (*P*-value = 0.03) for both tests.
 :::
 
 ::: {.question}
-### Question 7
+### Exercise 7
 
 When there are only two treatment groups, the observed *F* and *t* values are related by *F* = $t^2$. Demonstrate this for the observed values in this exercise.
 :::
@@ -542,7 +538,7 @@ When there are only two treatment groups, the observed *F* and *t* values are re
 
 ::: {.content-visible when-profile="solution"}
 ::: {.ans}
-### Solution 7
+### Solution
 
 When there are only two treatment groups, the observed *F*- and *t*-values are related by *F* = $t^2$.
 
