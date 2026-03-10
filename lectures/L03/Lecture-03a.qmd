@@ -5,7 +5,8 @@ date: last-modified
 date-format: "MMM YYYY"
 author: Januar Harianto
 format:
-  ochre-revealjs: default
+  ochre-revealjs: 
+    slide-number: c/t
   ochre-typst:
     fig-format: png
 execute:
@@ -19,264 +20,266 @@ library(tidyverse)
 library(ggplot2)
 ```
 
-# History
+# The $t$-test (revision)
 
-## William Gosset (1908)
+## Introduction
 
-:::: columns
-::: {.column width="40%"}
-![William Gosset](images/will.png)
-:::
-::: {.column width="60%"}
-- Worked as a statistician at Guinness Brewery in Dublin
-- Published under the pseudonym **"Student"** (company policy prevented use of real name)
-- Developed the $t$-distribution and $t$-tests for **small sample sizes**
-- Needed to compare barley varieties with limited data
-:::
-::::
+- **One-sample** $t$-test: compare a sample mean against a known value
+- **Two-sample** $t$-test: compare the means of two independent groups
+- **Paired** $t$-test: compare measurements taken on the same subjects (e.g. before and after)
 
-
-## Ronald Fisher (1925)
-
-:::: columns
-::: {.column width="40%"}
-![Ronald Fisher](images/ronald.png)
-:::
-::: {.column width="60%"}
-- Extended and formalised Gosset's work
-- Introduced the concept of **degrees of freedom**
-- Developed **Analysis of Variance (ANOVA)** -- next lecture!
-- Established many foundations of modern statistical inference
-:::
-::::
-
-
-# Cattle data
-
-## The problem
-
-- Weights of two breeds of cattle are to be compared
-- 12 samples were randomly taken from Breed 1, and 15 from Breed 2
-- **Are there differences in the mean weight between the two breeds?**
+Last week we learned about **confidence intervals**, which estimate the uncertainty of a parameter (e.g. a mean).
 
 ::: fragment
-```{r}
-cattle <- read.csv("data/cattle.csv")
-cattle
-```
+The $t$-test and the confidence interval are closely related. Both are derived from the same quantities, and this week we look at that connection more carefully.
 :::
 
-## Reshaping the data
 
-The data is in **wide** format -- we need to convert it to **long** format for analysis.
+## Cattle
+
+Two breeds of cattle, 12 and 15 samples. Are the breeds different in mean weight?
 
 ```{r}
+#| code-fold: true
+#| results: hide
+#| fig-align: center
 cattle <- read.csv("data/cattle.csv") |>
-  pivot_longer(
-    cols = everything(),
-    names_to = "breed",
-    values_to = "weight"
-  ) |>
+  pivot_longer(cols = everything(), names_to = "breed", values_to = "weight") |>
   mutate(breed = as.factor(breed)) |>
   drop_na()
 
-cattle
-```
-
-## Visualising the data
-
-```{r}
-#| label: group_plot
-#| fig-align: center
 ggplot(cattle, aes(breed, weight)) +
   geom_boxplot() +
-  labs(x = "Breed", y = "Weight (kg)")
+  labs(x = "Breed", y = "Weight (kg)") + 
+  cowplot::theme_cowplot()
 ```
-
-
-# Model and hypotheses
-
-## Two-sample $t$-test model
-
-Observed data = Group Mean + Random Error (residuals)
-
-$$y_{ij} = \mu_i + \varepsilon_{ij}$$
-
-- $i = 1, 2$ (group); $j = 1, 2, \ldots, n_i$ (replicate)
-
-In the cattle example:
-
-- $\mu_1$ = mean body weight (kg) for Breed 1
-- $\mu_2$ = mean body weight (kg) for Breed 2
-
-
-## Hypotheses
-
-- **Null hypothesis**: $H_0: \mu_1 = \mu_2$
-- **Alternative hypothesis**: $H_1: \mu_1 \neq \mu_2$
 
 ::: fragment
-**Test statistic:**
-
-$$t = \frac{\bar{y}_1 - \bar{y}_2}{\sqrt{s^2\left(\frac{1}{n_1} + \frac{1}{n_2}\right)}} = \frac{\bar{y}_1 - \bar{y}_2}{SE(\bar{y}_1 - \bar{y}_2)} = \frac{\Delta \text{ in mean}}{SE \text{ of the } \Delta \text{ in mean}}$$
-
-**Degrees of freedom**: $n_1 + n_2 - 2$
+The boxplot suggests a difference. To test, you would run `t.test()` and check the p-value. **What is the test actually computing?**
 :::
 
 
-# $t$-distribution
+# From CIs to the $t$-test
 
-## Shape changes with degrees of freedom
+## The difference between two means
+
+In the last lecture, we constructed confidence intervals for a single mean. The same principle extends to the **difference** between two means.
+
+- Estimate the difference: $\bar{y}_1 - \bar{y}_2$
+- Construct a 95% confidence interval around that estimate
+- Evaluate whether the interval includes zero
+
+::: fragment
+- If the interval **excludes zero**: the means are significantly different at the 5% level
+- If the interval **includes zero**: the data are consistent with no difference
+:::
+
+
+## `t.test()` gives you both
 
 ```{r}
-#| label: t_dist_plot
-#| fig-align: center
 #| code-fold: true
-x <- seq(-4, 4, length.out = 300)
-
-t_data <- map_dfr(c(1, 2, 5, 10, 30), function(df) {
-  tibble(x = x, density = dt(x, df), df = paste("df =", df))
-})
-
-normal_data <- tibble(x = x, density = dnorm(x), df = "Normal")
-
-bind_rows(t_data, normal_data) |>
-  mutate(df = fct_relevel(df, "df = 1", "df = 2", "df = 5", "df = 10", "df = 30", "Normal")) |>
-  ggplot(aes(x, density, colour = df, linetype = df)) +
-  geom_line(linewidth = 1) +
-  scale_linetype_manual(values = c(rep("solid", 5), "dashed")) +
-  labs(x = "t", y = "Density", colour = NULL, linetype = NULL) +
-  theme(legend.position = "right")
+t.test(weight ~ breed, data = cattle, var.equal = TRUE)
 ```
 
-::: {.callout-note}
-As degrees of freedom increase, the $t$-distribution approaches the standard normal distribution.
+The output reports two quantities:
+
+- A **p-value** (probability of observing a result this extreme if the null hypothesis were true)
+- A **95% confidence interval** for the difference between the two means
+
+::: fragment
+These always agree. If the CI excludes zero, the p-value is below 0.05, and vice versa. The $t$-statistic measures how far the observed difference is from zero, relative to its standard error.
 :::
 
 
-## One-tailed vs two-tailed tests
+## Exploring the confidence interval
 
-![](images/onetwotail.png){fig-align="center"}
+```{=html}
+<style>
+#exploring-the-confidence-interval .cell-output-display {
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+</style>
+```
 
-- **Two-tailed**: tests for a difference in *either* direction ($\mu_1 \neq \mu_2$)
-- **One-tailed**: tests for a difference in a *specific* direction ($\mu_1 > \mu_2$ or $\mu_1 < \mu_2$)
-- In most cases, we use **two-tailed** tests unless we have a strong *a priori* reason for one direction.
+```{ojs}
+//| echo: false
+import { ciDifferenceWidget } from "../../assets/js/ttest-widget.js"
+ciDifferenceWidget()
+```
+
+- Increasing the difference between means moves the CI away from zero
+- Decreasing variability narrows the CI
+- When the interval excludes zero, the means are significantly different
 
 
-# Manual calculations
+## The CI for a difference
 
-## Group means and standard deviations
+In the last lecture, we built a 95% CI for a single mean:
+
+$$\bar{y} \pm t^* \times SE$$
+
+::: fragment
+For the **difference** between two means, the same structure applies:
+
+$$(\bar{y}_1 - \bar{y}_2) \pm t^* \times SE(\bar{y}_1 - \bar{y}_2)$$
+
+If this interval excludes zero, the groups differ significantly.
+:::
+
+
+## The $t$-statistic
+
+We can rearrange the CI formula to isolate a single number that captures both the difference and the variability:
+
+$$t = \frac{\bar{y}_1 - \bar{y}_2}{SE(\bar{y}_1 - \bar{y}_2)}$$
+
+The $t$-statistic counts how many standard errors the observed difference is from zero.
+
+::: fragment
+For the cattle data: $t = 42.5 / 4.5 = 9.46$. The observed difference is over nine standard errors from zero.
+:::
+
+
+## From the $t$-statistic to the p-value
+
+We have a $t$-statistic. The p-value answers: if there were truly no difference between the breeds, how often would we see a value of $|t|$ this large or larger?
+
+- A small p-value means the observed difference is hard to explain by chance alone
+- A large p-value means the observed difference is consistent with random variation
+
+::: fragment
+The 95% CI and the p-value always agree. If the 95% CI excludes zero, the p-value is below 0.05, and vice versa.
+:::
+
+
+## Exploring the p-value
+
+```{=html}
+<style>
+#exploring-the-p-value .cell-output-display {
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+</style>
+```
+
+```{ojs}
+//| echo: false
+import { pvalueExplorerWidget } from "../../assets/js/ttest-widget.js"
+pvalueExplorerWidget()
+```
+
+- The shaded area under both tails is the p-value
+- As the $t$-statistic moves further from zero, the p-value decreases
+- At low degrees of freedom the tails are heavier, but the shape approaches the normal as df increases
+
+
+# The hypothesis testing workflow
+
+## Step 1: State what we are testing
+
+- **Null hypothesis**: $H_0: \mu_1 = \mu_2$ (no difference in mean weight between breeds)
+- **Alternative hypothesis**: $H_1: \mu_1 \neq \mu_2$ (means differ)
+- This is a **two-tailed** test: we are looking for a difference in either direction (Breed 1 heavier *or* lighter than Breed 2), not just one
+
+::: fragment
+**Model equation**: $y_{ij} = \mu_i + \varepsilon_{ij}$
+
+Each observation is the group mean plus random error. The hypothesis asks whether $\mu_1$ and $\mu_2$ are equal.
+:::
+
+
+## Step 2a: Equal variances
+
+The $t$-test assumes both groups have similar variability. If they do not, then the test is unreliable because the pooled estimate of variance will not represent either group well.
+
+- Rule of thumb: the ratio of the larger SD to the smaller SD should be below 2.0
 
 ```{r}
+#| code-fold: true
 cattle_summary <- cattle |>
   group_by(breed) |>
-  summarise(
-    n = n(),
-    mean_wt = mean(weight, na.rm = TRUE),
-    sd_wt = sd(weight, na.rm = TRUE)
-  )
+  summarise(n = n(), mean_wt = mean(weight), sd_wt = sd(weight))
 
 cattle_summary
+max(cattle_summary$sd_wt) / min(cattle_summary$sd_wt)
 ```
 
 
-## Computing the $t$-statistic
+## Step 2b: Normality
+
+The $t$-test assumes the data in each group follow a normal distribution. With small samples, departures from normality (strong skew, heavy tails, outliers) can distort the p-value and confidence interval. Check each group separately.
 
 ```{r}
-# Extract values
-n1 <- cattle_summary$n[1]
-n2 <- cattle_summary$n[2]
-m1 <- cattle_summary$mean_wt[1]
-m2 <- cattle_summary$mean_wt[2]
-s1 <- cattle_summary$sd_wt[1]
-s2 <- cattle_summary$sd_wt[2]
-
-# Pooled variance
-sp2 <- ((n1 - 1) * s1^2 + (n2 - 1) * s2^2) / (n1 + n2 - 2)
-
-# t-statistic
-t_stat <- (m1 - m2) / sqrt(sp2 * (1/n1 + 1/n2))
-t_stat
+#| code-fold: true
+shapiro.test(cattle$weight[cattle$breed == "Breed1"])
+shapiro.test(cattle$weight[cattle$breed == "Breed2"])
 ```
 
-::: fragment
+
+## Step 2b: Normality (QQ plots)
+
 ```{r}
-# Degrees of freedom
-df <- n1 + n2 - 2
-
-# p-value (two-tailed)
-p_val <- 2 * pt(-abs(t_stat), df)
-p_val
+#| code-fold: true
+#| fig-align: center
+#| layout-ncol: 2
+qqnorm(cattle$weight[cattle$breed == "Breed1"], main = "Breed 1")
+qqline(cattle$weight[cattle$breed == "Breed1"])
+qqnorm(cattle$weight[cattle$breed == "Breed2"], main = "Breed 2")
+qqline(cattle$weight[cattle$breed == "Breed2"])
 ```
-:::
+
+If points fall close to the line, the data are approximately normal. Both groups pass the Shapiro-Wilk test ($p > 0.05$) and the QQ plots show no strong departures.
 
 
-# Running `t.test()` in R
+## Step 2c: Independence
 
-## The easy way
+Observations should not influence each other. This is a property of the study design, not something we test statistically.
+
+- Each animal is measured once
+- The weight of one animal does not affect the weight of another
+- If the same animals were measured before and after a treatment, observations would not be independent (use a paired $t$-test instead)
+
+
+## Step 3: Run the test and interpret
 
 ```{r}
 t.test(weight ~ breed, data = cattle, var.equal = TRUE)
 ```
 
-::: {.callout-tip}
-`var.equal = TRUE` performs the **pooled** (Student's) $t$-test, which assumes equal variances. This matches our manual calculation.
-:::
-
-
-# Assumptions
-
-## Three key assumptions
-
-1. **Equal variances**: $\sigma_1^2 \approx \sigma_2^2$
-2. **Normality**: $\varepsilon_{ij} \sim N(0, \sigma^2)$
-3. **Independence** of observations
-
-## Checking equal variances
-
-The only difference between the two groups should be the **location of the mean** -- all else should remain the same.
-
-General guide: $\frac{\text{larger SD}}{\text{smaller SD}} < 2.0$
-
-```{r}
-max(cattle_summary$sd_wt) / min(cattle_summary$sd_wt)
-```
+- The $t$-statistic, degrees of freedom ($n_1 + n_2 - 2$), and p-value are reported together
+- `var.equal = TRUE` performs the pooled (Student's) $t$-test, which assumes equal variances
 
 ::: fragment
-The ratio is well under 2, so we can assume equal variances.
+A p-value of 0.03 does not mean there is a 3% chance the null hypothesis is true. It means: if there were truly no difference, we would observe a result this extreme about 3% of the time.
 :::
 
 
-## Checking normality: visual
+## HATPC
 
-```{r}
-#| label: outlier_check
-#| fig-align: center
-#| layout-ncol: 2
-ggplot(cattle, aes(breed, weight)) +
-  geom_boxplot() +
-  labs(title = "Boxplot", x = "Breed", y = "Weight (kg)")
+Notice the five steps we just followed:
 
-ggplot(cattle, aes(weight)) +
-  geom_histogram(bins = 8) +
-  labs(title = "Histogram", x = "Weight (kg)", y = "Count")
-```
+1. **H**ypotheses: state the null and alternative
+2. **A**ssumptions: check equal variances, normality, independence
+3. **T**est: run the appropriate test
+4. **P**-value: interpret the result
+5. **C**onclusion: state the finding in context
 
+::: fragment
+We will use this framework throughout the semester, starting with ANOVA in the next lecture.
+:::
 
-## Checking normality: Shapiro-Wilk test
-
-```{r}
-shapiro.test(cattle$weight)
-```
-
-- If $p > 0.05$, the data is **not** significantly different from a normal distribution, *i.e.* we can assume normality.
 
 ## What if assumptions are not met?
 
 ::: incremental
-- **Equal variances** not met -- use Welch's $t$-test (the default in R's `t.test()` when `var.equal = FALSE`)
-- **Normality** not met -- if $N > 30$, we can often assume normality anyway ([Central Limit Theorem](https://en.wikipedia.org/wiki/Central_limit_theorem))
-- **Independence** not met -- consider a **paired $t$-test** (e.g. before/after measurements on the same subjects)
+- **Unequal variances**: use Welch's $t$-test (the default in R when `var.equal = FALSE`)
+- **Non-normality**: if $N > 30$, the Central Limit Theorem provides reasonable coverage
+- **Non-independence**: consider a **paired $t$-test** (e.g. before and after measurements on the same subjects)
 :::
 
 
@@ -284,22 +287,21 @@ shapiro.test(cattle$weight)
 
 ## Key points
 
-::: incremental
 - The **two-sample $t$-test** compares means of two independent groups
-- The test statistic follows a $t$-distribution with $n_1 + n_2 - 2$ degrees of freedom
-- Always check assumptions: **equal variances**, **normality**, **independence**
-- Use `t.test()` in R for quick analysis
+- The $t$-test and the CI for the difference are two views of the same calculation
+- Check the three assumptions (equal variances, normality, independence) before running any test
+- Follow **HATPC** as a structured process for hypothesis testing
+
+::: fragment
+In Lab 03, you will practise this workflow with `t.test()` and diagnostic plots.
 :::
 
 ::: fragment
-### Next up
-- What if we have **more than two groups**? We need **ANOVA**!
+**Next**: what if we have more than two groups? We need **ANOVA**.
 :::
 
 
-## Thanks! {.center-h}
-
-### Questions?
+## 15 minute break {.center-h}
 
 This presentation is based on the [SOLES Quarto reveal.js template][soles-revealjs] and is licensed under a [Creative Commons Attribution 4.0 International License][cc-by].
 

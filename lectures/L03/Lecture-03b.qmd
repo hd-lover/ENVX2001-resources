@@ -20,107 +20,184 @@ library(ggplot2)
 ```
 
 
-# Why ANOVA?
+# From $t$-tests to ANOVA
 
-## The problem with multiple $t$-tests
 
-Suppose we want to compare weight gain of chicks fed on **4 different diets**.
+## From two groups to four
 
-::: fragment
-With $t$-tests, we'd need $\binom{4}{2} = 6$ pairwise comparisons:
+Before the break we compared two cattle breeds. But what if there were four breeds instead of two?
 
-1-2, 1-3, 1-4, 2-3, 2-4, 3-4
-:::
+- Can we still use $t$-tests? **Yes**, but we would need to test every pair
+- With 4 groups that is $\binom{4}{2} = 6$ comparisons: 1 vs 2, 1 vs 3, 1 vs 4, 2 vs 3, 2 vs 4, 3 vs 4
 
 ::: fragment
-Even if there are no true differences, each test has a 5% chance of incorrectly finding significance. How does that add up?
+The problem: every test carries a risk of a **Type I error** (a false positive).
 
-```{r}
-prob_all_correct <- 0.95^6
-prob_all_correct
-```
-
-We have a **`r round((1 - prob_all_correct) * 100, 1)`%** chance that at least one test result will be incorrect!
+- We set $\alpha = 0.05$, so each comparison has a 5% chance of rejecting $H_0$ when it is actually true
+- Six tests means six chances to get it wrong
 :::
 
 
-## We need a better method
+## The multiple comparisons problem
 
-The [problem of multiple comparisons](https://en.wikipedia.org/wiki/Multiple_comparisons_problem) requires a technique that considers **all** treatments at once.
+With 6 groups there are $\binom{6}{2} = 15$ pairwise comparisons. The probability that **none** produce a false positive is $0.95^{15}$, so:
+
+$$P(\text{at least one false positive}) = 1 - 0.95^{15} = 53.7\%$$
 
 ::: fragment
-### ANOVA -- Analysis of Variance
+| Groups | Pairwise tests | P(at least one false positive) |
+|:------:|:--------------:|:------------------------------:|
+| 2 | 1 | 5.0% |
+| 4 | 6 | 26.5% |
+| 6 | 15 | 53.7% |
+| 8 | 28 | 76.2% |
+| 10 | 45 | 90.1% |
 
-Before deciding *which* treatments differ, we first consider:
-
-::: incremental
-1. Differences **between** the treatment groups -- **between-treatment effects**
-2. Differences **within** each treatment group -- **within-treatment effects**
-   - due to random environmental fluctuations, genetics, experimental error
+- With 10 groups, a false positive is almost guaranteed
+- We need a method that tests all groups at once
 :::
-:::
 
 
-# Chick weight data
+# Chick feeding
+
 
 ## The experiment
 
-:::: columns
-::: {.column width="40%"}
-![](images/chicks.jpg)
+![](images/chicks.jpg){width="30%" fig-align="center"}
 
-- 20 chicks
-- 4 diets
+We need a method that handles more than two groups. Consider a new experiment:
+
+- 20 chicks are randomly assigned to one of 4 diets
 - 5 replicates per diet
 - Response: weight gain (g)
+
+```{r}
+#| results: hide
+chicks <- read.csv("data/chicks.csv") |>
+  pivot_longer(
+    starts_with("Diet"), names_to = "diet", values_to = "weight"
+  ) |>
+  mutate(diet = as.factor(diet))
+```
+
+
+## Are there differences?
+
+```{r}
+#| code-fold: true
+#| fig-align: center
+ggplot(chicks, aes(diet, weight)) +
+  geom_boxplot() +
+  labs(x = "Diet", y = "Weight gain (g)") +
+  cowplot::theme_cowplot()
+```
+
+What do the boxplots suggest?
+
+## Terminology
+
+| Term | Meaning | In this experiment |
+|------|---------|-------------------|
+| **Factor** | Categorical variable being tested | Diet |
+| **Levels** | Categories within a factor | Diet 1, Diet 2, Diet 3, Diet 4 |
+| **Replicates** | Observations per level | $r = 5$ |
+
+This is a **one-way** ANOVA because there is only one factor. **What is ANOVA**?
+
+
+# HATPC for Analysis of Variance
+
+
+## H: Hypotheses
+
+In the $t$-test we asked whether **two** means were equal. ANOVA extends this to **any number** of groups.
+
+- **Null hypothesis**: $H_0: \mu_1 = \mu_2 = \mu_3 = \mu_4$
+- **Alternative hypothesis**: $H_1:$ not all $\mu_i$ are equal
+
+The alternative does not say all means differ. It says at least two do.
+
+::: fragment
+**Model equation**:
+
+$$y_{ij} = \mu_i + \varepsilon_{ij}$$
+
+where $i = 1, \ldots, t$ treatments and $j = 1, \ldots, n_i$ replicates. The same structure as the $t$-test model, but $i$ now ranges over more than two groups.
 :::
 
-::: {.column width="60%"}
-::: fragment
+
+## A: Assumptions
+
+The same three assumptions from the $t$-test apply here. We fit the model first, then check.
+
 ```{r}
-chicks_wide <- read.csv("data/chicks.csv")
-chicks_wide
+model <- aov(weight ~ diet, data = chicks)
 ```
+
+:::: columns
+::: {.column width="50%"}
+**Normality** (Shapiro-Wilk on residuals):
+
+```{r}
+#| code-fold: true
+shapiro.test(residuals(model))
+```
+
+$p > 0.05$: no evidence against normality.
 :::
+
+::: {.column width="50%"}
+**Equal variances** (Bartlett's test):
+
+```{r}
+#| code-fold: true
+bartlett.test(weight ~ diet, data = chicks)
+```
+
+$p > 0.05$: variances are similar across groups.
 :::
 ::::
 
 
-## Reshaping the data
+## A: Residual diagnostics
 
 ```{r}
-chicks <- read.csv("data/chicks.csv") |>
-  pivot_longer(
-    cols = starts_with("Diet"),
-    names_to = "diet",
-    values_to = "weight"
-  ) |>
-  mutate(diet = as.factor(diet))
-
-chicks
+#| code-fold: true
+#| fig-align: center
+#| layout-ncol: 2
+qqnorm(residuals(model), main = "Normal QQ plot")
+qqline(residuals(model))
+plot(fitted(model), residuals(model),
+     xlab = "Fitted values", ylab = "Residuals",
+     main = "Residuals vs Fitted")
+abline(h = 0, lty = 2)
 ```
 
-
-# ANOVA concepts
-
-## Terminology
-
-- **Factor** (or treatment): the categorical variable of interest (here: diet)
-- **Levels**: the categories within a factor (here: Diet 1, Diet 2, Diet 3, Diet 4)
-- **Replicates**: the number of observations per level (here: $r = 5$)
-- $t$ = number of treatments; $N$ = total observations = $r \times t = 20$
-
-::: fragment
-This is a **one-way** (or one-factor) ANOVA because there is only one factor (diet).
-:::
+- QQ plot: points follow the line, supporting normality
+- Residuals vs fitted: no fan shape, supporting equal variances
+- Independence holds by design: each chick is measured once
 
 
-## Which model best describes the data?
+## A: A shortcut for next time
+
+R can produce all standard diagnostic plots at once:
 
 ```{r}
-#| label: group_means_plot
-#| fig-align: center
+#| eval: false
+plot(model)
+```
+
+We will explore these plots in detail next week. For now, the Shapiro-Wilk and Bartlett's tests are sufficient.
+
+
+## T: The ANOVA idea
+
+- How does ANOVA decide whether these four diets differ?
+- If diets matter, differences **between** groups should be large relative to variation **within** groups
+
+```{r}
 #| code-fold: true
+#| fig-align: center
 overall_mean <- mean(chicks$weight)
 group_means <- chicks |>
   group_by(diet) |>
@@ -128,153 +205,74 @@ group_means <- chicks |>
 
 p1 <- ggplot(chicks, aes(diet, weight)) +
   geom_point(size = 3, alpha = 0.6) +
-  geom_point(data = group_means, aes(diet, mean_wt),
-    shape = 18, size = 5, colour = "red") +
-  labs(title = "Group means (red)", x = "Diet", y = "Weight (g)")
+  geom_hline(data = group_means, aes(yintercept = mean_wt),
+    linetype = "dashed", colour = "#e64626", linewidth = 0.8) +
+  labs(title = "Four group means", x = "Diet", y = "Weight gain (g)") +
+  cowplot::theme_cowplot()
 
 p2 <- ggplot(chicks, aes(diet, weight)) +
   geom_point(size = 3, alpha = 0.6) +
-  geom_hline(yintercept = overall_mean, colour = "blue",
-    linewidth = 1, linetype = "dashed") +
-  labs(title = "Overall mean (blue)", x = "Diet", y = "Weight (g)")
+  geom_hline(yintercept = overall_mean, colour = "#e64626",
+    linewidth = 0.8, linetype = "dashed") +
+  labs(title = "One overall mean", x = "Diet", y = "Weight gain (g)") +
+  cowplot::theme_cowplot()
 
 library(patchwork)
 p1 + p2
 ```
 
-Does the **group means model** (left) explain the data better than the **overall mean model** (right)?
+Do four separate means (left) explain the data better than a single overall mean (right)?
 
 
-# Model equation
+## Two sources of variation
 
-## Same form as the $t$-test
+ANOVA splits the total variation in the data into two parts:
 
-$$y_{ij} = \mu_i + \varepsilon_{ij}$$
+- **Between-group variation** ([orange]{style="color:#e64626; font-weight:bold"}): how far each group mean is from the overall mean. If diets matter, this should be large.
+- **Within-group variation** ([black]{style="color:#404040; font-weight:bold"}): how much individual observations scatter around their own group mean. This is random noise.
 
-- $i = 1, 2, \ldots, t$ (treatment); $j = 1, 2, \ldots, n_i$ (replicate)
-
-In the chick example:
-
-- $y_{ij}$ = observed weight gain for the $j$th chick on Diet $i$
-- $\mu_i$ = mean weight gain for chicks on Diet $i$
-- $\varepsilon_{ij}$ = random error (residual)
+ANOVA compares these two quantities. If between-group variation is large relative to within-group variation, we have evidence that the groups genuinely differ.
 
 
-# Assumptions
+## Variance partitioning
 
-## Checking normality
-
-:::: columns
-::: {.column width="50%"}
-```{r}
-#| fig-align: center
-ggplot(chicks, aes(diet, weight)) +
-  geom_boxplot() +
-  labs(x = "Diet", y = "Weight (g)")
-```
-:::
-::: {.column width="50%"}
-```{r}
-shapiro.test(chicks$weight)
+```{=html}
+<style>
+#variance-partitioning .cell-output-display {
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+</style>
 ```
 
-$p > 0.05$: we can assume normality.
-:::
-::::
-
-
-## Checking equal variances
-
-- $\sigma_1^2 = \sigma_2^2 = \ldots = \sigma_t^2$
-- General guide: $\frac{\text{largest SD}}{\text{smallest SD}} < 2.0$
-- Alternatively, use **Bartlett's test** of homogeneity of variance:
-
-```{r}
-bartlett.test(weight ~ diet, data = chicks)
+```{ojs}
+//| echo: false
+import { variancePartitionWidget } from "../../assets/js/anova-widget.js"
+variancePartitionWidget()
 ```
 
-::: {.callout-warning}
-Bartlett's test is **sensitive to non-normality**. Only use it when normality is reasonable.
-:::
 
 
-# Hypothesis test
+## The F ratio
 
-## Hypotheses
+$$F = \frac{MS_{\text{trt}}}{MS_{\text{res}}}$$
 
-- **Null hypothesis**: $H_0: \mu_1 = \mu_2 = \ldots = \mu_t$
-- **Alternative hypothesis**: $H_1$: not all $\mu_i$ are equal
-
-::: {.callout-important}
-ANOVA only tells us that **at least two** group means are different -- not *which* ones.
-:::
-
-
-## The concept: partition variability
-
-Partition the total variability into components:
-
-$$SS_{\text{total}} = SS_{\text{treatment}} + SS_{\text{residual}}$$
-
-- $SS_{\text{treatment}}$: variation **between** groups (due to diet)
-- $SS_{\text{residual}}$: variation **within** groups (random error)
+- $F$ compares variation due to group differences against random noise
+- MS (mean square) is based on **squared** deviations: squaring prevents positive and negative differences from cancelling out
+- When $H_0$ is true (all groups equal), $F \approx 1$
+- When groups genuinely differ, $F \gg 1$
 
 ::: fragment
-If the treatment has a real effect, $SS_{\text{treatment}}$ should be **large** relative to $SS_{\text{residual}}$.
+For two groups, ANOVA gives the same answer as the $t$-test:
+
+$$F = t^2$$
+
+ANOVA extends the $t$-test to any number of groups.
 :::
 
 
-# Variance partitioning
-
-## Total sum of squares: $SS_{\text{total}}$
-
-$$SS_{\text{total}} = \sum(y_{ij} - \bar{y})^2$$
-
-```{r}
-overall_mean <- mean(chicks$weight)
-ss_total <- sum((chicks$weight - overall_mean)^2)
-ss_total
-```
-
-
-## Treatment sum of squares: $SS_{\text{treatment}}$
-
-$$SS_{\text{treatment}} = \sum n_i \times (\bar{y}_i - \bar{y})^2$$
-
-```{r}
-group_means <- chicks |>
-  group_by(diet) |>
-  summarise(grp_mean = mean(weight))
-
-ss_trt <- sum(5 * (group_means$grp_mean - overall_mean)^2)
-ss_trt
-```
-
-
-## Residual sum of squares: $SS_{\text{residual}}$
-
-$$SS_{\text{residual}} = \sum(y_{ij} - \bar{y}_i)^2$$
-
-```{r}
-chicks_with_means <- chicks |>
-  left_join(group_means, by = "diet")
-
-ss_res <- sum((chicks_with_means$weight - chicks_with_means$grp_mean)^2)
-ss_res
-```
-
-::: fragment
-**Check**: $SS_{\text{total}} = SS_{\text{treatment}} + SS_{\text{residual}}$
-
-```{r}
-c(ss_total, ss_trt + ss_res)
-```
-:::
-
-
-# ANOVA table
-
-## Structure
+## T: The ANOVA table
 
 | Source | df | SS | MS | F |
 |--------|----|----|----|----|
@@ -282,53 +280,95 @@ c(ss_total, ss_trt + ss_res)
 | Residual | $N - t$ | $SS_{\text{res}}$ | $SS_{\text{res}} / (N-t)$ | |
 | **Total** | $N - 1$ | $SS_{\text{total}}$ | | |
 
-- $N$ = total observations, $t$ = number of treatment levels
-- **Mean Squares** (MS) standardise SS so they are comparable
-- The larger the ratio $MS_{\text{trt}} / MS_{\text{res}}$, the stronger the treatment effect
-
-## Using `aov()` in R
-
 ```{r}
+#| eval: false
 model <- aov(weight ~ diet, data = chicks)
 summary(model)
 ```
 
+```{r}
+#| echo: false
+summary(model)
+```
 
-## Interpreting the results
+
+## P: Interpret
 
 ```{r}
 #| echo: false
 aov_summary <- summary(model)[[1]]
 f_val <- round(aov_summary$`F value`[1], 2)
 p_val <- round(aov_summary$`Pr(>F)`[1], 4)
-ms_res <- round(aov_summary$`Mean Sq`[2], 1)
+ss_trt <- aov_summary$`Sum Sq`[1]
+ss_res <- aov_summary$`Sum Sq`[2]
+ss_total <- ss_trt + ss_res
 ```
 
-- $F = `r f_val`$ with $df = 3, 16$
-- $p = `r p_val`$ which is $< 0.05$, so we **reject** $H_0$
-- There are **significant differences** in mean weight gain amongst the 4 diets
+- **diet** row: variation explained by the four diets ($df = 3$, since 4 groups minus 1)
+- **Residuals** row: leftover variation ($df = 16$, since 20 observations minus 4 groups)
+- $F = `r f_val`$: the treatment variance is `r f_val` times larger than the residual variance
+- $p = `r p_val`$: below 0.05, so we **reject** $H_0$
 
 ::: fragment
 ### How much variability is explained?
 
-$$\frac{SS_{\text{treatment}}}{SS_{\text{total}}} = \frac{`r round(ss_trt, 0)`}{`r round(ss_total, 0)`} = `r round(ss_trt / ss_total * 100, 1)`\%$$
+$$\frac{SS_{\text{treatment}}}{SS_{\text{total}}} = \frac{`r round(ss_trt, 1)`}{`r round(ss_total, 1)`} = `r round(ss_trt / ss_total * 100, 1)`\%$$
 
 The diets explain about `r round(ss_trt / ss_total * 100)`% of the total variability in chick weight gain.
 :::
 
 
-# Post-hoc: which groups differ?
+## C: Conclusion
 
-## Confidence intervals for group means
+```{r}
+#| echo: false
+ms_trt <- aov_summary$`Mean Sq`[1]
+ms_res <- aov_summary$`Mean Sq`[2]
+```
 
-We can examine 95% CIs for each treatment mean:
+| Source | df | SS | MS | F | p |
+|--------|---:|---:|---:|---:|---:|
+| Diet | 3 | `r round(ss_trt, 1)` | `r round(ms_trt, 1)` | `r f_val` | `r p_val` |
+| Residual | 16 | `r round(ss_res, 1)` | `r round(ms_res, 1)` | | |
 
-$$95\% \text{ CI} = \bar{y}_i \pm t^{0.025}_{N-t} \times SE(\bar{y}_i)$$
+There are significant differences in mean weight gain among the four diets ($F_{3,16} = `r f_val`$, $p = `r p_val`$).
 
-where $SE(\bar{y}_i) = \sqrt{MS_{\text{res}} / n_i}$
+::: fragment
+But ANOVA only tells us **that** groups differ, not **which** ones. To identify specific differences, we need post-hoc analysis.
+:::
 
 
-## Using `emmeans`
+# Post-hoc
+
+
+## Why post-hoc?
+
+$H_1$ says "not all means are equal," but not **which** ones differ.
+
+- ANOVA tells us the four diet means are not all the same
+- It does not tell us whether Diet 1 differs from Diet 2, or Diet 3 from Diet 4
+- We cannot run separate $t$-tests (the multiple comparisons problem from the first slide)
+- We need a method that compares pairs **while controlling the overall error rate**
+
+
+## Post-hoc and confidence intervals
+
+Before the break we used a **confidence interval for the difference** between two cattle breeds. Post-hoc methods apply the same logic to every pair of groups.
+
+- For each pair, construct a CI for the difference in means
+- If the CI **excludes zero**, those two groups differ significantly
+- If the CI **includes zero**, we cannot conclude they differ
+
+::: fragment
+The key difference from running separate $t$-tests: post-hoc methods **widen** the CIs to account for multiple comparisons, keeping the overall false positive rate at 5%.
+
+We will cover specific post-hoc methods (Tukey, Bonferroni) in detail next week.
+:::
+
+
+## Estimated marginal means
+
+Before the break we used CIs to compare two cattle breeds. The same idea extends to multiple groups. `emmeans` estimates the mean and standard error for each group from the model.
 
 ```{r}
 library(emmeans)
@@ -337,41 +377,46 @@ emm
 ```
 
 
-## Visualising group comparisons
+## Pairwise comparisons
+
+To find which pairs differ, we construct a CI for the difference between every pair of means.
 
 ```{r}
-#| label: plot_ci
-#| fig-align: center
-plot(emm, comparisons = TRUE) +
-  labs(x = "Weight (g)", y = "Diet")
+confint(pairs(emm))
 ```
 
-Groups with **overlapping** arrows are **not** significantly different from each other.
+- Each row is one pairwise comparison (e.g. Diet1 - Diet2)
+- The `lower.CL` and `upper.CL` columns are the 95% CI for the difference
+- If the CI **excludes zero**, those two diets differ significantly
+
+
+## Visualising the comparisons
+
+```{r}
+#| fig-align: center
+plot(emm, comparisons = TRUE) +
+  labs(x = "Weight gain (g)", y = "Diet")
+```
+
+- Each point is the estimated mean for that diet
+- The arrows represent comparison intervals (adjusted CIs)
+- Groups with **overlapping** arrows are **not** significantly different
+- We will cover post-hoc methods in more detail next week
 
 
 # Summary
 
-## $t$-test vs ANOVA
 
-::: incremental
-- **$t$-test**: compares means of **2** groups
-- **ANOVA**: compares means of **2 or more** groups simultaneously
-- ANOVA avoids the inflated Type I error rate from multiple $t$-tests
-- The ANOVA $F$-test tells us *if* differences exist, but not *where*
-- Post-hoc methods (e.g. `emmeans`) identify *which* pairs differ
+## Key points
+
+- ANOVA extends the $t$-test to more than two groups ($F = t^2$ for two groups)
+- Multiple pairwise $t$-tests inflate the false positive rate. ANOVA tests all groups at once
+- The F ratio compares between-group variation to within-group variation
+- Post-hoc methods construct CIs for pairwise differences to identify which groups differ
+
+::: fragment
+In Lab 03, you will fit your own ANOVA with `aov()` and explore group comparisons with `emmeans`. Next week: residual diagnostics and post-hoc methods.
 :::
-
-
-## Next week
-
-- How to better identify which pairs are significantly different
-- How to test and interpret model assumptions using **residual diagnostics**
-
-
-## References
-
-- Quinn & Keough (2002), Chapter 7: Section 7.1
-- Mead et al. (2002), Chapter 18: Sections 18.1--18.3
 
 
 ## Thanks! {.center-h}
