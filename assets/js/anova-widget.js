@@ -402,7 +402,7 @@ export function variancePartitionWidget(opts = {}) {
   svg.appendChild(grandMeanLine);
 
   const grandMeanLabel = svgEl("text", {
-    x: margin.left + plotW + 4,
+    x: margin.left + 6,
     "text-anchor": "start", fill: "#333", "font-size": "11px",
     "font-weight": "bold",
   });
