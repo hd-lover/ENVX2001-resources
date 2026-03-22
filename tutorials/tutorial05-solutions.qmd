@@ -1,5 +1,6 @@
 ---
 title: "Tutorial 05 — Instructor notes"
+draft: true
 format:
   sandstone-html: default
   sandstone-typst:
@@ -8,7 +9,6 @@ execute:
   eval: false
 ---
 
-Companion document for tutors running Tutorial 05. You lead every exercise from start to finish. The only part students do on their own is the exam questions at the end.
 
 Student document: [Tutorial 05](tutorial05.qmd)
 
