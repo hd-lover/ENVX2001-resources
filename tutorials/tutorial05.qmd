@@ -1,27 +1,21 @@
 ---
-title: "Tutorial 05: Experimental Design and ANOVA"
+title: "Tutorial 05"
 # reviewed-by:
+format:
+  sandstone-html:
+    code-tools: true
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
+## Welcome {.unnumbered}
 
-In this week's lectures we covered complete randomised designs (CRD) and randomized block designs (RBD) for experiments with one factor or treatment. We also covered analysis of variance (ANOVA) as a method to analyse data from these experimental designs.
+In this tutorial we will explore experimental design principles by testing randomisation with a class activity, then analysing simulated CRD and RCBD experiments in R.
 
-::: callout-tip
-## Key learning outcomes
+You will learn how to:
 
--   Assess the validity of an experiment in terms of the appropriateness of replication:
-    -   Randomisation
-    -   Experimental unit vs sampling unit
-    -   Replication
--   Control of variation
-    -   Completely randomised design (CRD)
-    -   Explain the concept of blocking
-    -   Randomised complete block design (RCBD)
-    -   Know how to calculate the % variation explained by treatments and blocking terms
-:::
+1. Assess the validity of an experiment in terms of randomisation, experimental units, and replication.
+2. Analyse a completely randomised design (CRD) using ANOVA.
+3. Analyse a randomised complete block design (RCBD) and calculate the percentage of variation explained by treatments and blocks.
+
 
 # Randomisation
 
@@ -36,26 +30,26 @@ Randomisation is a key principle of experimental design. It helps to ensure that
 -   It is a key assumption of all statistical models.
 :::
 
-## Exercise 1: Testing randomisation
+## Exercise 1: Testing randomisation {.unnumbered}
 
-Let's work together as a class to test the effect of randomisation on an experiment. We will simulate an experiment with and without randomisation and compare the results.
+Let us work together as a class to test the effect of randomisation on an experiment. We will simulate an experiment with and without randomisation and compare the results.
 
 Assign each student a number from 1 to the total number of students in the class. Each student will be asked to answer the question:
 
 > "Do you know the student next to you? Yes or No"
 
-### 1.1) Non-random sample
+### Part A --- Non-random sample
 
-> "Do you know the student sitting next to you? Yes or No"
+> "Do you know the student next to you? Yes or No"
 
 Put your hand up if you answer "Yes", and keep it down if you answer "No". The students with their hands up are counted as "Yes" and the students with their hands down are counted as "No". This is our non-random sample.
 
-**Class answers** — Replace these with your class numbers:
+**Class answers** --- Replace these with your class numbers:
 
 ```{r}
 total_nonrandom <- 60 # total students in non-random sample/class size
 count_yes_nonrandom <- 38 # yes I know the person next to me
-count_no_nonrandom  <- 22 # no I don't know the person next to me
+count_no_nonrandom  <- 22 # no I do not know the person next to me
 ```
 
 **Class size (number of students present):**
@@ -65,7 +59,7 @@ class_size <- total_nonrandom
 ```
 
 
-### 1.2) Percentages from the non-random sample
+### Part B --- Percentages from the non-random sample
 
 ```{r}
 prop_yes_nonrandom <- (count_yes_nonrandom / total_nonrandom) * 100
@@ -77,7 +71,7 @@ cat("Non-random sample % Yes:", round(prop_yes_nonrandom, 1), "%\n")
 cat("Non-random sample % No :", round(prop_no_nonrandom, 1),  "%\n\n")
 ```
 
-### 1.3) Random sample
+### Part C --- Random sample
 
 We simulate student IDs and assign a random number to each ID.
 
@@ -146,21 +140,16 @@ Bar plot of % Yes/No for non-random vs random samples using ggplot2.
 
 ```{r}
 percent_df <- data.frame(
-  sample_type = rep(c("Non-random sample", "Random sample"), each = 2),
-  response     = rep(c("Yes", "No"), times = 2),
-  percent      = c(prop_yes_nonrandom, prop_no_nonrandom, prop_yes_random, prop_no_random)
+  sample_type = rep(c("Non-random", "Random"), each = 2),
+  response    = rep(c("Yes", "No"), times = 2),
+  percent     = c(prop_yes_nonrandom, prop_no_nonrandom, prop_yes_random, prop_no_random)
 )
 
 library(ggplot2)
 
-p <- ggplot(percent_df, aes(x = response, y = percent, fill = sample_type)) +
-  geom_col(position = position_dodge(width = 1)) +
-  labs(title = "Non-random vs Random Sample: % Knowing the Neighbour",
-       x = "Response", y = "Percent", fill = "Sample type") +
-  scale_fill_manual(values = c("Non-random sample" = "#4C78A8", "Random sample" = "#F58518")) +
-  theme_minimal(base_size = 12)
-
-print(p)
+ggplot(percent_df, aes(x = response, y = percent, fill = sample_type)) +
+  geom_col(position = "dodge") +
+  labs(x = "Response", y = "Percent", fill = "Sample type")
 ```
 
 Non-random sampling (asking about the person next to you) is typically biased because seating patterns cluster friends or cohorts.
@@ -168,65 +157,14 @@ Non-random sampling (asking about the person next to you) is typically biased be
 -   Random sampling gives each student an equal chance, reducing systematic bias.
 -   Comparing the two percentages provides a simple measure of bias in this context.
 
----
+::: {.callout-note}
+## Checkpoint
 
-# Experimental Unit vs Sampling Unit
-
-In an experiment, it is important to distinguish between the experimental unit and the sampling unit.
-
-::: callout-important
-## Experimental unit vs Sampling unit
-
--   The **experimental unit** is the smallest unit to which a treatment is applied.
--   The **sampling unit** is the smallest unit from which measurements are taken.
+You should now be able to explain why random sampling reduces bias compared to convenience sampling, and how to estimate the magnitude of that bias.
 :::
 
-## Exercise 2: Identifying units
 
-Consider an experiment to test the effect of different fertilizers on plant growth. The experiment uses 12 pots, with 4 pots assigned to each of 3 fertilizer treatments (A, B, and C). Each pot contains 5 plants, and the height of each plant is measured after 4 weeks.
-
-> What is the experimental unit and what is the sampling unit in this experiment?
-
-```{r}
-# Experimental unit: pot
-# Sampling unit: individual plant
-```
-
--   The experimental unit is the pot, as the fertilizer treatment is applied to the entire pot.
--   The sampling unit is the individual plant, as the height of each plant is measured.
-
-> Working in pairs, identify other examples of experimental units vs sampling units and check answers with staff.
-
-```{r}
-# Examples here
-```
-
----
-
-# Replication
-
-Replication is the repetition of an experimental condition to estimate the variability of the data and increase the precision of the results.
-
-::: callout-important
-## Why replicate?
-
--   To estimate the variability of the data.
--   To increase the precision of the results.
--   To increase the power of statistical tests.
-:::
-
-Consider the plant growth experiment above. If each fertilizer treatment is applied to only one pot, there is no replication, and it is impossible to estimate the variability of plant growth within each treatment. However, if each fertilizer treatment is applied to 4 pots, there is replication, allowing for estimation of variability and more reliable statistical analysis.
-
-::: callout-tip
-## Understanding variation is our job as scientists!
-
--   Variation is inherent in all biological systems.
--   Our job is to understand and account for this variation in our experimental designs and analyses.
-:::
-
----
-
-# Control of Variation: Completely Randomised Design (CRD)
+# Control of variation: CRD
 
 In a Completely Randomised Design (CRD), experimental units are randomly assigned to treatments. This design is appropriate when the experimental units are homogeneous and there are no known sources of variation that need to be controlled.
 
@@ -242,11 +180,25 @@ In a Completely Randomised Design (CRD), experimental units are randomly assigne
 
 Simple experiments can be easier to interpret, but may not control for variation as well as more complex designs.
 
-## Exercise 3: Completely Randomised Design (CRD)
+## Exercise 2: CRD {.unnumbered}
 
 Consider an experiment to test the effect of different fertilizers on plant growth using a CRD. The experiment uses 12 pots, with 4 pots assigned to each of 3 fertilizer treatments (A, B, and C). Each pot contains 5 plants, and the height of each plant is measured after 4 weeks.
 
+The statistical model for this CRD can be expressed as:
+$$Y_{ij} = \mu + \alpha_i + \epsilon_{ij}$$
+Where:
+
+- $Y_{ij}$ is the observed height of the $j$-th plant in the $i$-th fertilizer treatment.
+- $\mu$ is the overall mean height across all fertilizer treatments.
+- $\alpha_i$ is the effect of the $i$-th fertilizer treatment (i = A, B, C).
+- $\epsilon_{ij}$ is the random error associated with the $j$-th plant in the $i$-th treatment, assumed to be independently and identically distributed with mean 0 and variance $\sigma^2$.
+
+OR:
+
+$$Plant\ height = overall\ mean + fertilizer\ treatment + random\ error.$$
+
 ```{r}
+#| code-fold: true
 # Randomly assign treatments to pots
 set.seed(123)
 treatments <- rep(c("A", "B", "C"), each = 4)
@@ -261,6 +213,7 @@ pots
 -   The height of each plant is measured after 4 weeks.
 
 ```{r}
+#| code-fold: true
 # Simulate plant height data
 set.seed(456)
 plant_heights <- data.frame(
@@ -289,9 +242,14 @@ summary(anova_result)
 
 -   The ANOVA results will indicate whether there are significant differences in plant height between the fertilizer treatments.
 
----
+::: {.callout-note}
+## Checkpoint
 
-# Control of Variation: Randomised Complete Block Design (RCBD)
+You should now be able to write out a CRD statistical model, fit it using `aov()`, and interpret the ANOVA output to determine whether there are significant treatment effects.
+:::
+
+
+# Control of variation: RCBD
 
 In a Randomised Complete Block Design (RCBD), experimental units are grouped into blocks based on known sources of variation, and treatments are randomly assigned within each block. This design is appropriate when there are known sources of variation that need to be controlled.
 
@@ -305,11 +263,27 @@ In a Randomised Complete Block Design (RCBD), experimental units are grouped int
 -   Appropriate for heterogeneous experimental units.
 :::
 
-## Exercise 4: Randomised Complete Block Design (RCBD)
+## Exercise 3: RCBD {.unnumbered}
 
 Consider an experiment to test the effect of different fertilizers on plant growth using an RCBD. The experiment uses 12 pots, with 4 pots assigned to each of 3 fertilizer treatments (A, B, and C). The pots are grouped into 4 blocks based on their location in the greenhouse (North, South, East, West). Each pot contains 5 plants, and the height of each plant is measured after 4 weeks.
 
+The statistical model for this RCBD can be expressed as:
+$$Y_{ijk} = \mu +  \beta_j + \alpha_i + \epsilon _{ijk}$$
+Where:
+
+- $Y_{ijk}$ is the observed height of the $k$-th plant in the $i$-th fertilizer treatment and $j$-th block.
+- $\mu$ is the overall mean height across all fertilizer treatments and blocks.
+- $\beta_j$ is the effect of the $j$-th block (j = North, South, East, West).
+- $\alpha_i$ is the effect of the $i$-th fertilizer treatment (i = A, B, C).
+- $\epsilon_{ijk}$ is the random error associated with the $k$-th plant in the $i$-th treatment and $j$-th block, assumed to be independently and identically distributed with mean 0 and variance $\sigma^2$.
+
+OR:
+
+$$Plant\ height = overall\ mean + block + fertilizer\ treatment + random\ error.$$
+
+
 ```{r}
+#| code-fold: true
 # Create blocks and randomly assign treatments within blocks
 set.seed(123)
 blocks <- rep(c("North", "South", "East", "West"), each = 3)
@@ -326,6 +300,7 @@ pots
 -   The height of each plant is measured after 4 weeks.
 
 ```{r}
+#| code-fold: true
 # Simulate plant height data
 set.seed(456)
 plant_heights <- data.frame(
@@ -387,13 +362,18 @@ cat("Percentage of variation explained by blocks:", round(percent_block, 1), "%\
 
 This information helps to understand the contribution of treatments and blocks to the overall variation in plant height.
 
----
+::: {.callout-note}
+## Checkpoint
 
-# Summary
+You should now be able to write out an RCBD statistical model, fit it using `aov()` with a blocking term, interpret the output, and calculate the percentage of variation explained by treatments and blocks from the ANOVA table.
+:::
+
+
+## Wrap-up {.unnumbered}
 
 In this tutorial, we covered key concepts in experimental design, including randomisation, experimental units vs sampling units, replication, and control of variation through CRD and RCBD. We also demonstrated how to analyse data from these designs using ANOVA in R.
 
-## Example exam questions
+### Example exam questions
 
 1.  Define the terms "experimental unit" and "sampling unit". Provide an example of each from a hypothetical agricultural experiment.
 

@@ -1,127 +1,113 @@
 ---
-title: "Lab 5 - Experimental Design"
+title: Lab 05
 # revised-by:
 subtitle: ENVX2001 Applied Statistical Methods
 description: The University of Sydney
-date: today
-date-format: "[Semester 1,] YYYY"
+toc: true
+toc-depth: 3
 resources:
-  - data/Data5.xlsx
+  - data/crd_dingo_fox_exclusion.csv
+  - data/rcbd_mammals.csv
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
+# Welcome!
 
-:::{.callout-tip}
+This week we will analyse two experiments using one-way ANOVA: a completely randomised design investigating dingo and fox activity from camera trap data, and a randomised complete block design examining fire severity effects on small mammal abundance.
+
+You will come across **Exercises** in this lab. Solutions will be posted on Friday evening.
+
 ## Learning outcomes
-At the end of this lab students should be able to:
 
-* distinguish between sampling units and experimental units;
+In this lab, we will learn how to:
 
-* use R to generate randomisations for CRDs and RCBDs;
+1. Use R to analyse CRDs and RCBDs.
+2. Assess the usefulness of blocking.
 
-* use R to analyse experiments with blocking, and assess the usefulness of blocking.
+## Specific goals
 
-All of the data for this lab is in the **Data5.xlsx** file.
-:::
+By the end of this lab, you should be able to:
 
-## Exercise 1 - Randomisation for a CRD using R (Walk-through)
-Consider a glass house experiment conducted on a bench on which it was judged that the growing conditions would be consistent across the bench. The experimenter had five different smoked water treatments for assisting the germination of *Banksia* seeds. She had 50 dishes on which she could place seeds randomly selected from a uniform batch of *Banksia* seeds. The dishes were to be placed on the bench and each of the five water solutions allocated randomly to 10 of the dishes. 
+- [ ] Fit and interpret a one-way ANOVA for a CRD
+- [ ] Check ANOVA assumptions using diagnostic plots
+- [ ] Perform post-hoc tests using `emmeans`
+- [ ] Fit a one-way ANOVA with a blocking term for an RCBD
+- [ ] Calculate the percentage of variation explained by blocking
 
-::: {.question}
-### Question 1.1
-*(i)*	What would the degrees of freedom be in a corresponding ANOVA table?
-:::
+## Preparation
 
-::: {.content-visible when-profile="solution"}
-::: {.ans}
-### Solution
+This lab uses `emmeans`. Install it if you are missing it by running the following **in the console**:
 
-* Treatment df = t – 1 = 5 – 1	=  4
+```r
+install.packages("emmeans")
+```
 
-* Residual df =	N – t = 50 – 5	= 45
+### Downloads
 
-* Total df = N – 1 = 50 – 1	= 49
+| File | Used in | Download |
+|---|---|---|
+| `crd_dingo_fox_exclusion.csv` | Section 1 | [Download](data/crd_dingo_fox_exclusion.csv) |
+| `rcbd_mammals.csv` | Section 2 | [Download](data/rcbd_mammals.csv) |
 
-:::
-:::
+Save the files into a folder called `data` inside your project folder.
 
-::: {.question}
-### Question 1.2
-*(ii)*	Suppose that Treatment 1 was a control.  In situations where the comparisons of interest are of the other treatments (2 to 5) with the control, and not amongst the other treatments, it can be advantageous to increase the number of control replicates to 20. What are the degrees of freedom in the corresponding ANOVA table?
-:::
 
-::: {.content-visible when-profile="solution"}
-::: {.ans}
-### Solution
+# 1. Completely randomised design (~25 min)
 
-* Treatment df = t – 1 = 5 – 1	=  4
+You are tasked with analysing data from an experiment that investigated the effect of dingo activity on fox activity. You set out camera traps at 36 sites for 36 days at sites with high, medium and no dingoes (exclusion). You recorded the number of foxes that were captured on camera. Our measure of activity is the number of images per 100 trap nights. This was calculated by:
 
-* Residual df =	N – t = 60 – 5	= 55
+$$FoxRatePer100 = \frac{FoxDetections}{TrapNights} \times 100$$
 
-* Total df = N – 1 = 60 – 1	= 59
 
-:::
-:::
 
-::: {.question}
-### Question 1.3
-*(iii)* The formula for standard error of the difference (SED) is:
+![Introduced red fox (*Vulpes vulpes*) caught on camera trap in the Greater Blue Mountains World Heritage Area. Image credit: Ecosystems Dynamics Lab, The University of Sydney.](images/Juv_Fox.jpeg){fig-align="center" width="767"}
 
-$SED=\sqrt{Resid\ MS\left(\frac{1}{n_1}+\frac{1}{n_2}\right)}$.
 
-Given the SED formula, what percentage improvement (i.e. reduction) has been achieved for the SED between Treatment 1 and 2 when there are equal replicates *(i)* versus unequal replicates *(ii)*?  Assume the Residual MS is a constant.
-:::
 
-::: {.content-visible when-profile="solution"}
-::: {.ans}
-### Solution
-For the equal replicate design:
+We predict Higher fox activity → lower dingo activity based on mesopredator release hypothesis.
 
-$SED=\sqrt{Resid\ MS\left(\frac{1}{10}+\frac{1}{10}\right)}\approx0.447\times\sqrt{Resid\ MS}$.  
 
-For the second design:
+Data is in the **crd_dingo_fox_exclusion.csv** file.
 
-$SED=\sqrt{Resid\ MS\left(\frac{1}{20}+\frac{1}{10}\right)}\approx0.387\times\sqrt{Resid\ MS}$.
+- Experimental units: Sites (randomly assigned to treatments; no blocking)
+- Factor: DingoActivity (3 levels: High, Medium, Exclusion)
+- Response: FoxRatePer100 (images per 100 trap-nights)
+- Replicates: n = 12 sites per treatment (36 total)
 
-So SED(extra control rep) / SED(equal rep) = 0.387 / 0.447 = 0.866, i.e. a 13.4% reduction in the SED.
+Other variables:
 
-:::
-:::
+- SiteID: unique identifier for each site
+- TrapNights: number of nights the camera trap was active at each site (max of 36, but some cameras surveyed for less)
+- FoxDetections: number of images of foxes captured by the camera trap at each site
 
-## Exercise 2 - The balance between the number of sampling units and experimental units (Walk-through)
-Horticulturalists have been studying the nutrient requirements of lettuce growing in a sand medium; in particular they are looking at the nitrate concentration in leaf petioles in response to varying applied nitrogen nutrient levels (5, 11, 18 and 32 mmol/L).  Lettuce plants are grown in separate pots, so different nitrogen levels may be applied to individual pots, and one or more leaves sampled per plant.  They are also interested in optimising their experimental protocol for future studies; consequently they conducted five separate experiments where they sampled different number of leaves per plant, and differing number of plants, but kept the total number of leaves sampled at 128 in each experiment.  The experiments were conducted as follows:
+Statistical model for CRD:
+$$Y_{ij} = \mu + \alpha_i + \epsilon_{ij}$$
+Where:
 
-* Experiment 1:  16 leaves per plant; 2 plants per treatment;
+- $Y_{ij}$ is the observed fox activity (FoxRatePer100) at the $j$-th site in the $i$-th dingo activity level.
+- $\mu$ is the overall mean fox activity across all dingo activity levels.
 
-* Experiment 2:  8 leaves per plant; 4 plants per treatment;
+OR:
 
-* Experiment 3:  4 leaves per plant; 8 plants per treatment;
+$$fox\ activity = overall\ mean + dingo\ activity + random\ error.$$
 
-* Experiment 4:  2 leaves per plant; 16 plants per treatment;
-
-* Experiment 5:  1 leaf per plant; 32 plants per treatment.
-
-Similar lettuce plants were used across all five experiments, and in all cases, a CRD was used to allocate the plants amongst the treatments.  The datasets are located in the *Data5.xlsx* file.  There are separate sheets for each Experiment called *Experiment1*, *Experiment2*, etc.
+## Analysis
 
 ::: {.question}
-### Question 2.1
-*(i)* What are the experimental units and what are the sampling units in the above experiments.  For each experiment, how many experimental units and how many sampling units are used?
-:::
+### Exercise 1
 
-::: {.content-visible when-profile="solution"}
-::: {.ans}
-### Solution
+*(i)* Test the assumptions of the ANOVA and transform the data (if needed). Hint first run the model using the `aov()` function and then use the `plot()` function to check the assumptions.
 
-The experimental unit is the plant, and the sampling unit is the leaf on the plant.  All experiments have 128 sampling units (leaves).  However, the number of experimental units varies, and is: Experiment 1: 8; Experiment 2: 16; Experiment 3: 32; Experiment 4: 64; and Experiment 5: 128.
+```{r}
+#
+```
 
-:::
-:::
+*(ii)* Use an ANOVA to analyse the CRD and report on the results.
 
-::: {.question}
-### Question 2.2
-*(ii)* When there are multiple sampling units per experimental unit, in simple situations (as is here), an appropriate method is simply to average the responses over all the sampling units belonging to an experimental unit, and analyse these.  So in this case, we need to average the observed nitrate values over all the leaves in the plant.  The code below shows how to do this using a function called `rowMeans` which finds the average in a row across multiple columns.  Here we do this for *Experiment1*.   
+```{r}
+#
+```
+
+*(iii)* Explore any significant results using post-hoc tests from `emmeans` package and its `emmeans()` function. Include any plots that you think are useful to visualise the results.
 
 ```{r}
 #
@@ -130,135 +116,98 @@ The experimental unit is the plant, and the sampling unit is the leaf on the pla
 
 ::: {.content-visible when-profile="solution"}
 ::: {.ans}
-### Solution
+#### Solution
+
+##### (i) Check assumptions
 ```{r}
-library(readxl)
-exp1<-read_excel("data/Data5.xlsx",sheet="Experiment1")
-exp1$treatment<-as.factor(exp1$treatment)
-exp1$response<-rowMeans(exp1[,3:18])
-str(exp1)
+foxes<-read.csv("data/crd_dingo_fox_exclusion.csv", header=TRUE)
+head(foxes)
 ```
-:::
-:::
-
-::: {.question}
-### Question 2.3
-
-*(iii)* Perform a one-way ANOVA on these average data. (It will also be helpful to obtain the treatment means using the `emmeans` function, as done in previous topics.  What are your conclusions about the effect of varying applied nitrogen levels?  You don't have to look at post-hoc tests, just examine the F-test.
 
 ```{r}
-#
-```
-:::
+fox.anova<-aov(FoxRatePer100~DingoActivity,data=foxes)
 
-::: {.content-visible when-profile="solution"}
-::: {.ans}
-### Solution
-```{r, message=F,warning=F}
-mod1<-aov(response~treatment,data=exp1)
-summary(mod1)
+par(mfrow=c(2,2))
+plot(fox.anova)
+par(mfrow=c(1,1))
+```
+
+Assumptions of normality and homogeneity of variance appear to be met, so we can proceed with the ANOVA results.
+
+##### (ii) ANOVA results
+```{r}
+summary(fox.anova)
+```
+There is a significant effect of dingo activity on fox activity (F~1,18~ = 17.49; P < 0.01).
+
+
+##### (iii) Perform post-hoc tests.
+```{r}
 library(emmeans)
-emmeans(mod1,"treatment")
+emmeans(fox.anova, pairwise ~ DingoActivity )
 ```
 
-Conclusion: There are no significant differences in mean nitrate level across the four nitrogen treatment groups (F = 0.045; df = 3,4; P = 0.99).
+There are significantly more foxes at sites with no dingo activity (mean = 17.91; t = 5.83, df = 22, P < 0.01) than at sites with high dingo activity (mean = 4.22) or medium dingo activity (mean = 9.07; t = 3.77; df = 33; P = 0.002).
+
+
+```{r}
+plot(emmeans(fox.anova, "DingoActivity"), comparisons = TRUE)
+```
+
+Conclusion: The results support the mesopredator release hypothesis, with higher fox activity at sites with no dingo activity. Interestingly, there is no significant difference in fox activity between sites with medium and high dingo activity, suggesting that even moderate dingo activity may suppress fox activity.
+
 :::
 :::
+
+Before we move on, now is a good time to take a 5-minute break.
+
+
+# 2. Randomised complete block design (~25 min)
+
+A researcher designs a study to investigate the effect of fire treatment (unburnt, low severity and high severity) on small mammal abundance. They set up four blocks (Block_1, Block_2, etc) and select sites that were unburnt, low severity and high severity fire within each block. At each site to survey small mammal abundance.  The data is in the **rcbd_mammals.csv** file.
+
+![Fire severity classes. Image credit: CoPilot.](images/fire_severity.png){fig-align="center" width="767"}
+
+## Analysis
+
 
 ::: {.question}
-### Question 2.4
-*(iV)* Repeat this for Experiments 2 to 5.  What are your conclusions in each experiment?
-:::
+### Exercise 2
 
-Experiment 2: 8 leaves per plant, 4 plants per treatment
+*(i)* Write out the statistical model for the ANOVA model for this experiment.  Define all the terms in the model. You can write out in words or in mathematical notation.
+
+```{r}
+# Answer here
+```
+
+
+
+*(ii)* Test the assumptions of the ANOVA and transform the data (if needed). Hint first run the model using the `aov()` function and then use the `plot()` function to check the assumptions.
+
 
 ```{r}
 #
 ```
 
-::: {.content-visible when-profile="solution"}
-::: {.ans}
-### Solution
-```{r, message=F,warning=F}
-exp2<-read_excel("data/Data5.xlsx",sheet="Experiment2")
-exp2$treatment<-as.factor(exp2$treatment)
-exp2$response<-rowMeans(exp2[,3:10])
-mod2<-aov(response~treatment,data=exp2)
-summary(mod2)
-library(emmeans)
-emmeans(mod2,"treatment")
-```
-:::
-:::
 
-Experiment 3: 4 leaves per plant, 8 plants per treatment
+*(iii)* Use an ANOVA to analyse the RCBD and report on the results.
+
 
 ```{r}
 #
 ```
 
-::: {.content-visible when-profile="solution"}
-::: {.ans}
-### Solution
-```{r, message=F,warning=F}
-exp3<-read_excel("data/Data5.xlsx",sheet="Experiment3")
-exp3$treatment<-as.factor(exp3$treatment)
-exp3$response<-rowMeans(exp3[,3:6])
-mod3<-aov(response~treatment,data=exp3)
-summary(mod3)
-library(emmeans)
-emmeans(mod3,"treatment")
-```
-:::
-:::
 
-Experiment 4: 2 leaves per plant, 16 plants per treatment
+*(iv)* Explore any significant results using post-hoc tests from `emmeans` package and its `emmeans()` function. Include any plots that you think are useful to visualise the results.
+
 
 ```{r}
 #
 ```
 
-::: {.content-visible when-profile="solution"}
-::: {.ans}
-### Solution
-```{r, message=F,warning=F}
-exp4<-read_excel("data/Data5.xlsx",sheet="Experiment4")
-exp4$treatment<-as.factor(exp4$treatment)
-exp4$response<-rowMeans(exp4[,3:4])
-mod4<-aov(response~treatment,data=exp4)
-summary(mod4)
-library(emmeans)
-emmeans(mod4,"treatment")
-```
-:::
-:::
 
-Experiment 5: 1 leaf per plant, 32 plants per treatment.  Note, no averaging required as sampling unit = experimental unit.
+*(v)* Calculate the variation explained by the blocking term.
 
-```{r}
-#
-```
-
-::: {.content-visible when-profile="solution"}
-::: {.ans}
-### Solution
-```{r, message=F,warning=F}
-exp5<-read_excel("data/Data5.xlsx",sheet="Experiment5")
-exp5$treatment<-as.factor(exp5$treatment)
-exp5$response<-exp5$leaf1
-mod5<-aov(response~treatment,data=exp5)
-summary(mod5)
-library(emmeans)
-emmeans(mod5,"treatment")
-```
-
-While Experiment 2 also did not indicate significant differences in mean nitrate level across the four nitrogen treatments, significant differences were detected in the subsequent experiments, particularly in Experiments 3 and 4.  There is a trend of increasing mean nitrate concentrations with increasing nitrogen treatment, indicating a dose-response relationship.
-:::
-:::
-
-::: {.question}
-### Question 2.5
-*(v)* Summarise the results in terms of the balance between sampling plants versus leaves, and what recommendations would you make for future studies?
 
 ```{r}
 #
@@ -267,207 +216,105 @@ While Experiment 2 also did not indicate significant differences in mean nitrate
 
 ::: {.content-visible when-profile="solution"}
 ::: {.ans}
-### Solution
-
-With a fixed number of leaves (sampling units), increasing the number of plants and reducing the number of leaves sampled per plant results in an increased significance for the treatment effect being detected.  However, there is evidence that only sampling one leaf per plant results in a moderate decline in the significance levels.  These findings are seen when either the Residual MS, F or P-values are used to make this assessment.  So for this scheme, it would be recommended to use Experiment 3 or Experiment 4 protocols.  Note that the standard errors of means (SE) also decline with increasing plants per treatments, though this changes little with eight or more.
-
-```{r, echo=FALSE}
-Experiment<-c(1,2,3,4,5)
-Plants_Per_Treatment<-c(2,4,8,16,32)
-Leaves_Per_Plant<-c(16,8,4,2,1)
-Resid_MS<-c(0.155,0.111,0.108,0.239,0.308)
-F_Stat<-c(0.04,0.91,5.82,5.76,3.22)
-P_Value<-c(0.986,0.465,0.003,0.002,0.025)
-SE<-c(0.278,0.167,0.116,0.122,0.098)
-gdat<-cbind(Experiment,Plants_Per_Treatment,Leaves_Per_Plant,Resid_MS,F_Stat,P_Value,SE)
-library(knitr)
-kable(gdat)
-```
-
-:::
-:::
-
-::: {.question}
-### Question 2.6
-*(vi)*	There are two sources of random variation encountered in these experiments:
-
--variation between leaves within a plant; and
- 	
--variation between plants within the same treatment group.
- 	
-How do you think your recommendations might change in *(iv)* if:
-
--there was (virtually) no variation between leaves within a plant; only between plants; or
-	
--there was (virtually) no variation between plants, only variation between leaves within a plant.
-:::
-
-::: {.content-visible when-profile="solution"}
-::: {.ans}
-### Solution
-If there is virtually no variation between leaves within a plant, then just using one leaf per plant would be sufficient, so Experiment 5 would be the optimal protocol here.
-
-If there is much leaf to leaf variation, but little between-plant variation, then it is best to increase the number of leaves sampled per plant, and use fewer plants.  So Experiment 1 might be optimal here (but this would give the very minimal level of replication, so for a cautionary approach, Experiment 2 might be used).
-
-:::
-:::
-
-## Exercise 3 - A paired t-test generalises to a one-way ANOVA – RCBD
-Fifteen farms cooperated in a field trial in which a normal fattening ration for pigs (ration A) was compared with the same rations supplemented with a small trace of copper (ration B).  Each farmer set up two pens of pigs, as similar as possible in all respects, and allocated the two rations at random, ration A to one pen and ration B to the other.  The mean weight gains per pen (g/day) are stored in the two columns of the **copper** sheet in the **Data5.xlsx** file.
-
-This description clearly suggests the design is an RCBD, with 15 farms but only 2 treatments.  As we have seen, a paired design is the simplest form of RCBD.  In this example we will not worry about model assumptions.
-
-::: {.question}
-### Question 3.1
-
-*(i)* Firstly analyse the data using a paired t-test.  Assuming you read the data is as a data frame called `copper` the code is `t.test(x=copper$RationA,y=copper$RationB,paired=T)`.  Interpret the results.
+#### Solution
 
 ```{r}
-#
+fire<-read.csv("data/rcbd_mammals.csv", header=TRUE)
+head(fire)
+
+block.anova<-aov(Abundance~Block+Treatment,data=fire)
 ```
-:::
 
-::: {.content-visible when-profile="solution"}
-::: {.ans}
-### Solution
+##### (i) Statistical model
+The statistical model for the RCBD can be written in mathematical notation as:
+$$Y_{ijk} = \mu + \alpha_i + \beta_j + \epsilon_{ijk}$$
 
+Where:
+
+- $Y_{ijk}$ is the observed abundance of small mammals at the $k$-th site in the $i$-th block and $j$-th treatment.
+- $\mu$ is the overall mean abundance of small mammals across all treatments and blocks.
+- $\alpha_i$ is the effect of the $i$-th block (i = 1, 2, 3, 4).
+- $\beta_j$ is the effect of the $j$-th treatment (j = unburnt, low severity, high severity).
+- $\epsilon_{ijk}$ is the random error term associated with the $k$-th site in the $i$-th block and $j$-th treatment, assumed to be independently and identically distributed with mean 0 and variance $\sigma^2$.
+
+OR:
+
+$$Abundance\ of\ small\ mammals = overall\ mean + block + fire\ treatment + random\ error$$
+
+
+
+##### (ii) Check assumptions
 ```{r}
-library(readxl)
-copper<-read_excel("data/Data5.xlsx",sheet = "copper")
-head(copper)
-t.test(x=copper$RationA,y=copper$RationB,paired=T)
+par(mfrow=c(2,2))
+plot(block.anova)
+par(mfrow=c(1,1))
 ```
-Pigs fed Ration B (copper supplement) have a significantly higher weight gain than those on Ration A (P = 0.006).  On average, the cupper supplemented pigs (B) have a weight gain of 41 g/day more than the control, but a 95% confidence interval for this difference is between 14.0 and 67.9 g/day more.
+Assumptions of normality and homogeneity of variance appear to be met, so we can proceed with the ANOVA results.
 
-:::
-:::
-
-::: {.question}
-### Question 3.2
-*(ii)* Next we will obtain an analysis of the data using ANOVA.    To do this analysis however, you will first need to re-arrange the data set into a form suitable for ANOVA.  That is, you will need a single column of weight gains, a column of treatment identifiers, and a column indicating the Farm number.  The code below will do this for you:
-
-* `dat<-stack(copper[,2:3])`
-
-* `farms<-rep(c(1:15),times=2)`
-
-* `coppern<-cbind(farms,dat)`
-
-The first line stacks (using the `stack` function) the 2 columns of weight gain on top of each other (column name is `values`) and adds a column indicating which ration is associated with each weight gain value (column name is `ind`).
-
-The second line repeats (using the `rep` function) the values of farm numbers twice so for each of the weight gains we have an associated farm.
-
-The third line joins the two data frames together (using the `cbind` function) to create the new stacked dataset which can be used by the `aov` function.
-
+##### (iii) ANOVA results
 ```{r}
-head(copper)
-dat<-stack(copper[,2:3])
-farms<-rep(c(1:15),times=2)
-coppern<-cbind(farms,dat)
-str(coppern)
+summary(block.anova)
 ```
-:::
+There is a significant effect of fire treatment on small mammal abundance (F~2,6~ = 35.06; P = 0.0005).
 
-::: {.question}
-### Question 3.3
 
-*(iii)* The general code for performing an 1-way anova with a randomised complete block design is:
-
-`aov(response~block+treatment,data=data)` 
-
-In this example the `response` is the weight gain, `blocks` are farms and the `treatment` is ration. Your names will be different.  Having obtained the analysis, check that the results from the ANOVA is identical to the paired t-test:
-
-* the same *P*-value;
-
-* the same test statistic (though expressed as an *F*-statistic instead of a *t*-statistic, with *F* = $t^2$ to that from the paired *t*-test.
-
-```{r}
-#
-```
-:::
-
-::: {.content-visible when-profile="solution"}
-::: {.ans}
-### Solution
-```{r}
-block.anova<-aov(values~as.factor(farms)+ind,data=coppern)
-anova(block.anova)
-```
-Comparisons with paired t-test.
-
-* P = 0.006 in both analyses
-
-* $t^2$ =  $(–3.25)^2$ = 10.59 = F
-
-* Residual df = 14 = df for t-test
-
-:::
-:::
-
-## Exercise 4 - One-way ANOVA - RCBD
-
-Three diets for hamsters were tested for differences in weight gain after a specified period of time. Six inbred lines were used with three hamsters selected from each line. The three diets were assigned at random to the hamsters in each line.  The data is in the **hamsters** sheet in the **Data5.xlsx** file.
-
-::: {.question}
-### Question 4.1
-
-*(i)* Are the mean weight gains the same across diets? Are any diets more or less effective than other diets? You will need to use the `emmeans` package and its `emmeans()` function. Read in the data and perform post-hoc tests.
-
-```{r}
-#
-```
-:::
-
-::: {.content-visible when-profile="solution"}
-::: {.ans}
-### Solution
-
-```{r}
-library(readxl)
-hamster<-read_excel("data/Data5.xlsx",sheet="hamster")
-head(hamster)
-hamster$Diet<-as.factor(hamster$Diet)
-hamster$Inbred_Line<-as.factor(hamster$Inbred_Line)
-block.anova<-aov(Wt_Gain~Inbred_Line+Diet,data=hamster)
-anova(block.anova)
-```
-
-Perform post-hoc tests.
+##### (iv) Perform post-hoc tests.
 
 ```{r}
 library(emmeans)
-emmeans(block.anova, pairwise ~ Diet)
+emmeans(block.anova, pairwise ~ Treatment)
 ```
 
-There are significant differences in mean weigh gain of hamsters amongst the three diets (F = 9.56; df = 2, 10; P = 0.005).  Based on the post-hoc tests, hamsters fed diet 1 had a significantly higher weight gain than those fed diets 2 or 3, whereas there was no significant difference between weights for hamsters on Diets 2 and 3.
-
-:::
-:::
-
-::: {.question}
-### Question 4.2  
-*(ii)* Re-run the analysis without blocking, i.e. as a CRD.  Are the conclusions different?  Would you use blocking in the future?  What proportion of the variation was explained by blocking?
+There are significant differences in mean abundance of small mammals between High and low fire severity (t = -6.72; df = 6; P = 0.001) and high fire severity and unburnt sites (t = -7.68 df = 6; P = 0.0006), but no difference in abundance between low severity and unburnt sites (t = -0.96; df = 6; P = 0.63). Sites that burnt at high severity had significantly lower mean abundance (9.25) of small mammals than both low severity (21.5) and unburnt sites (23.25).
 
 ```{r}
-#
-```
-:::
-
-::: {.content-visible when-profile="solution"}
-::: {.ans}
-### Solution
-```{r}
-crd.anova<-aov(Wt_Gain~Diet,data=hamster)
-anova(crd.anova)
+plot(emmeans(block.anova, "Treatment"), comparisons = TRUE)
 ```
 
-We now have a non-significant F-test.  Based on Block SS in the original analysis value of 71.167, we can see that the majority of the Residual SS (90.167) in the CRD is from the between-block differences.  By including the block effect through the RCBD we have dramatically reduced the Residual SS.
+Conclusion: The results suggest that high severity fire has a significant negative effect on small mammal abundance, while low severity fire does not differ significantly from unburnt sites.
+
+
+##### (v) Calculate the variation explained by the blocking term
 
 The proportion of variation explained by the Blocking is:
 
-$\frac{Block\ SS}{Total\ SS}=\frac{71.167}{126.5}=0.56$.
+$\frac{Block\ SS}{Total\ SS}\times 100$
 
-Therefore 56% of the variation in the response is explained by the blocking.  This is compelling evidence for using blocking in future versions of the experiment.
+
+
+```{r}
+# Note you can just use a calculator and ANOVA table to do this, but here is how you would do it in R for repeatability.
+
+summary(block.anova)
+anova_table <- summary(block.anova)[[1]]
+
+ss_total <- sum(anova_table$`Sum Sq`)
+ss_treatment <- anova_table$`Sum Sq`[2]
+ss_block <- anova_table$`Sum Sq`[1]
+
+percent_treatment <- (ss_treatment / ss_total) * 100
+percent_block <- (ss_block / ss_total) * 100
+
+cat("\n")
+cat("Percentage of variation explained by treatments:", round(percent_treatment, 1), "%\n")
+cat("Percentage of variation explained by blocks:", round(percent_block, 1), "%\n")
+```
 
 :::
 :::
 
+
+# Conclusion
+
+## Closing thoughts
+
+We analysed two experimental designs this week: a CRD using camera trap data to test the mesopredator release hypothesis, and an RCBD examining fire severity effects on small mammal abundance. These designs and analysis techniques will continue to be used as we work with more complex models throughout the course.
+
+### Attribution
+
+This lab was developed using resources that are available under a
+[Creative Commons Attribution 4.0 International license], made available
+on the [SOLES Open Educational Resources repository].
+
+  [Creative Commons Attribution 4.0 International license]: http://creativecommons.org/licenses/by/4.0/
+  [SOLES Open Educational Resources repository]: https://github.com/usyd-soles-edu/

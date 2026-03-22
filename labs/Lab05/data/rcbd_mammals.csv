@@ -1,0 +1,13 @@
+Block,Treatment,Abundance
+Block_1,Unburnt,23
+Block_1,Low,23
+Block_1,High,8
+Block_2,Unburnt,26
+Block_2,Low,25
+Block_2,High,8
+Block_3,Unburnt,22
+Block_3,Low,19
+Block_3,High,13
+Block_4,Unburnt,22
+Block_4,Low,19
+Block_4,High,8
