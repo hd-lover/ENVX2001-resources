@@ -1,52 +1,55 @@
 ---
-title: "Tutorial 06: Factorial Designs"
+title: "Tutorial 06"
 # reviewed-by:
+format:
+  sandstone-html:
+    code-tools: true
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+## Welcome {.unnumbered}
+
 In this week's lectures we covered factorial designs, main effects and interactions. We applied these concepts by using analysis of variance (ANOVA) as a method to analyse data from these experimental designs.
 
-::: callout-tip
-## Key learning outcomes
+You will learn how to:
 
--   Treatment Designs and Experimental Designs
--   Factorial Treatment Structures
-    -   Main Effects and Interactions, including graphical interpretations
-    -   ANOVA with Factorial Treatment Designs (up to 3-way designs, with and without blocking)
-:::
+1. Distinguish between treatment designs and experimental designs.
+2. Identify main effects and interactions in factorial treatment structures, including graphical interpretations.
+3. Perform ANOVA with factorial treatment designs, with and without blocking.
 
-# Treatment Designs and Experimental Designs
+
+# Treatment designs and experimental designs
 
 An experimental design is a structured approach to conducting experiments that allows researchers to systematically investigate the effects of one or more factors on a response variable. Treatment designs refer to the specific arrangements of treatments (or interventions) applied to experimental units within an experimental design. There are several types of treatment designs, including (but not limited to):
 
--   **Completely Randomized Design (CRD)**: Experimental units are randomly assigned to different treatment groups without any restrictions. This design is suitable when experimental units are homogeneous.
+-   **Completely Randomised Design (CRD)**: Experimental units are randomly assigned to different treatment groups without any restrictions. This design is suitable when experimental units are homogeneous.
 
--   **Randomized Block Design (RBD)**: Experimental units are grouped into blocks based on certain characteristics, and treatments are randomly assigned within each block. This design helps control for variability among experimental units.
+-   **Randomised Block Design (RBD)**: Experimental units are grouped into blocks based on certain characteristics, and treatments are randomly assigned within each block. This design helps control for variability among experimental units.
 
 -   **Factorial Design**: Multiple factors are investigated simultaneously, with all possible combinations of factor levels included in the experiment. This design allows for the study of main effects and interactions between factors.
 
----
 
-# Factorial Treatment Structure
+# Factorial treatment structure
 
 Factorial treatment structures involve experiments where there are two or more treatment factors, each with two or more levels. In these designs, all possible combinations of the levels of each factor are included in the experiment. For example, in a 2-way factorial design with factors A and B, where factor A has 2 levels (A1 and A2) and factor B has 3 levels (B1, B2, and B3), the treatment combinations would be A1B1, A1B2, A1B3, A2B1, A2B2, and A2B3.
 
 ![Factorial designs have more than one treatment or factor. For each treatment there are two or more levels.](images/Slide3.PNG)
 
-## Main Effects and Interactions
+## Main effects and interactions
 
 In a factorial design, the **main effects** refer to the individual effects of each treatment/factor on the response variable, while **interactions** refer to the combined effects of two or more treatments/factors on the response variable. An interaction occurs when the effect of one treatment/factor depends on the level of another treatment/factor.
 
-Let's plot some examples of interaction plots:
+Let us plot some examples of interaction plots:
 
 -   No interaction
 -   Positive interaction
 -   Negative interaction
 
 ```{r}
+#| code-fold: true
 library(ggplot2)
 
 # No interaction
@@ -93,15 +96,18 @@ The plots above illustrate different types of interactions between two factors:
 - In the **"Negative Interaction"** plot, the lines converge, indicating that the effect of one factor decreases with the level of the other factor.
 
 ::: callout-tip
-## Interpreting Interaction Plots
+## Interpreting interaction plots
 
 -   Parallel lines indicate **no interaction** between factors.
 -   Non-parallel lines indicate an **interaction** between factors.
 :::
 
-## Exercise 1: Identifying Main Effects and Interactions
+## Exercise 1: Identifying main effects and interactions {.unnumbered}
 
 In this ecological experiment, we investigated the influence of two factors: Fire and Rainfall on small mammal captures (using a 2-way factorial design).
+
+![Desert mouse (*Pseudomys desertor*) is a native rodent that undergoes population irruptions after extreme rainfall events in arid Australia. Image credit: Aaron Greenville](images/desert_mouse_Greenville.jpg)
+
 
 Our main effects are:
 
@@ -112,9 +118,29 @@ Our interaction is:
 
 -   Interaction between Fire and Rainfall
 
-Let's simulate some data and plot the main effects and interactions:
+The statistical model for this experiment can be written as:
+$$
+Y_{ijk} = \mu + \alpha_i + \beta_j + (\alpha\beta)_{ij} + \epsilon_{ijk}
+$$
+Where:
+
+-   $Y_{ijk}$ is the response variable (small mammal captures) for the $k$th observation in the $i$th level of Fire and $j$th level of Rainfall\
+-   $\mu$ is the overall mean small mammal captures\
+-   $\alpha_i$ is the effect of the $i$th level of Fire (Burnt vs Unburnt)\
+-   $\beta_j$ is the effect of the $j$th level of Rainfall (Low, Medium, High)\
+-   $(\alpha\beta)_{ij}$ is the interaction effect between Fire and Rainfall\
+-   $\epsilon_{ijk}$ is the random error term for the $k$th observation in the $i$th level of Fire and $j$th level of Rainfall and is assumed to be normally distributed with mean 0 and constant variance $\sigma^2$.\
+
+OR in words:
+
+$$Small\ mammal\ captures = overall\ mean + Fire + Rainfall + Fire \times Rainfall  + random\ error$$
+
+
+
+Let us simulate some data and plot the main effects and interactions:
 
 ```{r}
+#| code-fold: true
 set.seed(123)
 fire <- rep(c("Burnt", "Unburnt"), each = 30)
 rainfall <- rep(c("Low", "Medium", "High"), times = 20)
@@ -162,14 +188,20 @@ ggplot(data, aes(x = Rainfall, y = Captures, color = Fire, group = Fire)) +
 You must understand these concepts to correctly interpret the results of factorial experiments.
 :::
 
-## Exercise 2: ANOVA using a Factorial Treatment Design
+::: {.callout-note}
+## Checkpoint
+
+You should now be able to identify main effects and interactions from interaction plots, and write out a statistical model for a two-way factorial design.
+:::
+
+## Exercise 2: ANOVA using a factorial treatment design {.unnumbered}
 
 Now that we have visualised the main effects and interaction, we can fit an ANOVA model to test for the significance of these effects.
 
 ```{r}
 # Fit ANOVA model
 data$Fire <- as.factor(data$Fire)
-data$Rainfall <- as.factor(data$Rainfall) 
+data$Rainfall <- as.factor(data$Rainfall)
 
 anova_model <- aov(Captures ~ Fire * Rainfall, data = data)
 
@@ -179,13 +211,14 @@ summary(anova_model)
 
 > Which effects are significant? Are they main effects and/or interactions? Are they consistent with the plots above?
 
-```{r}
-# Add your answers here and check with teaching staff
-```
+::: {.callout-note}
+## Checkpoint
 
----
+You should now be able to fit a factorial ANOVA using `aov()`, read the ANOVA table from the bottom up (interaction first, then main effects), and identify significant effects.
+:::
 
-# Factorial Design with Blocking
+
+# Factorial design with blocking
 
 A factorial design with blocking is an experimental design that combines the principles of factorial treatment structures with blocking techniques to control for variability in experimental units. Blocking is used to group similar experimental units together, reducing the impact of confounding variables and improving the precision of the experiment.
 
@@ -193,13 +226,36 @@ A factorial design with blocking is an experimental design that combines the pri
 
 These designs have main effects and interactions as before, but also have blocking effects. You need to be able to identify these in the ANOVA table and plots.
 
-## Exercise 3: Factorial Design with Blocking
+## Exercise 3: Factorial design with blocking {.unnumbered}
 
-### 3.1) ANOVA with Blocking
+### Part A --- ANOVA with blocking
 
 In this exercise, we will simulate data for a factorial design with blocking. We will investigate the effects of two factors: Fertilizer (Levels: A, B) and Irrigation (Levels: Low, High) on crop yield, while blocking by Field (Levels: 1, 2, 3).
 
+Our statistical model for this experiment can be written as:
+
+$$
+Y_{ijkl} = \mu + \gamma_k + \alpha_i + \beta_j + (\alpha\beta)_{ij} +  \epsilon_{ijkl}
+$$
+
+Where:
+
+- $Y_{ijkl}$ is the response variable (crop yield) for the $l$ th observation in the $i$th level of Fertilizer, $j$th level of Irrigation, and $k$th block (Field)
+- $\mu$ is the overall mean crop yield
+- $\gamma_k$ is the effect of the $k$th block (Field)
+- $\alpha_i$ is the effect of the $i$th level of Fertilizer (A vs B)
+- $\beta_j$ is the effect of the $j$th level of Irrigation (Low vs High)
+- $(\alpha\beta)_{ij}$ is the interaction effect between Fertilizer and Irrigation
+- $\epsilon_{ijkl}$ is the random error term for the $l$ th observation in the $i$th level of Fertilizer , $j$th level of Irrigation, and $k$th block (Field) and is assumed to be normally distributed with mean 0 and constant variance $\sigma^2$.
+
+OR:
+
+$$Crop\ yield = overall\ mean + block + Fertilizer + Irrigation + Fertilizer \times Irrigation + random\ error$$
+
+
+
 ```{r}
+#| code-fold: true
 set.seed(456)
 field <- rep(c("Field1", "Field2", "Field3"), each = 20)
 fertilizer <- rep(c("A", "B"), times = 30)
@@ -228,13 +284,9 @@ summary(anova_blocked_model)
 
 > Which effects are significant? Are they main effects, interactions, or blocking effects?
 
-```{r}
-# Add your answers here and check with teaching staff
-```
+### Part B --- Visualising the effects
 
-### 3.2) Visualising Factorial Design with Blocking
-
-Now let's visualise the effects in this blocked factorial design using the `emmeans` package and its plotting functions.
+Now let us visualise the effects in this blocked factorial design using the `emmeans` package and its plotting functions.
 
 ```{r}
 library(emmeans)
@@ -243,14 +295,14 @@ library(emmeans)
 emm <- emmeans(anova_blocked_model, ~ Fertilizer * Irrigation)
 
 # Main effect plots using emmeans
-plot(emmeans(anova_blocked_model, ~ Fertilizer), 
+plot(emmeans(anova_blocked_model, ~ Fertilizer),
      main = "Main Effect of Fertilizer on Crop Yield", comparisons = TRUE)
 
-plot(emmeans(anova_blocked_model, ~ Irrigation), 
+plot(emmeans(anova_blocked_model, ~ Irrigation),
      main = "Main Effect of Irrigation on Crop Yield", comparisons = TRUE)
 
 # Blocking effect plot using emmeans
-plot(emmeans(anova_blocked_model, ~ Field), 
+plot(emmeans(anova_blocked_model, ~ Field),
      main = "Blocking Effect of Field on Crop Yield", comparisons = TRUE)
 
 # Interaction plot using emmeans
@@ -260,15 +312,11 @@ emmip(anova_blocked_model, Fertilizer ~ Irrigation,
 
 > Describe the main effects and interaction effects observed in the plots above. How do these visualisations help in understanding the effects of Fertilizer and Irrigation on crop yield?
 
-```{r}
-# Add your answers here and check with teaching staff
-```
-
-Note: We usually don't plot blocking effects as they are not of primary interest, but it can be useful to check for large differences between blocks.
+Note: We usually do not plot blocking effects as they are not of primary interest, but it can be useful to check for large differences between blocks.
 
 Depending on our hypotheses, we may be interested in post-hoc tests for the main effects or interaction effects. If there is a significant interaction, we should focus on that rather than the main effects. We may not need to use all the plots. Always let your hypotheses guide what plots to produce.
 
-### 3.3) Calculate the variance explained by each effect
+### Part C --- Variance explained by each effect
 
 ```{r}
 # Calculate variance explained by each effect
@@ -285,17 +333,18 @@ variance_explained # variation explained by each effect in order of the ANOVA ta
 
 > Which effect explains the most variance in crop yield? How does this information help in understanding the factors influencing crop yield?
 
-```{r}
-# Add your answers here and check with teaching staff
-```
+::: {.callout-note}
+## Checkpoint
 
----
+You should now be able to fit a factorial ANOVA with blocking, visualise the effects using `emmeans`, and calculate the percentage of variation explained by each effect from the ANOVA table.
+:::
 
-# Summary
+
+## Wrap-up {.unnumbered}
 
 In this tutorial, we explored factorial designs and their analysis using ANOVA. We learned about main effects, interactions, and blocking effects, and how to interpret ANOVA results in the context of factorial experiments. We also visualised these effects using ggplot2 and emmeans, enhancing our understanding of the relationships between factors and response variables in experimental designs.
 
-## Example exam questions
+### Example exam questions
 
 1.  In a 2-way factorial design with factors A (2 levels) and B (3 levels), describe how you would identify and interpret main effects and interactions using ANOVA. Provide an example of how to visualise these effects.
 
