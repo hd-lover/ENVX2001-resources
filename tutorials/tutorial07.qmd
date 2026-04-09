@@ -1,6 +1,7 @@
 ---
 title: "Tutorial 07"
 # reviewed-by: ACA, 2026
+embed-resources: true
 ---
 
 ```{r setup, include=FALSE}
@@ -8,9 +9,32 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 ```
 
-## Bird abundance
+## Welcome {.unnumbered}
 
-This is the *same* dataset used in the lecture.
+In this week's lecture we introduced you to Simple- and Multiple- Linear Regression. For both of these regression techniques we defined the key steps in model fitting and how to interpret model output.
+
+You will learn how to:
+
+1.  Distinguish key similarities and differences between simple linear regression (SLR) and multiple linear regression (MLR) models
+2.  Implement the fitting process for each type of model
+3.  Test assumptions and evaluate model fit of SLR and MLR models.
+
+**Make more specific so can run prac better?**
+
+# Simple linear regression vs Multiple Linear Regression
+
+| Element | Simple Linear Regression (SLR) | Multiple Linear Regression (MLR) |
+|:------------------------|:------------------------|:------------------------|
+| Number of predictors | 1 | 2 or more |
+| Model form | $Y = \beta_0 + \beta_1x + \epsilon$ | $Y = \beta_0 + \beta_1x_1 + + \beta_2x_2 + ... + \beta_nx_n + \epsilon$ |
+| How to fit in R | `lm(y ~ x, data = dataset)` | `lm(y ~ x1 + x2 + ... + xn, data = dataset)` |
+| Assumptions | L.I.N.E. | L.I.N.E., collinearity |
+| Model evaluation | $r^2$, residual plots | Adjusted $r^2$, residual plots, VIF|
+| Conclusion | "as $x$ increases, $y$ also increases/decreases by $\beta_1$ units" | "as $x_1$ increases, $y$ also increases/decreases by $\beta_1$ units, holding all other predictors constant" |
+
+: Differences between MLR and SLR models {#tbl-perf}
+
+## Bird abundance
 
 Fragmentation of forest habitat has an impact of wildlife abundance. This study looked at the relationship between bird abundance (bird ha^-1^) and the characteristics of forest patches at 56 locations in SE Victoria.
 
@@ -236,3 +260,21 @@ pairs(loyn)
 
 Histogram for both look better, less skewed Pairs plot shows potential trend between ABUND and L10DIST, and ABUND with L10LDIST compared to untransformed DIST and LDIST
 :::
+
+::: callout-note
+## Checkpoint
+
+You should now be able to ...\[PUT THIS AFTER EACH OBJECTIVE\]
+:::
+
+## Wrap-up {.unnumbered}
+
+In this tutorial, **we explored factorial designs and their analysis using ANOVA. We learned about main effects, interactions, and blocking effects, and how to interpret ANOVA results in the context of factorial experiments. We also visualised these effects using ggplot2 and emmeans, enhancing our understanding of the relationships between factors and response variables in experimental designs.**
+
+### Example exam questions
+
+**1. In a 2-way factorial design with factors A (2 levels) and B (3 levels), describe how you would identify and interpret main effects and interactions using ANOVA. Provide an example of how to visualise these effects.**
+
+2.  Explain the difference between a treatment design and an experimental design. Provide examples of each and discuss how they can be combined in a factorial design with blocking.
+
+3.  **If you conducted a factorial experiment with blocking and found a significant interaction between two factors, how would you interpret this result? Would you still consider the main effects of each factor? Justify your answer with reference to ANOVA principles.**

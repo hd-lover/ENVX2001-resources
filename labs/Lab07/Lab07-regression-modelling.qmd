@@ -1,34 +1,56 @@
 ---
-title: "ENVX2001 Lab 07 - Regression model development"
+title: "ENVX2001 Lab 07 - Regression modelling"
 # revised-by: aca
 subtitle: ENVX2001 Applied Statistical Methods
 description: The University of Sydney
-date: today
-date-format: "[Semester 1,] YYYY"
+toc: true
+toc-depth: 3
+resources:
+  - data/Loyn_SLR.csv
+  - data/california_streamflow.xlsx
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
+library(knitr)
+library(gridExtra)
 ```
+
+# Welcome!
+
+This week's lab will give you some practice fitting and interpreting Simple Linear Regression (SLR) and Multiple Linear Regression (MLR) models. 
+
+This will prepare you for next week's content where we will seek to improve our models, and then in week 9 we will use improved models for prediction.
 
 ## Learning outcomes
 
-In this lab, you will work towards achieving learning outcomes [L03](), and [L05]().
+This module links to the following unit learning outcomes: 
 
-### Lab objectives
+* LO3. demonstrate proficiency in the use or the statistical programming language R to apply an ANOVA and fit regression models to experimental data
 
-In this lab, we will:
+* LO5. interpret the output and understand conceptually how its derived of a regression, ANOVA and multivariate analysis that have been calculated by R
 
--   [ ] Identify best predictors for model - Exercise 1
--   [ ] Fit model and check assumptions - Exercise 1
--   [ ] Interpret model output - Exercise 1
+* LO6. write statistical and modelling results as part of a scientific report
+
+## Specific goals
+
+By the end of this lab, students should be able to:
+
+- [ ] Fit a simple linear regression model
+- [ ] Assess model assumptions and apply transformations when needed
+- [ ] Interpret model parameters and fit statistics
+- [ ] Fit a multiple linear regression model (**different structure**)
+- [ ] Assess model assumptions, recalling key differences between MLR and SLR (**collinearity**)
+- [ ] Determine the most suitable fit statistics for assessing the fit of a MLR model(**r-sq vs adj**)
+- [ ] Write a conclusion on your findings
+
 
 ::: callout-tip
 Please work on this exercise by creating your own R Markdown file.
 :::
 
-### Preparation
+## Preparation
 
 - [ ] Install or update the `performance` package
 
@@ -67,186 +89,284 @@ check_model(iris_lm)
 
 :::
 
+### Downloads
 
-## Exercise 1: Modelling bird abundance
+| File | Used in | Download |
+|---|---|---|
+| `Loyn_SLR.xlsx` | Exercise 1 | [Download](data/Loyn_SLR.xlsx) |
+| `california_streamflow.xlsx` | Exercise 2 | [Download](data/california_streamflow.xlsx) |
 
-We will now use the transformed data in `loyn` for this exercise. If you have not already figured out how to perform the transformation, or if something is wrong, you may use the `loyn` tab in the `mlr.xlsx` MS Excel document. Alternatively, the code to convert the data is below.
 
-::: callout-tip
-This is the same data we used in the walkthrough exercise
+# Simple linear regression model fitting and interpretation (~ 30 minutes)
+
+Habitat fragmentation resulting from agriculture and urbanisation has increased the rate of wildlife population decline in Australia. You are a consultant and have been asked to investigate the influence of forest fragment size upon bird abundance. You have been provided with some data containing data on bird abundance and patch area from 56 different forest patches in Southeastern Victoria, Australia, and you want to know if there is a relationship between these two variables.
+
+The data is in the **Loyn_SLR.xlsx** file.
+
+Variables are as follows: 
+
+- ABUND: Bird abundance within each forest patch (number of birds)
+- AREA: Area of each forest patch (ha)
+
+Original data source: Loyn, R. H. (1987). Effects of patch area and habitat on bird abundances, species numbers, and tree health in fragmented Victorian forests. In *Nature Conservation: the role of remnants of native vegetation* eds. D.S. Saunders, G.W. Arnold, A.A. Burbridge, &A.J.M. Hopkins, pp. 65-77. Surrey Beatty and Sons. 
+
+## Analysis
+
+::: {.question}
+
+### Exercise 1
+
+*(i)* Write out the statistical model for a simple linear regression and define it in terms of influence of forest fragment size upon bird abundance. 
+You can write it out in words and/or in mathematical notation.
+
+```{r}
+
+```
+
+*(ii)* State the hypotheses you will be testing for the relationship between bird abundance and patch area.
+
+```{r}
+
+```
+
+*(iii)* Conduct some exploratory data analysis upon your two variables. Describe the spread and central tendency of each, supported by values (summary statistics) and plots. 
+
+```{r}
+# Answer here
+```
+
+*(iv)* Look at the relationship between bird abundance and patch area. Describe the relationship, supported by values (correlation coefficient) and plots.
+
+```{r}
+
+```
+
+*(v)* Fit a simple linear regression model to the data, with bird abundance as the response variable and patch area as the predictor variable.
+
+```{r}
+
+```
+
+*(vi)* Check the assumptions of your model. Do you need to transform any variables?
+
+Hint: you can use the the `check_model()` function from the `performance` package to check the assumptions of your model.
+
+```{r}
+
+```
+
+*(vii)* Interpret the model parameters and fit statistics. Recall the key information we draw from the output; what do these statistics tell you about the relationship between bird abundance and patch area?
+
+```{r}
+
+```
+
+*(viii)* Write a concluding statement on your findings. 
+Hint: Consider the initial aim and hypothesis of the study and write it in a way that is easily understood by your client.
+
+```{r}
+
+```
 :::
 
+::: {.content-visible when-profile="solution"}
+::: {.ans}
 
+#### Solution
+
+##### *(i)* Write out the statistical model for a simple linear regression and define it in terms of influence of forest fragment size upon bird abundance. 
+
+The statistical model for a simple linear regression is: 
+
+$$
+y_{i} = \beta_0 + \beta_1x_i + \epsilon_{i}
+$$
+
+Where:
+
+- $y_{i}$ is the response variable (abundance) for the $i$th observation when the predictor X = $x_i$ (area of the patch)
+- $\beta_0$ is the intercept where the regression line crosses the y-axis (the expected abundance when patch area is 0)
+- $\beta_1$ is the slope of the regression line, which represents the change in abundance for a one-unit increase in patch area
+- $\epsilon_{i}$ is the random error term for the ith observation and is assumed to be normally distributed with mean 0 and constant variance 
+
+OR if written in terms of the variables in our dataset, the model would be:
+
+$$
+Abundance_{i} = \beta_0 + \beta_1Area_i + \epsilon_{i}
+$$
+
+##### *(ii)* State the hypotheses you will be testing for the relationship between bird abundance and patch area.
+
+The hypotheses for the relationship between bird abundance and patch area are:
+
+$$H_0 : \beta_1 = 0$$
+$$H_0 : \beta_1 \neq 0$$
+Where $\beta_1$ is the slope of the regression line and represents the change in abundance for a one-unit increase in patch area.
+
+Remember: Null hypothesis = no change, no slope, therefore no relationship. 
+
+
+
+##### *(iii)* Read in the dataset and conduct some exploratory data analysis upon your two variables. Describe the spread and central tendency of each, supported by values (summary statistics) and plots. 
+
+1. Read in the data
 ```{r}
 # Load library if needed
 library(readxl)
-# reset the data import just in case it has been modified
-loyn <- read_xlsx("data/mlr.xlsx", "Loyn")
-# make transformations
 
-loyn <- loyn %>%
-    mutate(
-        L10AREA = log10(AREA),
-        L10DIST = log10(DIST),
-        L10LDIST = log10(LDIST)
-    )
+# Import the data
+loyn <- read_xlsx("data/Loyn_SLR.xlsx", "Loyn_SLR")
 
 # check
 glimpse(loyn)
 ```
 
-### Best single predictor?
+We can see there are two variables, with 56 observations each. and both are numeric (coded as 'dbl' here, which is a type of numeric/continuous  variable). 
 
-::: {.question}
-### Question 1
+2. Summary statistics
+```{r}
+library(moments) # gives us the skewness() function
 
-Obtain the correlation between ABUND and all of the predictor variables using `cor()`. Based on these, what would you expect to be the best single predictor of ABUND?
+summary_abund = c(
+  mean = mean(loyn$ABUND),
+  median = median(loyn$ABUND),
+  min = min(loyn$ABUND),
+  max = max(loyn$ABUND),
+  sd = sd(loyn$ABUND),
+  skewness = skewness(loyn$ABUND)
+)
+
+summary_area = c(
+  mean = mean(loyn$AREA),
+  median = median(loyn$AREA),
+  min = min(loyn$AREA),
+  max = max(loyn$AREA),
+  sd = sd(loyn$AREA),
+  skewness = skewness(loyn$AREA)
+)
+
+summary_loyn = rbind(summary_abund, summary_area) |> as.data.frame() |> rownames_to_column("variable")
+
+kable(summary_abund, caption = "Table 1. Summary statistics for bird abundance and area of forest patches")
+
+```
+
+kable(summary_abund, caption = "Table 1. Summary statistics for bird abundance and area of forest patches")
+
+```
+
+Bird Abundance (aka number of birds counted)
+
+The mean bird abundance in forest patches is 19.51 and the median is 21.05 (Table 1.). These are quite similar, suggesting a normal distribution. This is further supported by the skewness coefficient of -0.28, which is close to 0, and the relatively symmetrical boxplot (Fig. 1), indicating a fairly symmetric distribution. 
+
+Bird abundance ranges from a minimum of 1.5 to 39.6 birds and the standard deviation is 10.73, which indicates that there is quite a bit of variability in bird abundance across the patches. This is also evident in the wider interquartile range visible in the boxplot (fig. 1). 
+
+```{r caption = "Figure 1. Boxplot of bird abundance"}
+
+ggplot(loyn) + 
+  geom_boxplot(aes(x = "", y = ABUND)) +
+  labs(title = "Abundance",
+       y = "Bird abundance (number of birds)")
+```
+
+Area of forest patches (in hectares, ha)
+
+The mean area is 69.3 ha (Table 1), which is very different to the median of 7.5 ha, suggesting a highly skewed distribution. This is further supported by the skewness coefficient of 5.5. 
+
+We can also see this high amount of variability in the standard deviation of 266.1, and the area ranging from 0.1 ha to 1771 ha. The skewness and high amount of variation is most likely a result of two outliers present, visible in the boxplot (Fig. 2). 
+
+```{r caption = "Figure 2. Boxplot of area of forest patches (ha)"}
+
+ggplot(loyn) +
+  geom_boxplot(aes(x = "", y = AREA)) +
+  labs(title = "Area",
+       y = "Area of forest patch (ha)")
+
+```
+
+
 :::
+:::
+
+### 1. Exploratory data analysis
+
+We need to understand the data we are working with, so we need to perform exploratory data analysis. To do this, we can look at summary statistics, distributions, and visualise the data.
+
+
+
+For linear regression, we also need to look at the relationship between the predictor and response. We first look at a scatter plot to determine if we have linear data, and then we choose a suitable correlation coefficient.
 
 ```{r}
-#| eval: false
-cor(loyn)
+ggplot() +
+  geom_point(aes(x = loyn$AREA, y = loyn$ABUND) +
+  labs(title = "Bird abundance vs area of forest patch",
+       x = "Area of forest patch (ha)",
+       y = "Bird abundance (number of birds)"))
 ```
 
-::: {.content-visible when-profile="solution"}
-::: {.ans}
-### Answer
 
 ```{r}
-cor(loyn)
+cor(loyn$AREA, loyn$ABUND) |> round(2) # calculate correlation |> round to 2 decimal places
 ```
 
-The best single predictor would be `L10AREA` as this has the highest *r* (r = 0.74)
-:::
-:::
+The correlation coefficient is 0.26, which is quite low, indicating a weak or no positive relationship between bird abundance and patch area. 
 
-### Assumptions and interpretation
+However, we can see from the scatter plot that there is a lot of variation in bird abundance for small patch areas, and that there are some large patches with high bird abundance. This suggests that there may be other factors influencing bird abundance, and that patch area alone may not be a strong predictor. We will explore this further in next week's lecture. 
 
-::: {.question}
-### Question 2
+For now, it is possible to fit a model of the relationship between these two variables. 
 
-Use multiple linear regression to see whether ABUND can be predicted from L10AREA and GRAZE. Are the assumptions met? Is there a significant relationship? *Note: we are using these 2 predictors as they have the largest absolute correlations. Use `lm()` and specify the model as `ABUND ~ L10AREA + GRAZE`.*
-:::
+### 1.2 State hypotheses
+
+Remembering back to the lecture and tutorial, the general equations for our hypotheses are:
+
+$$
+H_0 : \beta_1 = 0
+$$
+
+$$
+H_1 : \beta_1 \neq 0
+$$
+
+In the context of our data, the hypotheses would be:
+
+$H_0$: Slope = 0; fertiliser is not a significant predictor of yield.
+
+$H_1$: Slope $\neq$ 0; fertiliser is a significant predictor of yield.
+
+If P \> 0.05, we fail to reject the null hypothesis that the true slope ($\beta_1$) is equal to 0. If this is the case, it means our model does not predict better than the mean of our observations, and so there is no advantage to using our model over the mean of y ($\bar{y}$).
+
+If we find there is a high probability of the slope not being equal to 0 (P \< 0.05), we can reject the null hypothesis and conclude our model is better at predicting than the mean of our observations.
+
+Now we understand what we are testing for, we can fit the model.
+
+
+### 1.3 Fit a simple linear regression model
 
 ```{r}
-#| eval: false
-lm.mod1 <- lm(ABUND ~ GRAZE + L10AREA, data = loyn)
+# Fit the model
+loyn_lm <- lm(ABUND ~ AREA, data = loyn)
+plot(loyn_lm)
+# Look at the model sulog()# Look at the model summary
+#summary(loyn_lm) NOT YET
 
-par(mfrow = c(2, 2))
-plot(lm.mod1)
-par(mfrow = c(1, 1))
-
-summary(lm.mod1)
 ```
 
-::: {.content-visible when-profile="solution"}
-::: {.ans}
-### Answer
+The model summary gives us a lot of information about the model fit. We can see that the coefficient for log(AREA) is 0.26, which means that for every unit increase in log(AREA), we expect bird abundance to increase by 0.26 on average.
 
-```{r mlmod}
-lm.mod1 <- lm(ABUND ~ GRAZE + L10AREA, data = loyn)
-
-par(mfrow = c(2, 2))
-plot(lm.mod1)
-par(mfrow = c(1, 1))
-
-summary(lm.mod1)
-```
-
-This is a significant model as both b1 and b2 are significant and the model is significant.
-
-The residuals look reasonable. They are approximately normally distributed (both right hand plots), but possibly the variance is not totally constant and there are possibly a few values with high leverage (left hand plots).
-:::
-:::
-
-::: {.question}
-### Question 3
-
-How good is the model based on the (i) *r*^2^ (ii) adjusted *r*^2^? Use `summary()`.
-:::
+### 1.4 Check model assumptions
 
 ```{r}
-#| eval: false
-summary(lm.mod1)$r.squared
-summary(lm.mod1)$adj.r.squared
+
+check_model(loyn_lm)
+
 ```
 
-::: {.content-visible when-profile="solution"}
-::: {.ans}
-### Answer
+The diagnostic plots show us that the residuals are not normally distributed, and that there is some heteroscedasticity (the variance of the residuals is not constant). This suggests that the model may not be a good fit for the data, and that we may need to consider a different model or transformation of the data.
 
-The Adjusted *r*^2^ is lower than the *r*^2^, but we would opt for the adjusted *r*^2^ as it takes the number of predictors into account. Overall the model is ok, explaining 64.0% of variation in Abundance.
-:::
-:::
+### 1.5 Interpret model parameters and fit statistics
 
-::: {.question}
-### Question 4
+### 1.6 Make conclusions
 
-Which variable(s) has the most significant effect(s)? *(Refer specifically to the t probabilities in the table of predictors and their estimated parameters or coefficients in the output of `summary()`)*. Interpret the p-values in terms of dropping predictor variables.
-:::
-
-::: {.content-visible when-profile="solution"}
-::: {.ans}
-### Answer
-
-Both `L10AREA` and `GRAZE` are highly significant, `L10AREA` is the most significant. In terms of effect, a 1 unit change in `GRAZE` results in a -2.9 decrease in abundance (with `L10AREA` remaining constant), while a 1 unit change in `L10AREA`, (therefore a 10 unit change in `AREA`) results in a 6.9 increase in abundance (`GRAZE` holding constant).
-:::
-:::
-
-::: {.question}
-## Question 5
-
-Repeat the multiple regression, but this time include YRS.ISOL as a predictor variable (it has the 3rd largest absolute correlation). This will allow you to assess the effect of YRS.ISOL with the other variables taken into account.
-:::
-
-::: {.content-visible when-profile="solution"}
-::: {.ans}
-### Answer
-
-```{r}
-lm.mod2 <- lm(ABUND ~ GRAZE + L10AREA + YR.ISOL, data=loyn)
-```
-:::
-:::
-
-::: {.question}
-### Question 6
-
-Check assumptions, do the residuals look ok? If you are happy with the assumptions, you can proceed to interpret the model output.
-:::
-
-::: {.content-visible when-profile="solution"}
-::: {.ans}
-### Answer
-
-```{r}
-par(mfrow=c(2,2))
-plot(lm.mod2)
-par(mfrow=c(1,1))
-```
-
-The residuals look OK, but YR.ISOL is borderline significant (p = 0.0768).
-:::
-:::
-
-::: {.question}
-### Question 7
-
-Compare the *r*^2^ and adjusted *r*^2^ values with those you calculated for the 2 predictor model, Which is the better model? Why?
-:::
-
-```{r}
-#| eval: false
-summary(lm.mod2)
-```
-
-::: {.content-visible when-profile="solution"}
-::: {.ans}
-### Answer
-
-Both of these are greater than for model in step 3, so this is a better model.
-:::
-:::
 
 ## Exercise 2: California streamflow
 
