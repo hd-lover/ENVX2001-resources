@@ -14,10 +14,9 @@ resources:
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(knitr)
-library(gridExtra)
 ```
 
-# Welcome!
+# Welcome to week 7!
 
 This week's lab will give you some practice fitting and interpreting Simple Linear Regression (SLR) and Multiple Linear Regression (MLR) models. 
 
@@ -110,68 +109,40 @@ Variables are as follows:
 
 Original data source: Loyn, R. H. (1987). Effects of patch area and habitat on bird abundances, species numbers, and tree health in fragmented Victorian forests. In *Nature Conservation: the role of remnants of native vegetation* eds. D.S. Saunders, G.W. Arnold, A.A. Burbridge, &A.J.M. Hopkins, pp. 65-77. Surrey Beatty and Sons. 
 
+![Kookaburra sitting on a branch. Photo by [pen_ash on Unsplash]( https://unsplash.com/photos/a-kookaburra-bird-perches-on-a-tree-branch-mph8XzVCVkw)](images/pen_ash-mph8XzVCVkw-unsplash.jpg)
+
+<br>
+
 ## Analysis
-
 ::: {.question}
-
 ### Exercise 1
 
 *(i)* Write out the statistical model for a simple linear regression and define it in terms of influence of forest fragment size upon bird abundance. 
 You can write it out in words and/or in mathematical notation.
 
-```{r}
-
-```
-
 *(ii)* State the hypotheses you will be testing for the relationship between bird abundance and patch area.
-
-```{r}
-
-```
 
 *(iii)* Conduct some exploratory data analysis upon your two variables. Describe the spread and central tendency of each, supported by values (summary statistics) and plots. 
 
-```{r}
-# Answer here
-```
-
-*(iv)* Look at the relationship between bird abundance and patch area. Describe the relationship, supported by values (correlation coefficient) and plots.
-
-```{r}
-
-```
+*(iv)* Investigate the relationship between bird abundance and patch area. Describe the relationship, supported by values (correlation coefficient) and plots.
 
 *(v)* Fit a simple linear regression model to the data, with bird abundance as the response variable and patch area as the predictor variable.
 
-```{r}
-
-```
-
 *(vi)* Check the assumptions of your model. Do you need to transform any variables?
 
-Hint: you can use the the `check_model()` function from the `performance` package to check the assumptions of your model.
+Hint 1: you can use the the `check_model()` function from the `performance` package to check the assumptions of your model.
 
-```{r}
-
-```
+Hint 2: If you do choose to transform a variable you will need to refit the model and check the assumptions again. 
 
 *(vii)* Interpret the model parameters and fit statistics. Recall the key information we draw from the output; what do these statistics tell you about the relationship between bird abundance and patch area?
-
-```{r}
-
-```
 
 *(viii)* Write a concluding statement on your findings. 
 Hint: Consider the initial aim and hypothesis of the study and write it in a way that is easily understood by your client.
 
-```{r}
-
-```
 :::
 
-::: {.content-visible when-profile="solution"}
+:::: {.content-visible when-profile="solution"}
 ::: {.ans}
-
 #### Solution
 
 ##### *(i)* Write out the statistical model for a simple linear regression and define it in terms of influence of forest fragment size upon bird abundance. 
@@ -218,16 +189,18 @@ library(readxl)
 loyn <- read_xlsx("data/Loyn_SLR.xlsx", "Loyn_SLR")
 
 # check
-glimpse(loyn)
+glimpse(loyn) # could also use str() or head() to look at the data
 ```
 
 We can see there are two variables, with 56 observations each. and both are numeric (coded as 'dbl' here, which is a type of numeric/continuous  variable). 
 
 2. Summary statistics
+
+I have calculated each summary statistic separately here to produce the output as a table. If you are exploring the data for yourself, you are welcome to use `summary()` function. 
 ```{r}
 library(moments) # gives us the skewness() function
 
-summary_abund = c(
+Abundance = c(
   mean = mean(loyn$ABUND),
   median = median(loyn$ABUND),
   min = min(loyn$ABUND),
@@ -236,7 +209,7 @@ summary_abund = c(
   skewness = skewness(loyn$ABUND)
 )
 
-summary_area = c(
+Area = c(
   mean = mean(loyn$AREA),
   median = median(loyn$AREA),
   min = min(loyn$AREA),
@@ -245,19 +218,16 @@ summary_area = c(
   skewness = skewness(loyn$AREA)
 )
 
-summary_loyn = rbind(summary_abund, summary_area) |> as.data.frame() |> rownames_to_column("variable")
+summary_loyn = rbind(Abundance, Area) |> round(1)
 
-kable(summary_abund, caption = "Table 1. Summary statistics for bird abundance and area of forest patches")
-
-```
-
-kable(summary_abund, caption = "Table 1. Summary statistics for bird abundance and area of forest patches")
+kable(summary_loyn, caption = "Table 1. Summary statistics for bird abundance and area of forest patches")
 
 ```
 
-Bird Abundance (aka number of birds counted)
 
-The mean bird abundance in forest patches is 19.51 and the median is 21.05 (Table 1.). These are quite similar, suggesting a normal distribution. This is further supported by the skewness coefficient of -0.28, which is close to 0, and the relatively symmetrical boxplot (Fig. 1), indicating a fairly symmetric distribution. 
+**Bird Abundance** (aka number of birds counted)
+
+The mean bird abundance in forest patches is 19.5 and the median is 21.0 (Table 1). These are quite similar, suggesting a normal distribution. This is further supported by the skewness coefficient of -0.28, which is close to 0, and the relatively symmetrical boxplot (Fig. 1), indicating a fairly symmetric distribution. 
 
 Bird abundance ranges from a minimum of 1.5 to 39.6 birds and the standard deviation is 10.73, which indicates that there is quite a bit of variability in bird abundance across the patches. This is also evident in the wider interquartile range visible in the boxplot (fig. 1). 
 
@@ -269,7 +239,7 @@ ggplot(loyn) +
        y = "Bird abundance (number of birds)")
 ```
 
-Area of forest patches (in hectares, ha)
+**Area of forest patches** (in hectares, ha)
 
 The mean area is 69.3 ha (Table 1), which is very different to the median of 7.5 ha, suggesting a highly skewed distribution. This is further supported by the skewness coefficient of 5.5. 
 
@@ -285,75 +255,40 @@ ggplot(loyn) +
 ```
 
 
-:::
-:::
+##### *(iv)* Investigate the relationship between bird abundance and patch area. Describe the relationship, supported by values (correlation coefficient) and plots.
 
-### 1. Exploratory data analysis
-
-We need to understand the data we are working with, so we need to perform exploratory data analysis. To do this, we can look at summary statistics, distributions, and visualise the data.
-
-
-
-For linear regression, we also need to look at the relationship between the predictor and response. We first look at a scatter plot to determine if we have linear data, and then we choose a suitable correlation coefficient.
-
-```{r}
-ggplot() +
-  geom_point(aes(x = loyn$AREA, y = loyn$ABUND) +
-  labs(title = "Bird abundance vs area of forest patch",
-       x = "Area of forest patch (ha)",
-       y = "Bird abundance (number of birds)"))
-```
-
-
+Calculate the correlation coefficient
 ```{r}
 cor(loyn$AREA, loyn$ABUND) |> round(2) # calculate correlation |> round to 2 decimal places
 ```
 
-The correlation coefficient is 0.26, which is quite low, indicating a weak or no positive relationship between bird abundance and patch area. 
+Generate a scatter plot
+```{r caption = "Figure 3. Scatterplot of Bird abundance vs area of forest patch (ha)"}
+ggplot() +
+  geom_point(aes(x = loyn$AREA, y = loyn$ABUND)) + 
+  labs(title = "Bird abundance vs area of forest patch",
+       x = "Area of forest patch (ha)",
+       y = "Bird abundance (number of birds)")
+```
 
-However, we can see from the scatter plot that there is a lot of variation in bird abundance for small patch areas, and that there are some large patches with high bird abundance. This suggests that there may be other factors influencing bird abundance, and that patch area alone may not be a strong predictor. We will explore this further in next week's lecture. 
+The correlation coefficient is 0.26, which indicates a weak positive relationship between patch area and bird abundance. 
 
-For now, it is possible to fit a model of the relationship between these two variables. 
+This is evident in the scatterplot (Fig. 3) where the relationship is not very clear, as most of the points clustered towards one side of the plot. This tells us that there is a high amount of variation in bird abundance for small patch areas, and mostly smaller areas of forest with two larger areas >500 ha.
 
-### 1.2 State hypotheses
-
-Remembering back to the lecture and tutorial, the general equations for our hypotheses are:
-
-$$
-H_0 : \beta_1 = 0
-$$
-
-$$
-H_1 : \beta_1 \neq 0
-$$
-
-In the context of our data, the hypotheses would be:
-
-$H_0$: Slope = 0; fertiliser is not a significant predictor of yield.
-
-$H_1$: Slope $\neq$ 0; fertiliser is a significant predictor of yield.
-
-If P \> 0.05, we fail to reject the null hypothesis that the true slope ($\beta_1$) is equal to 0. If this is the case, it means our model does not predict better than the mean of our observations, and so there is no advantage to using our model over the mean of y ($\bar{y}$).
-
-If we find there is a high probability of the slope not being equal to 0 (P \< 0.05), we can reject the null hypothesis and conclude our model is better at predicting than the mean of our observations.
-
-Now we understand what we are testing for, we can fit the model.
-
-
-### 1.3 Fit a simple linear regression model
+##### *(v)* Fit a simple linear regression model to the data, with bird abundance as the response variable and patch area as the predictor variable.
 
 ```{r}
+
 # Fit the model
 loyn_lm <- lm(ABUND ~ AREA, data = loyn)
-plot(loyn_lm)
-# Look at the model sulog()# Look at the model summary
-#summary(loyn_lm) NOT YET
 
 ```
 
-The model summary gives us a lot of information about the model fit. We can see that the coefficient for log(AREA) is 0.26, which means that for every unit increase in log(AREA), we expect bird abundance to increase by 0.26 on average.
+##### *(vi)* Check the assumptions of your model. Do you need to transform any variables?
 
-### 1.4 Check model assumptions
+HINT: If you do choose to transform a variable you will need to refit the model and check the assumptions again. 
+
+Use the `check_model()` function to check the assumptions of the model. You can also use plot(loyn_lm) to check the assumptions, but `check_model()` gives you a prettier output.
 
 ```{r}
 
@@ -361,25 +296,118 @@ check_model(loyn_lm)
 
 ```
 
-The diagnostic plots show us that the residuals are not normally distributed, and that there is some heteroscedasticity (the variance of the residuals is not constant). This suggests that the model may not be a good fit for the data, and that we may need to consider a different model or transformation of the data.
+* Linearity: Line doesn't follow the dashed line, indicating relationship may not be linear.   
+* I **COME BACK TO THIS**
+* Normality of residuals: Most points follow the line, but there are some deviations at the tails, suggesting that the residuals may not be perfectly normally distributed.
+* Equal variance: The reference line in the plot is not straight, and there is a funnel shape in the plot, suggesting that the variance of the residuals is not constant (heteroscedasticity).
 
-### 1.5 Interpret model parameters and fit statistics
+* Influential observations: Hard to see, but there is a point lying outside the dashed lines, which suggests that there may be an influential observation in the data.
 
-### 1.6 Make conclusions
+Decision: Usually we would transform the response variable first if the assumptions aren't met, but we know the Area variable is highly skewed, so it is worth transforming the Area variable to see if this improves the model fit.  
+
+**Transform Area and refit**
+```{r}
+#I have used log10 transformation here
+loyn$log10_AREA <- log10(loyn$AREA)
+
+# refit model with the transformed variable
+loyn_lm2 <- lm(ABUND ~ log10_AREA, data = loyn)
+
+# recheck assumptions
+check_model(loyn_lm2)
+
+```
+
+The assumptions of the model with the log10 transformed Area variable are much better. The relationship looks more linear, the residuals are more normally distributed, and there is less evidence of heteroscedasticity. 
+
+##### *(vii)* Interpret the model parameters and fit statistics. Recall the key information we draw from the output; what do these statistics tell you about the relationship between bird abundance and patch area?
+
+Get the model summary of your final model (with the transformed variable) 
+```{r}
+summary(loyn_lm2)
+```
+
+1. State the model equation
+Model equation is $Abundance = 10.401 + 9.778 log10(Area)$
+
+2. Interpretation of regression coefficients
+For every 1 unit change in log10(Area), we expect a 9.778 increase in bird abundance.
+
+3. P-value
+The P-value for the slope coefficient is < 0.001, meaning we reject our null hypothesis that the slope is equal to zero ($H0: \beta_1 \neq 0$) and conclude that log10(Area) is a significant predictor of bird abundance. 
+
+4. R-squared
+As we only have one predictor in the model, we can use the r^2^ value rather than the adjusted r^2^. 
+
+The r^2^ value is `r round(summary(loyn_lm2)$r.squared, 2)`, which means that `r round(summary(loyn_lm2)$r.squared, 2)*100`% of the variation in bird abundance can be explained by log10(Area). This is not really a strong r^2^ value, so it suggests that there are other factors influencing bird abundance that are not included in the model.
 
 
-## Exercise 2: California streamflow
+##### *(viii)* Write a concluding statement on your findings. 
+Hint: Consider the initial aim and hypothesis of the study and write it in a way that is easily understood by your client.
+
+Recall that our original aim was to investigate the influence of forest fragment size upon bird abundance. Therefore we would say something like: 
+
+We fitted a linear model (estimated using OLS) to investigate the relationship between bird abundance and forest fragment size (area) upon bird abundance (equation: abundance = $\beta_0 + \beta_1 \cdot area$). 
+
+The model explains a statistically significant and moderate proportion of variance (R^2^ = `r round(summary(loyn_lm2)$r.squared, 2)`, F(1, `r summary(loyn_lm2)$fstatistic[3]`) = `r round(summary(loyn_lm2)$fstatistic[1], 2)`, p < .001). Within this model, the effect of forest patch area is statistically significant and positive ($\beta_1$ = 9.778, t(54) = 8.086, p < .001).
+
+:::
+::::
 
 
-The following dataset contains 43 years of annual precipitation measurements (in mm) taken at (originally) 6 sites in the Owens Valley in California. I have reduced this to three variables labelled `lake_sabrina` (Lake Sabrina), `pine_creek` (Big Pine Creek), `rock_creek` (Rock Creek), and the dependent variable stream runoff volume (measured in ML/year) at a site near Bishop, California (labelled `runoff_volume`).
+## Multiple linear regression (~ 30 minutes)
+
+**You are a water scientist tasked with analysing legacy stream runoff data to determineprecipitation sites influence the stream runoff volume. **
+
+
+The california_streamflow dataset contains 43 years of annual precipitation measurements (in mm) taken at (originally) 6 sites in the Owens Valley in California. I have reduced this to three variables: 
+
+* `lake_sabrina`: Precipitation recorded at Lake Sabrina (mm)
+* `pine_creek`: Precipitation recorded at Big Pine Creek (mm), 
+* `rock_creek`: Precipitation recorded at Rock Creek (mm)
+* `runoff_volume`: Stream runoff volume measured at a site near Bishop, California (ML/year). This will be the response variable.
 
 Note the variables have already been log-transformed to increase normality of the residuals in the regressions.
 
-Start with a full model and manually remove the variables one at a time, checking every time whether removal of a variable actually improves the model.
+This week we will focus on getting the model running and practice interpretation of the output. Next week we will focus on working out work out the most suitable model. 
+
+**DATA SOURCE**
+
+
+
+
+## Analysis
+::: {.question}
+### Exercise 1
+
+*(i)* Write out the statistical model for a simple linear regression and define it in terms of influence of forest fragment size upon bird abundance. 
+You can write it out in words and/or in mathematical notation.
+
+*(ii)* State the hypotheses you will be testing for the relationship between bird abundance and patch area.
+
+*(iii)* Conduct some exploratory data analysis upon your two variables. Describe the spread and central tendency of each, supported by values (summary statistics) and plots. 
+
+*(iv)* Investigate the relationship between bird abundance and patch area. Describe the relationship, supported by values (correlation coefficient) and plots.
+
+*(v)* Fit a simple linear regression model to the data, with bird abundance as the response variable and patch area as the predictor variable.
+
+*(vi)* Check the assumptions of your model. Do you need to transform any variables?
+
+Hint 1: you can use the the `check_model()` function from the `performance` package to check the assumptions of your model.
+
+Hint 2: If you do choose to transform a variable you will need to refit the model and check the assumptions again. 
+
+*(vii)* Interpret the model parameters and fit statistics. Recall the key information we draw from the output; what do these statistics tell you about the relationship between bird abundance and patch area?
+
+*(viii)* Write a concluding statement on your findings. 
+Hint: Consider the initial aim and hypothesis of the study and write it in a way that is easily understood by your client.
+
+:::
 
 ```{r readDataStream}
 # read in the data
 stream_data <- read_xlsx("data/california_streamflow.xlsx", "streamflow")
+
 names(stream_data)
 ```
 
