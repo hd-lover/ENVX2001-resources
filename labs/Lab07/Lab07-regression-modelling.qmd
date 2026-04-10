@@ -1,6 +1,6 @@
 ---
 title: Lab 07
-# revised-by: aca
+# revised-by: aca + Liana
 subtitle: ENVX2001 Applied Statistical Methods
 description: The University of Sydney
 toc: true
@@ -125,7 +125,7 @@ Good luck!
 
 ![Kookaburra sitting on a branch, from Unsplash, by pen_ash.](images/pen_ash-mph8XzVCVkw-unsplash.jpg)
 
-Habitat fragmentation resulting from agriculture and urbanisation has increased the rate of wildlife population decline in Australia. You are a consultant and have been asked to investigate the influence of forest fragment size upon bird abundance. You have been provided with some data containing data on bird abundance and patch area from 56 different forest patches in Southeastern Victoria, Australia, and you want to know if there is a relationship between these two variables.
+Habitat fragmentation resulting from agriculture and urbanisation has increased the rate of wildlife population decline in Australia. You are a consultant and have been asked to investigate the influence of forest fragment size upon bird abundance. You have been provided with a dataset  containing measurements of bird abundance and patch area from 56 different forest patches in Southeastern Victoria, Australia, and you want to know if there is a relationship between these two variables.
 
 The data is in the **Loyn_SLR.xlsx** file.
 
@@ -140,7 +140,7 @@ Original data source: Loyn, R. H. (1987). Effects of patch area and habitat on b
 ::: {.question}
 ### Exercise 1
 
-*(i)* Write out the statistical model for a simple linear regression and define it in terms of influence of forest fragment size upon bird abundance. 
+*(i)* Write out the statistical model for a simple linear regression and define it in terms of influence of forest patch area upon bird abundance. 
 You can write it out in words and/or in mathematical notation.
 
 *(ii)* State the hypotheses you will be testing for the relationship between bird abundance and patch area.
