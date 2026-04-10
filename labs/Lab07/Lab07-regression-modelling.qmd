@@ -1,17 +1,18 @@
 ---
-title: "ENVX2001 Lab 07 - Regression modelling"
+title: Lab 07
 # revised-by: aca
 subtitle: ENVX2001 Applied Statistical Methods
 description: The University of Sydney
 toc: true
 toc-depth: 3
 resources:
-  - data/Loyn_SLR.csv
+  - data/Loyn_SLR.xlsx
   - data/california_streamflow.xlsx
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+```{r}
+#| include: false
+
 library(tidyverse)
 library(knitr)
 ```
@@ -32,56 +33,66 @@ This module links to the following unit learning outcomes:
 
 * LO6. write statistical and modelling results as part of a scientific report
 
+In this lab, we will learn how to:
+
+1. Fit and interpret simple linear regression (SLR) models
+2. Fit and interpret multiple linear regression (MLR) models
+3. Assess model assumptions and apply transformations when needed
+4. Evaluate and compare model fit statistics
+
 ## Specific goals
 
-By the end of this lab, students should be able to:
+By the end of this lab, you should be able to:
 
 - [ ] Fit a simple linear regression model
 - [ ] Assess model assumptions and apply transformations when needed
 - [ ] Interpret model parameters and fit statistics
-- [ ] Fit a multiple linear regression model (**different structure**)
-- [ ] Assess model assumptions, recalling key differences between MLR and SLR (**collinearity**)
-- [ ] Determine the most suitable fit statistics for assessing the fit of a MLR model(**r-sq vs adj**)
+- [ ] Fit a multiple linear regression model
+- [ ] Assess model assumptions, including collinearity between predictor variables
+- [ ] Determine the most suitable fit statistics for a multiple linear regression model
 - [ ] Write a conclusion on your findings
 
 
-::: callout-tip
-Please work on these exercises by creating your own Quarto file. You are welcome to write your responses up in the style of a report.
-:::
-
 ## Preparation
 
-- [ ] Install or update the `performance` package
+Please work on these exercises by creating your own Quarto file. You are welcome to write your responses up in the style of a report.
+
+### Packages
+
+This lab uses `tidyverse`, `readxl`, `moments`, `psych`, and `performance`. Install any you are missing by running the following **in the console**:
 
 ```{r}
 #| eval: false
 
-#install.packages("performance")
-library(performance)
+install.packages(c("tidyverse", "readxl", "moments", "psych", "performance"))
 ```
 
-This package is really good for checking your models. 
-For this lab, we will focus on the `check_model()` function, which gives us nice pretty diagnostic plots for models:
+If a package is already installed, R will simply reinstall it — no harm done.
+
+### Comparing diagnostic plots
+
+This package is really good for checking your models.
+For this lab, we will focus on the `check_model()` function from the `performance` package, which produces diagnostic plots that are easier to read than the base R `plot()` output. Compare the two approaches below to see why we recommend it:
 
 ::: panel-tabset
 
 ```{r}
-#| echo : false
-#| warning : false
-#| error : false
-iris_lm<- lm(iris$Petal.Length~iris$Sepal.Length)
+#| echo: false
+#| warning: false
+#| error: false
+iris_lm <- lm(iris$Petal.Length ~ iris$Sepal.Length)
 ```
 
 ### `plot()`
 ```{r}
-par(mfrow=c(2,2))
+par(mfrow = c(2, 2))
 plot(iris_lm)
-par(mfrow=c(1,1))
+par(mfrow = c(1, 1))
 ```
 
 ### `check_model()` from `performance`
 ```{r}
-#| warning : false
+#| warning: false
 library(performance)
 check_model(iris_lm)
 ```
@@ -96,7 +107,7 @@ check_model(iris_lm)
 | `california_streamflow.xlsx` | Exercise 2 | [Download](data/california_streamflow.xlsx) |
 
 
-# Simple linear regression model fitting and interpretation (~ 30 minutes)
+# 1. Simple linear regression (~30 min)
 
 Simple linear regression is a statistical method that allows us to investigate the relationship between two continuous variables. It is a powerful tool for understanding how one variable (the predictor) influences another variable (the response). Often a simple linear regression is the most appropriate model, so it is worth understanding. 
 
@@ -111,7 +122,7 @@ Key points to follow:
 Good luck!
 
 ## Analysis for bird abundance and area of forest patch
-![Kookaburra sitting on a branch. Photo by [pen_ash on Unsplash]( https://unsplash.com/photos/a-kookaburra-bird-perches-on-a-tree-branch-mph8XzVCVkw)](images/pen_ash-mph8XzVCVkw-unsplash.jpg)
+![Kookaburra sitting on a branch, from Unsplash, by pen_ash.](images/pen_ash-mph8XzVCVkw-unsplash.jpg)
 
 Habitat fragmentation resulting from agriculture and urbanisation has increased the rate of wildlife population decline in Australia. You are a consultant and have been asked to investigate the influence of forest fragment size upon bird abundance. You have been provided with some data containing data on bird abundance and patch area from 56 different forest patches in Southeastern Victoria, Australia, and you want to know if there is a relationship between these two variables.
 
@@ -122,8 +133,9 @@ Variables are as follows:
 - ABUND: Bird abundance within each forest patch (number of birds)
 - AREA: Area of each forest patch (ha)
 
-Original data source: Loyn, R. H. (1987). Effects of patch area and habitat on bird abundances, species numbers, and tree health in fragmented Victorian forests. In *Nature Conservation: the role of remnants of native vegetation* eds. D.S. Saunders, G.W. Arnold, A.A. Burbridge, &A.J.M. Hopkins, pp. 65-77. Surrey Beatty and Sons. 
+Original data source: Loyn, R. H. (1987). Effects of patch area and habitat on bird abundances, species numbers, and tree health in fragmented Victorian forests. In *Nature Conservation: the role of remnants of native vegetation* eds. D.S. Saunders, G.W. Arnold, A.A. Burbridge, &A.J.M. Hopkins, pp. 65-77. Surrey Beatty and Sons.
 
+##
 ::: {.question}
 ### Exercise 1
 
@@ -242,7 +254,8 @@ The mean bird abundance in forest patches is 19.5 and the median is 21.0 (Table 
 
 Bird abundance ranges from a minimum of 1.5 to 39.6 birds and the standard deviation is 10.73, which indicates that there is quite a bit of variability in bird abundance across the patches. This is also evident in the wider interquartile range visible in the boxplot (fig. 1). 
 
-```{r caption = "Figure 1. Boxplot of bird abundance"}
+```{r}
+#| fig-cap: "Figure 1. Boxplot of bird abundance"
 
 ggplot(loyn) + 
   geom_boxplot(aes(x = "", y = ABUND)) +
@@ -256,7 +269,8 @@ The mean area is 69.3 ha (Table 1), which is very different to the median of 7.5
 
 We can also see this high amount of variability in the standard deviation of 266.1, and the area ranging from 0.1 ha to 1771 ha. The skewness and high amount of variation is most likely a result of two outliers present, visible in the boxplot (Fig. 2). 
 
-```{r caption = "Figure 2. Boxplot of area of forest patches (ha)"}
+```{r}
+#| fig-cap: "Figure 2. Boxplot of area of forest patches (ha)"
 
 ggplot(loyn) +
   geom_boxplot(aes(x = "", y = AREA)) +
@@ -274,7 +288,8 @@ cor(loyn$AREA, loyn$ABUND) |> round(2) # calculate correlation |> round to 2 dec
 ```
 
 Generate a scatter plot
-```{r caption = "Figure 3. Scatterplot of Bird abundance vs area of forest patch (ha)"}
+```{r}
+#| fig-cap: "Figure 3. Scatterplot of Bird abundance vs area of forest patch (ha)"
 ggplot() +
   geom_point(aes(x = loyn$AREA, y = loyn$ABUND)) + 
   labs(title = "Bird abundance vs area of forest patch",
@@ -314,7 +329,7 @@ check_model(loyn_lm)
 
 * Influential observations: Hard to see, but there is a point lying outside the dashed lines, which suggests that there may be an influential observation in the data.
 
-Decision: Usually we would transform the response variable first if the assumptions aren't met, but we know the Area variable is highly skewed, so it is worth transforming the Area variable to see if this improves the model fit.  
+Decision: Usually we would transform the response variable first if the assumptions are not met, but we know the Area variable is highly skewed, so it is worth transforming the Area variable to see if this improves the model fit.  
 
 **Transform Area and refit**
 ```{r}
@@ -365,8 +380,9 @@ The model explains a statistically significant and moderate proportion of varian
 :::
 ::::
 
+Before moving on to the next section, take a short break and stretch your legs.
 
-# Multiple linear regression (~ 30 minutes)
+# 2. Multiple linear regression (~30 min)
 
 Multiple linear regression has a slightly different approach compared to simple linear regression. We are still fitting a linear model and you will notice the process is similar, but we are incorporating more than one predictor variable into the model, which brings some additional steps.
 
@@ -378,12 +394,10 @@ Multiple linear regression has a slightly different approach compared to simple 
 
 * More interpretation: Rather than only interpreting one regression coefficient, you will now have to assess a number of *partial regression coefficients* and their significance. You will also need to consider the overall model fit, and whether the model is a good fit for the data.
 
-* You will need to use the adjusted r^2^ value rather than the r^2^ value to assess the fit of the model, as r^2^ will always increase with the addition of more predictor variables, even if those variables don't actually improve the model fit. We will explain this more next week. 
-
-<br>
+* You will need to use the adjusted r^2^ value rather than the r^2^ value to assess the fit of the model, as r^2^ will always increase with the addition of more predictor variables, even if those variables do not actually improve the model fit. We will explain this more next week. 
 
 ## Analysis for runoff and precipitation in Bishop, California
-![Little Lakes Valley in the Eastern Sierra Nevada Mountains outside of Bishop, California. Source: [Adobe Stock](https://stock.adobe.com/au/search?k=bishop+california&asset_id=668401555)](images/AdobeStock_668401555.jpeg)
+![Little Lakes Valley in the Eastern Sierra Nevada Mountains outside of Bishop, California. Source: Adobe Stock.](images/AdobeStock_668401555.jpeg)
 
 You are a hydrologist tasked with analysing legacy data to investigate the relationship between precipitation at three sites (Lake Sabrina, Pine Creek, and Rock Creek) and stream runoff volume at a site near Bishop, California. The dataset contains 43 years of annual precipitation measurements (in mm) taken at (originally) 6 sites in the Owens Valley in California. You will focus on only 3 variables.
 
@@ -402,10 +416,10 @@ Data source:
 Hollett, K.J., Danskin, F.M., McCaffrey, W.F., and Walti, S.L., 1991. Geology and water resources of Owens Valley, California. U.S. Geological Survey Water-Supply Paper 2370-H.
 
 ::: callout-tip
-This week we will focus on getting the model running and practice interpretation of the output. Next week we will focus on working out the most suitable model. 
+This week we will focus on getting the model running and practice interpretation of the output. Next week we will focus on working out the most suitable model.
 :::
 
-
+##
 ::: {.question}
 ### Exercise 2
 
@@ -554,7 +568,8 @@ The mean runoff volume recorded at the site near Bishop, California is 4.96 ML/y
 
 Runoff volume ranges from a minimum of 4.71 ML/year to 5.26 ML/year and the standard deviation is 0.14, which indicates that the spread of values is quite small. 
 
-```{r caption = "Figure 3. Boxplot of Runoff volume (ML/year)"}
+```{r}
+#| fig-cap: "Figure 3. Boxplot of Runoff volume (ML/year)"
 
 ggplot(stream_data) + 
   geom_boxplot(aes(x = "", y = runoff_volume)) +
@@ -568,7 +583,8 @@ The mean precipitation recorded at Lake Sabrina is 2.03 mm and the median is 2.0
 
 Precipitation at Lake Sabrina ranged from a minimum of 1.6 mm to 2.5 mm and the standard deviation is 0.20, indicating that there is some variability in precipitation at Lake Sabrina across the years. 
 
-```{r caption = "Figure 4. Boxplot of precipitation at Lake Sabrina (mm)"}
+```{r}
+#| fig-cap: "Figure 4. Boxplot of precipitation at Lake Sabrina (mm)"
 
 ggplot(stream_data) + 
   geom_boxplot(aes(x = "", y = lake_sabrina)) +
@@ -584,7 +600,8 @@ The mean precipitation at Pine Creek was 2.45 mm and the median was 2.38 mm. The
 Precipitation at Pine Creek ranged from a minimum of 2.01 mm to a maximum of 3.04 mm and the standard deviation is 0.24, indicating that there is some variability in precipitation at Pine Creek across the years.
 
 
-```{r caption = "Figure 5. Boxplot of precipitation at Pine Creek (mm)"}
+```{r}
+#| fig-cap: "Figure 5. Boxplot of precipitation at Pine Creek (mm)"
 
 ggplot(stream_data) + 
   geom_boxplot(aes(x = "", y = pine_creek)) +
@@ -599,7 +616,8 @@ The mean precipitation at Rock Creek was the same as the median (2.45 mm), and t
 
 Precipitation ranged from 2.04 mm to 2.80 mm and the standard deviation is 0.18, indicating that there was a small amount of variability in precipitation at Rock Creek across the years.
 
-```{r caption = "Figure 6. Boxplot of precipitation at Rock Creek (mm)"}
+```{r}
+#| fig-cap: "Figure 6. Boxplot of precipitation at Rock Creek (mm)"
 
 ggplot(stream_data) + 
   geom_boxplot(aes(x = "", y = rock_creek)) +
@@ -743,13 +761,13 @@ The model explains a statistically significant and strong proportion of variance
 :::
 ::::
 
-<hr>
+# Conclusion
 
-# Closing thoughts
+## Closing thoughts
 
-You have done a great job fitting linear regression models and interpreting the output. 
+You have done a great job fitting linear regression models and interpreting the output.
 
-As you may have noticed in this lab, models are rarely perfect, so next week we will focus on working out the most suitable model for our data based on what we have. 
+As you may have noticed in this lab, models are rarely perfect, so next week we will focus on working out the most suitable model for our data based on what we have.
 
 Keep up the great work and see you in the week 8 lecture!
 
