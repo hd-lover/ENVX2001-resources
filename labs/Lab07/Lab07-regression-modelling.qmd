@@ -162,6 +162,7 @@ Hint 2: If you do choose to transform a variable you will need to refit the mode
 *(vii)* Interpret the model parameters and fit statistics. Recall the key information we draw from the output; what do these statistics tell you about the relationship between bird abundance and patch area?
 
 *(viii)* Write a concluding statement on your findings. 
+
 Hint: Consider the initial aim and hypothesis of the study and write it in a way that is easily understood by your client.
 
 :::
@@ -355,21 +356,26 @@ summary(loyn_lm2)
 ```
 
 1. State the model equation
+
 Model equation is $Abundance = 10.401 + 9.778 log10(Area)$
 
 2. Interpretation of regression coefficients
+
 For every 1 unit change in log10(Area), we expect a 9.778 increase in bird abundance.
 
 3. P-value
+
 The P-value for the slope coefficient is < 0.001, meaning we reject our null hypothesis that the slope is equal to zero ($H0: \beta_1 \neq 0$) and conclude that log10(Area) is a significant predictor of bird abundance. 
 
 4. R-squared
+
 As we only have one predictor in the model, we can use the r^2^ value rather than the adjusted r^2^. 
 
-The r^2^ value is `r round(summary(loyn_lm2)$r.squared, 2)`, which means that `r round(summary(loyn_lm2)$r.squared, 2)*100`% of the variation in bird abundance can be explained by log10(Area). This is not really a strong r^2^ value, so it suggests that there are other factors influencing bird abundance that are not included in the model.
+The r^2^ value is `r round(summary(loyn_lm2)$r.squared, 2)`,  which means that `r round(summary(loyn_lm2)$r.squared,     2)*100`% of the variation in bird abundance can be explained by log10(Area). This is not really a strong r^2^ value, so it suggests that there are other factors influencing bird        abundance that are not included in the model.
 
 
 ##### *(viii)* Write a concluding statement on your findings. 
+
 Hint: Consider the initial aim and hypothesis of the study and write it in a way that is easily understood by your client.
 
 Recall that our original aim was to investigate the influence of forest fragment size upon bird abundance. Therefore we would say something like: 
@@ -387,15 +393,15 @@ Before moving on to the next section, take a short break and stretch your legs.
 
 Multiple linear regression has a slightly different approach compared to simple linear regression. We are still fitting a linear model and you will notice the process is similar, but we are incorporating more than one predictor variable into the model, which brings some additional steps.
 
-* More hypotheses: rather than a single null and alternate hypothesis, you will also nee to consider the hypotheses for each predictor variable, as well as the overall model.
+* More hypotheses: rather than a single null and alternate hypothesis, you will also need to consider the hypotheses for each predictor variable, as well as the overall model.
 
 * More EDA: Rather than exploring only two variables, you will need to explore the additional variables. You will also need to explore the relationships between the predictor variables (signs of collinearity).
 
 * More assumptions: in addition to the assumptions of linearity, independence, normality of residuals, and equal variance, we also need to consider the assumption of no collinearity between predictor variables as this can trick us into thinking our model is better than it actually is (we will explore this more in next week's lecture).
 
-* More interpretation: Rather than only interpreting one regression coefficient, you will now have to assess a number of *partial regression coefficients* and their significance. You will also need to consider the overall model fit, and whether the model is a good fit for the data.
+* More interpretation: rather than only interpreting one regression coefficient, you will now have to assess a number of *partial regression coefficients* and their significance. You will also need to consider the overall model fit, and whether the model is a good fit for the data.
 
-* You will need to use the adjusted r^2^ value rather than the r^2^ value to assess the fit of the model, as r^2^ will always increase with the addition of more predictor variables, even if those variables do not actually improve the model fit. We will explain this more next week. 
+* You will need to use the **adjusted** r^2^ value rather than the r^2^ value to assess the fit of the model, as r^2^ will always increase with the addition of more predictor variables, even if those variables do not actually improve the model fit. We will explain this more next week. 
 
 ## Analysis for runoff and precipitation in Bishop, California
 
@@ -443,11 +449,12 @@ Hint: we are not only looking at relationship between response and predictors he
 
 Hint 1: you can use the the `check_model()` function from the `performance` package to check the assumptions of your model.
 
-Hint 2: If you do choose to transform a variable you will need to refit the model and check the assumptions again. 
+Hint 2: You may notice some collinearity occurring between predictors. This week you only need to acknowledge it and then you can move onto interpretation. Next week we will look at how to deal with collinearity in models.  
 
 *(vii)* Interpret the model parameters and fit statistics. Recall the key information we draw from the output; what do these statistics tell you about the relationship between precipitation at each site and runoff volume at Bishop, California?
 
 *(viii)* Write a concluding statement on your findings. 
+
 Hint: Consider the initial aim and hypothesis of the study and write it in a way that is easily understood by your client.
 
 :::
@@ -478,7 +485,7 @@ Where:
 OR if written in terms of the variables in our dataset, the model would be:
 
 $$
-\text{Runoff volume} = \beta_0 + \beta_1\cdot \text{lake_sabrina} + \beta_2\cdot \text{pine_creek} + \beta_3\cdot \text{rock_creek} +  \epsilon_{i}
+\textrm{Runoff volume} = \beta_0 + \beta_1\cdot \textrm{lake_sabrina} + \beta_2\cdot \textrm{pine_creek} + \beta_3\cdot \textrm{rock_creek} +  \epsilon_{i}
 $$
 
 ##### *(ii)* State the hypotheses you will be testing for the relationship between each site and runoff volume.
@@ -500,7 +507,7 @@ $$H_1 : \beta_3 \neq 0$$
 4. Overal model: 
 
 $$H_0 : \beta_1 = \beta_2 = \beta_3 = 0$$
-$$H_1 : \text{at least one } \beta_i \neq 0$$
+$$H_1 : \textrm{at least one } \beta_i \neq 0$$
 
 
 ##### *(iii)* Read in the data and conduct some exploratory data analysis upon your variables. Describe the spread and central tendency of each, supported by values (summary statistics) and plots. 
@@ -677,7 +684,7 @@ summary(runoff_lm)
 
 Hint 1: you can use the the `check_model()` function from the `performance` package to check the assumptions of your model.
 
-Hint 2: If you do choose to transform a variable you will need to refit the model and check the assumptions again. 
+Hint 2: You may notice some collinearity occurring between predictors. This week you only need to acknowledge it and then you can move onto interpretation. Next week we will look at how to deal with collinearity in models.  
 
 ```{r}
 
@@ -694,9 +701,9 @@ check_model(runoff_lm)
 
 * Collinearity: This is an additional assumption for Multiple Linear Regression. We can check for collinearity by looking at the correlation matrix (which we have already done) and by looking at the Variance Inflation Factor (VIF) values. VIF values greater than 5 or 10 indicate a potential problem with collinearity.
 
-We will explore collinearity and VIF more in next week's lecture as it will help us fit a more appropriate model. 
-
 Decision: No transformations needed BUT we are seeing an issue with collinearity. 
+
+We will explore collinearity and VIF more in next week's lecture as it will help us fit a more appropriate model. 
 
 For now we can continue with this model and explore the output, keeping in mind that is is not perfect. We will explore how to deal with collinearity in next week's lecture.
 
@@ -713,7 +720,7 @@ summary(runoff_lm)
 1. State the model equation
 Model equation is: 
 
-$\text{runoff_volume} = 3.257 + 0.05631\cdot \text{lake_sabrina} + 0.210\cdot \text{pine_creek} + 0.438\cdot \text{rock_creek} $
+$\textrm{runoff_volume} = 3.257 + 0.05631\cdot \textrm{lake_sabrina} + 0.210\cdot \textrm{pine_creek} + 0.438\cdot \textrm{rock_creek} $
 
 2. Interpretation of regression coefficients
 
@@ -754,9 +761,10 @@ As we more than one predictor in the model, we will need to use the adjusted r^2
 The r^2^ value is 0.87, which means that 87% of the variation in stream runoff volume can be explained our model. This is quite a strong r^2^ value, but we will need to acknowledge that more investigation is needed as the collinearity between predictors may be influencing our model.
 
 ##### *(viii)* Write a concluding statement on your findings. 
+
 Hint: Consider the initial aim and hypothesis of the study and write it in a way that is easily understood by your client.
 
-We fitted a multiple linear regression model (estimated using OLS) to investigate the relationship between precipitation at three sites (Lake Sabrina, Pine Creek, and Rock Creek) and stream runoff volume at a site near Bishop, California (equation: runoff_volume = $\beta_0 + \beta_1\cdot lake_sabrina + \beta_2\cdot pine_creek + \beta_3\cdot rock_creek$). 
+We fitted a multiple linear regression model (estimated using OLS) to investigate the relationship between precipitation at three sites (Lake Sabrina, Pine Creek, and Rock Creek) and stream runoff volume at a site near Bishop, California (equation: $\textrm{runoff_volume} = \beta_0 + \beta_1\cdot \textrm{lake_sabrina} + \beta_2\cdot \textrm{pine_creek} + \beta_3\cdot \textrm{rock_creek}$). 
 
 The model explains a statistically significant and strong proportion of variance (R^2^ = 0.87, F(3, 39) = 96.88, p < 0.05). Within this model, the effect of precipitation at Lake Sabrina was not statistically significant ($\beta_1$ = 0.056, t(39) = 1.499, p > 0.05), while the effects of precipitation at Pine Creek and Rock Creek were statistically significant and positive ($\beta_2$ = 0.211, t(39) = 3.12, p < 0.05; $\beta_3$ = 0.438, t(39) = 4.98, p < 0.05).
 
