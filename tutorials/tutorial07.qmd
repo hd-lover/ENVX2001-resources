@@ -1,7 +1,9 @@
 ---
 title: "Tutorial 07"
 # reviewed-by: ACA, 2026
-embed-resources: true
+format:
+  sandstone-html:
+    code-tools: true
 ---
 
 ```{r setup, include=FALSE}
@@ -9,9 +11,11 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 ```
 
-## Welcome {.unnumbered}
+## Welcome to week 7! {.unnumbered}
 
-In this week's lecture we introduced you to Simple- and Multiple- Linear Regression. For both of these regression techniques we defined the key steps in model fitting and how to interpret model output.
+This week's lecture introduced you to Simple- and Multiple- Linear Regression. For both of these regression techniques we defined the key steps in model fitting and how to interpret model output. 
+
+In this tutorial, we will explore key differences between simple linear regression (SLR) and multiple linear regression (MLR), and we will learn how to fit these models in R. We will also discuss how to test assumptions and evaluate model fit for both types of regression.
 
 You will learn how to:
 
@@ -19,9 +23,7 @@ You will learn how to:
 2.  Implement the fitting process for each type of model
 3.  Test assumptions and evaluate model fit of SLR and MLR models.
 
-**Make more specific so can run prac better?**
-
-# Simple linear regression vs Multiple Linear Regression
+# 1. Simple linear regression vs Multiple Linear Regression
 
 | Element | Simple Linear Regression (SLR) | Multiple Linear Regression (MLR) |
 |:------------------------|:------------------------|:------------------------|
@@ -32,7 +34,32 @@ You will learn how to:
 | Model evaluation | $r^2$, residual plots | Adjusted $r^2$, residual plots, VIF|
 | Conclusion | "as $x$ increases, $y$ also increases/decreases by $\beta_1$ units" | "as $x_1$ increases, $y$ also increases/decreases by $\beta_1$ units, holding all other predictors constant" |
 
-: Differences between MLR and SLR models {#tbl-perf}
+: Similarities and differences between MLR and SLR models {#tbl-perf}
+
+# Setting up for our analyses
+
+For both examples we will use the toilet paper dataset (Garbe et al. 2020) which was collected to investigate key factors influencing toilet paper stockpiling during the COVID-19 pandemic. 
+
+A total of 3,648 survey respondents from 22 countries reported their perceived threat of COVID-19, personality traits, and toilet paper consumption behaviour. The study found that perceived threat and Conscientiousness were significant predictors of stockpiling.
+
+Data source: Garbe, Lisa, Richard Rau, and Theo Toppe. 2020a. ‘Data: Influence of Perceived Threat of Covid-19 and HEXACO Personality Traits on Toilet Paper Stockpiling’. OSF. https://osf.io/nbrg5/.
+
+There was a study that investigated key predictors of toilet paper stockpiling d
+ Survey respondents from 22 countries reported their perceived threat of COVID-19, personality traits, and toilet paper consumption behaviour. The study found that perceived threat and Conscientiousness were significant predictors of stockpiling.
+
+# 2. Implement the fitting process for each type of model
+
+
+
+# 3. Test assumptions and evaluate model fit of SLR and MLR models.
+
+
+
+
+
+
+
+
 
 ## Bird abundance
 
