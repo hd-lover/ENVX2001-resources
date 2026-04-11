@@ -9,6 +9,7 @@ format:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
+library()
 ```
 
 ## Welcome to week 7! {.unnumbered}
@@ -23,7 +24,7 @@ You will learn how to:
 2.  Implement the fitting process for each type of model
 3.  Test assumptions and evaluate model fit of SLR and MLR models.
 
-# 1. Simple linear regression vs Multiple Linear Regression
+# Simple linear regression vs Multiple Linear Regression
 
 | Element | Simple Linear Regression (SLR) | Multiple Linear Regression (MLR) |
 |:------------------------|:------------------------|:------------------------|
@@ -36,257 +37,129 @@ You will learn how to:
 
 : Similarities and differences between MLR and SLR models {#tbl-perf}
 
-# Setting up for our analyses
+# Setting up for our analysis
 
-For both examples we will use the toilet paper dataset (Garbe et al. 2020) which was collected to investigate key factors influencing toilet paper stockpiling during the COVID-19 pandemic. 
+## Packages
 
-A total of 3,648 survey respondents from 22 countries reported their perceived threat of COVID-19, personality traits, and toilet paper consumption behaviour. The study found that perceived threat and Conscientiousness were significant predictors of stockpiling.
-
-Data source: Garbe, Lisa, Richard Rau, and Theo Toppe. 2020a. ‘Data: Influence of Perceived Threat of Covid-19 and HEXACO Personality Traits on Toilet Paper Stockpiling’. OSF. https://osf.io/nbrg5/.
-
-There was a study that investigated key predictors of toilet paper stockpiling d
- Survey respondents from 22 countries reported their perceived threat of COVID-19, personality traits, and toilet paper consumption behaviour. The study found that perceived threat and Conscientiousness were significant predictors of stockpiling.
-
-# 2. Implement the fitting process for each type of model
-
-
-
-# 3. Test assumptions and evaluate model fit of SLR and MLR models.
-
-
-
-
-
-
-
-
-
-## Bird abundance
-
-Fragmentation of forest habitat has an impact of wildlife abundance. This study looked at the relationship between bird abundance (bird ha^-1^) and the characteristics of forest patches at 56 locations in SE Victoria.
-
-The predictor variables are:
-
--   `ALT` Altitude (m)
--   `YR.ISOL` Year when the patch was isolated (years)
--   `GRAZE` Grazing (coded 1-5 which is light to heavy)
--   `AREA` Patch area (ha)
--   `DIST` Distance to nearest patch (km)
--   `LDIST` Distance to largest patch (km)
-
-Import the data from the "Loyn" tab in the MS Excel file.
+This lab uses `tidyverse`, `readxl`, `moments`, `psych`, and `performance`. Install any you are missing by running the following **in the console**:
 
 ```{r}
-library(readxl)
-loyn <- read_xlsx("data/mlr.xlsx", "Loyn")
+#| eval: false
+
+install.packages(c("tidyverse", "readxl", "moments", "psych", "performance"))
 ```
 
-Often, the first step in model development is to examine the data. This is a good way to get a feel for the data and to identify any issues that may need to be addressed. In this case, we will examine the data using histograms and a correlation matrix.
+If a package is already installed, R will simply reinstall it — no harm done.
 
-### Histograms
+## The data
 
-There are a breadth of ways to create histograms in R. In each tab below you will find some different ways to create the same plot outputs.
+For both examples we will use the *trees* dataset, which is an in-built dataset provided by R. It contains measurements of diameter (inches), height (feet) and volume of timber (cubic feet) of 31 felled Black Cherry trees. 
 
-::: panel-tabset
-### `hist()`
-
-This is a straightforward way to create multiple histograms with `hist()`. The `par()` function is used to arrange the plots on the page. The `mfrow` argument specifies the number of rows and columns of plots.
+Note: the 'girth' variable within the dataset is actually the diameter of the tree. We can rename it now, which also adds it into our R Environment: 
 
 ```{r}
-# par(mfrow=c(3,3))
-hist(loyn$ABUND)
-hist(loyn$ALT)
-hist(loyn$YR.ISOL)
-hist(loyn$GRAZE)
-hist(loyn$AREA)
-hist(loyn$DIST)
-hist(loyn$LDIST)
-# par(mfrow=c(1,1))
+
+trees <- trees %>%
+    rename(Diameter = Girth)
+
+head(trees)
 ```
 
-### `hist.data.frame()` from `Hmisc`
 
-The `Hmisc` package provides a function `hist.data.frame()` that can be used to create multiple histograms, which can be called by simply using `hist()`. You may need to tweak the `nclass` argument to get the desired number of bins, as the default may not look appropriate.
+Original data source: 
 
-```{r eval=FALSE}
-#| message: false
-# install.packages("Hmisc")
-library(Hmisc)
-hist(loyn, nclass = 50)
-```
+⁠Meyer H. A. (1953). Forest Mensuration. Penns Valley Publishers.
 
-### `ggplot()`
+⁠Ryan T. A., Joiner B. L., Ryan B. F. (1976). The Minitab Student Handbook. Duxbury Press, North Scituate, MA. ISBN 087150359X
 
-A more modern approach is to use `ggplot()` with `facet_wrap()` to arrange multiple plots on a single page. To do this, the `pivot_longer()` function from the `tidyr` package is used to reshape the data into a tidy format.
+![Black Cherry tree foliage and flowers, from Wikimedia Commons, by Sten Porse.](images/Prunus-serotina.jpeg)
+
+# Analysis
+
+## Explore the data - EDA
+
+For each variable we need to check the distribution, identify outliers and check for correlations between predictors (for MLR).
 
 ```{r}
-#| message: false
-# tidy the data
-loyn_tidy <- pivot_longer(loyn, cols = everything())
 
-# plot
-ggplot(loyn_tidy, aes(x = value)) +
-    geom_histogram() +
-    facet_wrap(~name, scales = "free") +
+library(moments)
+
+summary(trees)
+
+# Apply the sd function for each column 
+apply(trees, 2, sd) # (margin = 2 means apply the function to columns)
+
+skewness(trees)
+
+```
+
+Diameter: 
+The mean diameter is 13.25 inches and the median is 12.90 inches. The values range from 8.30 to 20.60 inches and the standard deviation is 3.14 inches. There is a slight skew, indicated by the skewness coefficient of 0.526. The slight skew is also visible in the following boxplot where the median lies closer to the first quartile. 
+
+```{r}
+ggplot(trees, aes(x = "", y = Diameter)) +
+    geom_boxplot() +
     theme_bw()
 ```
 
-### `ggplot()` with `dplyr`
 
-Here we use the pipe operator `%>%` from `dplyr` to chain together a series of commands. The pipe operator takes the output of the command on the left and passes it to the command on the right (or below) the pipe. This means that we can create a series of commands that are executed in order.
+Height: 
+The mean and median height is 76 feet and the values range from 63 to 87 feet. The standard deviation is 6.37 feet and the skewness coefficient is -0.37, indicating a relatively symmetrical distribution. The boxplot also shows a relatively symmetrical distribution, with the median lying close to the centre of the box.
 
 ```{r}
-#| message: false
-loyn %>%
-    pivot_longer(cols = everything()) %>%
-    ggplot(aes(x = value)) +
-    geom_histogram() +
-    facet_wrap(~name, scales = "free") +
+
+ggplot(trees, aes(x = "", y = Height)) +
+    geom_boxplot() +
     theme_bw()
+
 ```
-:::
 
-::: question
-### Question 1
 
-Comment on the histograms in terms of leverage. *Hint: what is the relationship between leverage and skewness?*
-:::
-
-::: {.content-visible when-profile="solution"}
-### Answer {style="color:green;"}
-
-The histograms of `AREA`, `DIST` and `LDIST` are very skewed. The high values would have high leverage, this means that these would cause the residuals to be skewed. These would be candidates for transformation.
-:::
-
-### Correlation matrix
-
-Calculate the correlation matrix using `cor(Loyn)`.
+Volume: 
+The mean volume of timber is 30.17 and the median is 24.20 cubic feet. The values range from 10.20 to 77.00 cubic feet and the standard deviation is 16.44 cubic feet. The skewness coefficient is 1.06, indicating a the variable is positively skewed. This is also visible in the boxplot, where the median lies closer to the first quartile and there are some high values that are potential outliers.
 
 ```{r}
-cor(loyn)
+
+ggplot(trees, aes(x = "", y = Volume)) +
+    geom_boxplot() +
+    theme_bw()
+
 ```
 
-::: question
-### Question 2
 
-Which independent variables are useful for predicting the dependent variable abundance? Is there evidence for multi-collinearity?
-:::
+**Why do the high values matter?**
 
-```{r corLoyn, eval=F, echo=F}
-cor(loyn)
+The high values would have high leverage in our model, causing the residuals to be skewed, violating our assumptions. The boxplot is therefore telling us that we might need to transform Volume to stabilise the variance of the regression, but it is worth confirming this with the diagnostic plots after fitting the model.
+
+## Explore the data - correlations
+
+Correlations 
+```{r}
+cor(trees)
 ```
 
-::: {.content-visible when-profile="solution"}
-### Answer {style="color:green;"}
 
-Some of the predictors are useful, but AREA has a low r.
 
-The correlation between `GRAZE` and `YR.ISOL` is quite high (r = -0.63556710), suggesting multi-collinearity which may influence the model. If the relationship between these two variables was stronger, we would remove one of the variables to prevent this collinearity from affecting the model.
+
+
+**Why do we care about correlations between predictors?**
+
+multi-collinearity which may influence the model. If the relationship between these two variables was stronger, we would remove one of the variables to prevent this collinearity from affecting the model.
 
 *Note: For more information on collinearity and how it may impact the model, see Quinn & Keough p 127.*
-:::
 
-### Plotting correlation
 
-Examine correlations visually using `pairs()` or `corrplot()` from the `corrplot` package.
+## Implement the fitting process for each type of model
 
-::: panel-tabset
-### Scatterplot matrix
 
 ```{r}
-pairs(loyn)
+
+mod_slr <- lm(log10(Volume) ~ Diameter, data = trees)
+
+mod_mlr <- lm(log10(Volume) ~ Diameter + Height, data = trees)
+
 ```
 
-### Correlation matrix
-
-```{r}
-#| message: false
-library(corrplot)
-corrplot(cor(loyn))
-```
-:::
-
-::: question
-### Question 3
-
-Are there any trends visible from the plots?
-:::
-
-::: {.content-visible when-profile="solution"}
-### Answer {style="color:green;"}
-
-Not really; the pairs plot reflects the strength of the linear relationship between each of the variables. There may be some stronger relationships occurring, but it is evident a few of the variables are skewed so it is harder to distinguish within the plots.
-:::
-
-::: callout-tip
-We can also bring in variance inflation factors (VIF) to help us identify multi-collinearity, but that is done only after we have selected a model.
-:::
-
-### Transformations
-
-The AREA predictor has a small number of observations with very large values. Apply a log~10~ transformation and label the new variable `Loyn$L10AREA`.
-
-```{r}
-#| eval: false
-loyn$L10AREA <- log10(loyn$AREA)
-```
-
-::: question
-### Question 4
-
-Why are we transforming AREA?
-:::
-
-::: {.content-visible when-profile="solution"}
-### Answer {style="color:green;"}
-
-You do this to stabilise the variance of the regression to manage the leverage of the outliers in the variable. This reduces the skew. L10AREA is more likely to be a significant predictor.
-:::
-
-::: question
-### Question 5
-
-Re-run `pairs(Loyn)` and create a histogram using the transformed value of AREA, how do the plots look?
-:::
-
-```{r}
-#| eval: false
-hist(loyn$L10AREA)
-pairs(loyn)
-```
-
-::: {.content-visible when-profile="solution"}
-### Answer {style="color:green;"}
-
--   Histogram looks better, less skewed
--   Pairs plot shows a trend between ABUND and L10AREA
-:::
-
-::: question
-### Question 6
-
-In preparation for modelling, transform the remaining skewed variables, DIST and LDIST the same way you did for AREA and examine the histogram and pairs plots using these new variables.
-:::
-
-Make sure you end up with two new variables labelled `loyn$L10DIST` and `loyn$L10LDIST`.
-
-```{r}
-#| eval: false
-#| include: false
-loyn$L10DIST <- log10(loyn$DIST)
-hist(loyn$L10DIST)
-
-loyn$L10LDIST <- log10(loyn$LDIST)
-hist(loyn$L10LDIST)
-
-pairs(loyn)
-```
-
-::: {.content-visible when-profile="solution"}
-### Answer {style="color:green;"}
-
-Histogram for both look better, less skewed Pairs plot shows potential trend between ABUND and L10DIST, and ABUND with L10LDIST compared to untransformed DIST and LDIST
-:::
 
 ::: callout-note
 ## Checkpoint
@@ -294,14 +167,73 @@ Histogram for both look better, less skewed Pairs plot shows potential trend bet
 You should now be able to ...\[PUT THIS AFTER EACH OBJECTIVE\]
 :::
 
-## Wrap-up {.unnumbered}
 
-In this tutorial, **we explored factorial designs and their analysis using ANOVA. We learned about main effects, interactions, and blocking effects, and how to interpret ANOVA results in the context of factorial experiments. We also visualised these effects using ggplot2 and emmeans, enhancing our understanding of the relationships between factors and response variables in experimental designs.**
+## Test assumptions and transform if needed
+
+
+```{r}
+library(performance)
+
+check_model(mod_slr)
+
+```
+
+
+```{r}
+
+check_model(mod_mlr)
+
+```
+
+
+You do this to stabilise the variance of the regression to manage the leverage of the outliers in the variable. This reduces the skew. L10AREA is more likely to be a significant predictor.
+
+
+::: callout-note
+## Checkpoint
+
+You should now be able to ...\[PUT THIS AFTER EACH OBJECTIVE\]
+:::
+
+## Evaluate model fit of SLR and MLR models.
+
+```{r}
+
+summary(mod_slr)
+
+```
+
+
+
+```{r}
+
+summary(mod_mlr)
+
+```
+
+
+::: callout-note
+## Checkpoint
+
+You should now be able to ...\[PUT THIS AFTER EACH OBJECTIVE\]
+:::
+
+
+## Write up conclusions
+
+
+
+
+# Wrap-up {.unnumbered}
+
+In this tutorial, we have walked through the processes for simple and multiple linear regression, including how to fit models, check assumptions and how to interpret the output. You will hopefully now be able to recall key differences between the two types of models, which will help direct your analysis. 
+
+You will now apply these skills in the lab. If you have any questions please reach out to your tutors. 
 
 ### Example exam questions
 
-**1. In a 2-way factorial design with factors A (2 levels) and B (3 levels), describe how you would identify and interpret main effects and interactions using ANOVA. Provide an example of how to visualise these effects.**
+1. Describe 3 key differences between simple linear regression and multiple linear regression. 
 
-2.  Explain the difference between a treatment design and an experimental design. Provide examples of each and discuss how they can be combined in a factorial design with blocking.
+2. Describe how we would check the assumptions of a multiple linear regression. What would we do if we found that one of the assumptions was violated?
 
-3.  **If you conducted a factorial experiment with blocking and found a significant interaction between two factors, how would you interpret this result? Would you still consider the main effects of each factor? Justify your answer with reference to ANOVA principles.**
+3.  If you fitted a multiple linear regression and only one predictor was significant, would you still expect the model to be significant? Justify your answer (it may help to recall the hypotheses for MLR).
