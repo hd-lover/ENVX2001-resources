@@ -79,22 +79,79 @@ Original data source:
 
 # Analysis
 
+## Model equation
+
+### Simple linear regression
+
+The statistical model for a simple linear regression is: 
+
+$$
+y_{i} = \beta_0 + \beta_1x_i + \epsilon_{i}
+$$
+
+Where:
+
+- $y_{i}$ is the response variable (Volume) for the $i$th observation when the predictor X = $x_i$ (Diameter)
+- $\beta_0$ is the intercept where the regression line crosses the y-axis (the expected timber Volume when patch Diameter is 0)
+- $\beta_1$ is the slope of the regression line, which represents the change in timber Volume for a one-unit increase in Diameter
+- $\epsilon_{i}$ is the random error term for the ith observation and is assumed to be normally distributed with mean 0 and constant variance 
+
+OR if written in terms of the variables in our dataset, the model would be:
+
+$$
+Abundance = \beta_0 + \beta_1\cdot \ Diameter + \epsilon_{i}
+$$
+### Multiple Linear Regression
+
+The statistical model for a multiple linear regression with 2 predictors is: 
+
+$$
+y_{i} = \beta_0 + \beta_1x_1 + \beta_2x_2 + \epsilon_{i}
+$$
+
+Where:
+
+- $y_{i}$ is the response variable (timber volume) for the $i$th observation when the predictor X = $x_i$ (Height or Diameter)
+- $\beta_0$ is the intercept where the regression line crosses the y-axis
+- $\beta_1$ is the slope of the regression line for the first predictor, which represents the change in Volume for a one-unit increase in tree Diameter
+- $\beta_2$ is the slope of the regression line for the first predictor, which represents the change in Volume for a one-unit increase in tree Height
+- $\epsilon_{i}$ is the random error term for the ith observation and is assumed to be normally distributed with mean 0 and constant variance 
+
+OR if written in terms of the variables in our dataset, the model would be:
+
+$$
+\ timber \ Volume = \beta_0 + \beta_1\cdot \ Height + \beta_2\cdot \ Diameter + \epsilon_{i}
+$$
+
 ## State hypotheses
 
 ### Simple linear regression
 
-$H_0: \beta_1 = 0$ , The slope is equal to zero, i.e. there is no relationship between diameter and volume
+$H_0: \beta_1 = 0$ , The slope is equal to zero, i.e. there is no relationship between Diameter and Volume
 
 $H_1: \beta_1 \neq 0$ , The slope is not equal to zero, i.e. There is a relationship between diameter and volume
 
 ### Multiple linear regression
 
-For Multiple linear regression we are testing two (or more) predictors, so we have multiple null and alternative hypotheses to test. We 
+For Multiple linear regression we are testing two (or more) predictors, so we have multiple null and alternative hypotheses to test. 
 
-$H_0: \beta_1 = \beta_2 = 0$ (there is no relationship between diameter, height and volume)
+First we test the partial regression coefficients for each predictor:
 
-$H_1: \beta_1 \neq 0$ and/or $\beta_2 \neq 0$ (there is a relationship between diameter, height and volume)
+$H_0: \beta_1 = 0$ , The artial regression slope is equal to zero, i.e. there is no relationship between Diameter and Volume
 
+$H_1: \beta_1 \neq 0$ , The artial regression slope is not equal to zero, i.e. There is a relationship between diameter and Volume
+
+
+$H_0: \beta_1 = 0$ , The artial regression slope is equal to zero, i.e. there is no relationship between Height and Volume
+
+$H_1: \beta_1 \neq 0$ , The artial regression slope is not equal to zero, i.e. There is a relationship between Height and Volume
+
+Then we also test the overall model:
+
+$H_0: \beta_1 = \beta_2 = 0$ (the all partial regression slopes are equal to zero, i.e. there is no relationship between diameter, height and volume)
+
+$H_1: \beta_1 \neq 0$ and/or $\beta_2 \neq 0$ (at least one partial regression slope is not equal to zero, i.e.
+there is a relationship between either between diameter and volume, or height and volume).
 
 
 ## Explore the data
@@ -372,7 +429,7 @@ The P-value for the slope coefficient is < 0.001, meaning we reject our null hyp
 
 As we only have one predictor in the model, we can use the r^2^ value rather than the adjusted r^2^. 
 
-The r^2^ value is ,  which means that % of the variation in bird abundance can be explained by log10(Area). This is not really a strong r^2^ value, so it suggests that there are other factors influencing bird        abundance that are not included in the model.
+The r^2^ value is,  which means that % of the variation in bird abundance can be explained by log10(Area). This is not really a strong r^2^ value, so it suggests that there are other factors influencing bird        abundance that are not included in the model.
 
 
 ## Evaluate model fit of MLR and write up a conclusion.
