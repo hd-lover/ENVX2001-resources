@@ -79,6 +79,24 @@ Original data source:
 
 # Analysis
 
+## State hypotheses
+
+### Simple linear regression
+
+$H_0: \beta_1 = 0$ , The slope is equal to zero, i.e. there is no relationship between diameter and volume
+
+$H_1: \beta_1 \neq 0$ , The slope is not equal to zero, i.e. There is a relationship between diameter and volume
+
+### Multiple linear regression
+
+For Multiple linear regression we are testing two (or more) predictors, so we have multiple null and alternative hypotheses to test. We 
+
+$H_0: \beta_1 = \beta_2 = 0$ (there is no relationship between diameter, height and volume)
+
+$H_1: \beta_1 \neq 0$ and/or $\beta_2 \neq 0$ (there is a relationship between diameter, height and volume)
+
+
+
 ## Explore the data
 
 For each variable we need to check the distribution, identify outliers and check for correlations between predictors (for MLR).
@@ -330,21 +348,84 @@ We can now move onto interpretation!
 
 :::
 
-## Evaluate model fit of SLR and MLR models.
+## Evaluate model fit of SLR and write up a conclusion.
 
 ```{r}
 
-summary(mod_slr)
+summary(log_mod_slr)
+
+```
+
+1. State the model equation
+
+Model equation is $Abundance = 10.401 + 9.778 log10(Area)$
+
+2. Interpretation of regression coefficients
+
+For every 1 unit change in log10(Area), we expect a 9.778 increase in bird abundance.
+
+3. P-value
+
+The P-value for the slope coefficient is < 0.001, meaning we reject our null hypothesis that the slope is equal to zero ($H0: \beta_1 \neq 0$) and conclude that log10(Area) is a significant predictor of bird abundance. 
+
+4. R-squared
+
+As we only have one predictor in the model, we can use the r^2^ value rather than the adjusted r^2^. 
+
+The r^2^ value is ,  which means that % of the variation in bird abundance can be explained by log10(Area). This is not really a strong r^2^ value, so it suggests that there are other factors influencing bird        abundance that are not included in the model.
+
+
+## Evaluate model fit of MLR and write up a conclusion.
+
+```{r}
+
+summary(log_mod_mlr)
 
 ```
 
 
+1. State the model equation
+Model equation is: 
 
-```{r}
+$\textrm{runoff_volume} = 3.257 + 0.05631\cdot \textrm{lake_sabrina} + 0.210\cdot \textrm{pine_creek} + 0.438\cdot \textrm{rock_creek} $
 
-summary(mod_mlr)
+2. Interpretation of regression coefficients
 
-```
+*Holding all other variables constant:* (very important to include this)
+
+* For every 1 unit change in precipitation at lake_sabrina, we expect a 0.056 increase in runoff_volume;
+
+* For every 1 unit change in precipitation at pine_creek, we expect a 0.210 increase in runoff_volume;
+
+* For every 1 unit change in precipitation at rock_creek, we expect a 0.438 increase in runoff_volume.
+
+
+3. P-value
+
+When assessing the p-values, we must consider the p-value associated with each partial regression coefficient, as well as the overall model. 
+
+
+a. Relationship between precipitation at lake_sabrina and runoff volume:
+
+The P-value for the partial regression coefficient is > 0.001, meaning we FAIL TO reject our null hypothesis that the slope is equal to zero ($H0: \beta_1 = 0$) and conclude that precipitation at Lake Sabrina is NOT a significant predictor of runoff volume at the site near Bishop, California. 
+
+b. Precipitation at pine_creek and runoff volume:
+
+The P-value for the partial regression coefficient is < 0.05, meaning we reject our null hypothesis that the slope is equal to zero ($H0: \beta_2 = 0$) and conclude that precipitation at Pine Creek is a significant predictor of runoff volume at the site near Bishop, California. 
+
+c. Precipitation at rock_creek and runoff volume:
+
+The P-value for the partial regression coefficient is < 0.05, meaning we reject our null hypothesis that the slope is equal to zero ($H0: \beta_3 = 0$) and conclude that precipitation at Rock Creek is a significant predictor of runoff volume at the site near Bishop, California. 
+
+d. Overall model: 
+
+The P-value for the model is < 0.001, indicating that at least one slope is not equal to zero. This means we reject our null hypothesis that the all partial slopes are equal to zero ($$H_0 : \beta_1 = \beta_2 = \beta_3 = 0$$)  and conclude that our model is significant.  
+
+
+4. R-squared
+As we more than one predictor in the model, we will need to use the adjusted r^2^. We will cover the reason for this in next week's lecture. 
+
+The r^2^ value is 0.87, which means that 87% of the variation in stream runoff volume can be explained our model. This is quite a strong r^2^ value, but we will need to acknowledge that more investigation is needed as the collinearity between predictors may be influencing our model.
 
 
 ::: callout-note
@@ -353,8 +434,6 @@ summary(mod_mlr)
 You should now be able to ...\[PUT THIS AFTER EACH OBJECTIVE\]
 :::
 
-
-## Write up conclusions
 
 
 
