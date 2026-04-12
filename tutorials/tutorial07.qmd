@@ -24,12 +24,12 @@ You will learn how to:
 2.  Implement the fitting process for each type of model
 3.  Test assumptions and evaluate model fit of SLR and MLR models.
 
-# Simple linear regression vs Multiple Linear Regression
+## Simple linear regression vs Multiple Linear Regression {.unnumbered}
 
 | Element | Simple Linear Regression (SLR) | Multiple Linear Regression (MLR) |
 |:------------------------|:------------------------|:------------------------|
 | Number of predictors | 1 | 2 or more |
-| Model form | $Y = \beta_0 + \beta_1x + \epsilon$ | $Y = \beta_0 + \beta_1x_1 + + \beta_2x_2 + ... + \beta_nx_n + \epsilon$ |
+| Model form | $Y = \beta_0 + \beta_1x + \epsilon$ | $Y = \beta_0 + \beta_1x_1 + \beta_2x_2 + ... + \beta_nx_n + \epsilon$ |
 | How to fit in R | `lm(y ~ x, data = dataset)` | `lm(y ~ x1 + x2 + ... + xn, data = dataset)` |
 | Assumptions | L.I.N.E. | L.I.N.E., collinearity |
 | Model evaluation | $r^2$, residual plots | Adjusted $r^2$, residual plots, VIF|
@@ -41,7 +41,7 @@ You will learn how to:
 
 ## Packages
 
-This lab uses `tidyverse`, `readxl`, `moments`, `psych`, and `performance`. Install any you are missing by running the following **in the console**:
+This tutorial uses `tidyverse`, `readxl`, `moments`, `psych`, and `performance`. Install any you are missing by running the following **in the console**:
 
 ```{r}
 #| eval: false
@@ -79,11 +79,11 @@ Original data source:
 
 # Analysis
 
-## Model equation
+## Exercise 1: State the models and hypotheses {.unnumbered}
 
-### Simple linear regression
+### Part A --- Simple linear regression
 
-The statistical model for a simple linear regression is: 
+The statistical model for a simple linear regression is:
 
 $$
 y_{i} = \beta_0 + \beta_1x_i + \epsilon_{i}
@@ -92,18 +92,23 @@ $$
 Where:
 
 - $y_{i}$ is the response variable (Volume) for the $i$th observation when the predictor X = $x_i$ (Diameter)
-- $\beta_0$ is the intercept where the regression line crosses the y-axis (the expected timber Volume when patch Diameter is 0)
+- $\beta_0$ is the intercept where the regression line crosses the y-axis (the expected timber Volume when Diameter is 0)
 - $\beta_1$ is the slope of the regression line, which represents the change in timber Volume for a one-unit increase in Diameter
-- $\epsilon_{i}$ is the random error term for the ith observation and is assumed to be normally distributed with mean 0 and constant variance 
+- $\epsilon_{i}$ is the random error term for the ith observation and is assumed to be normally distributed with mean 0 and constant variance
 
 OR if written in terms of the variables in our dataset, the model would be:
 
 $$
-Abundance = \beta_0 + \beta_1\cdot \ Diameter + \epsilon_{i}
+Volume = \beta_0 + \beta_1\cdot \ Diameter + \epsilon_{i}
 $$
-### Multiple Linear Regression
 
-The statistical model for a multiple linear regression with 2 predictors is: 
+$H_0: \beta_1 = 0$ , The slope is equal to zero, i.e. there is no relationship between Diameter and Volume
+
+$H_1: \beta_1 \neq 0$ , The slope is not equal to zero, i.e. There is a relationship between diameter and volume
+
+### Part B --- Multiple linear regression
+
+The statistical model for a multiple linear regression with 2 predictors is:
 
 $$
 y_{i} = \beta_0 + \beta_1x_1 + \beta_2x_2 + \epsilon_{i}
@@ -111,50 +116,48 @@ $$
 
 Where:
 
-- $y_{i}$ is the response variable (timber volume) for the $i$th observation when the predictor X = $x_i$ (Height or Diameter)
+- $y_{i}$ is the response variable (timber volume) for the $i$th observation
 - $\beta_0$ is the intercept where the regression line crosses the y-axis
 - $\beta_1$ is the slope of the regression line for the first predictor, which represents the change in Volume for a one-unit increase in tree Diameter
-- $\beta_2$ is the slope of the regression line for the first predictor, which represents the change in Volume for a one-unit increase in tree Height
-- $\epsilon_{i}$ is the random error term for the ith observation and is assumed to be normally distributed with mean 0 and constant variance 
+- $\beta_2$ is the slope of the regression line for the second predictor, which represents the change in Volume for a one-unit increase in tree Height
+- $\epsilon_{i}$ is the random error term for the ith observation and is assumed to be normally distributed with mean 0 and constant variance
 
 OR if written in terms of the variables in our dataset, the model would be:
 
 $$
-\ timber \ Volume = \beta_0 + \beta_1\cdot \ Height + \beta_2\cdot \ Diameter + \epsilon_{i}
+Volume = \beta_0 + \beta_1\cdot \ Diameter + \beta_2\cdot \ Height + \epsilon_{i}
 $$
 
-## State hypotheses
-
-### Simple linear regression
-
-$H_0: \beta_1 = 0$ , The slope is equal to zero, i.e. there is no relationship between Diameter and Volume
-
-$H_1: \beta_1 \neq 0$ , The slope is not equal to zero, i.e. There is a relationship between diameter and volume
-
-### Multiple linear regression
-
-For Multiple linear regression we are testing two (or more) predictors, so we have multiple null and alternative hypotheses to test. 
+For Multiple linear regression we are testing two (or more) predictors, so we have multiple null and alternative hypotheses to test.
 
 First we test the partial regression coefficients for each predictor:
 
-$H_0: \beta_1 = 0$ , The artial regression slope is equal to zero, i.e. there is no relationship between Diameter and Volume
+$H_0: \beta_1 = 0$ , The partial regression slope is equal to zero, i.e. there is no relationship between Diameter and Volume
 
-$H_1: \beta_1 \neq 0$ , The artial regression slope is not equal to zero, i.e. There is a relationship between diameter and Volume
+$H_1: \beta_1 \neq 0$ , The partial regression slope is not equal to zero, i.e. There is a relationship between diameter and Volume
 
 
-$H_0: \beta_1 = 0$ , The artial regression slope is equal to zero, i.e. there is no relationship between Height and Volume
+$H_0: \beta_2 = 0$ , The partial regression slope is equal to zero, i.e. there is no relationship between Height and Volume
 
-$H_1: \beta_1 \neq 0$ , The artial regression slope is not equal to zero, i.e. There is a relationship between Height and Volume
+$H_1: \beta_2 \neq 0$ , The partial regression slope is not equal to zero, i.e. There is a relationship between Height and Volume
 
 Then we also test the overall model:
 
-$H_0: \beta_1 = \beta_2 = 0$ (the all partial regression slopes are equal to zero, i.e. there is no relationship between diameter, height and volume)
+$H_0: \beta_1 = \beta_2 = 0$ (all partial regression slopes are equal to zero, i.e. there is no relationship between diameter, height and volume)
 
 $H_1: \beta_1 \neq 0$ and/or $\beta_2 \neq 0$ (at least one partial regression slope is not equal to zero, i.e.
-there is a relationship between either between diameter and volume, or height and volume).
+there is a relationship between either diameter and volume, or height and volume).
 
+::: callout-note
+## Checkpoint
 
-## Explore the data
+You should now be able to write down the model equation for both simple and multiple linear regression, and state the associated null and alternative hypotheses. You should also be able to explain why multiple linear regression requires a separate null hypothesis for each partial regression coefficient, as well as a null hypothesis for the overall model.
+
+:::
+
+## Exercise 2: Explore the data {.unnumbered}
+
+### Part A --- Distributions
 
 For each variable we need to check the distribution, identify outliers and check for correlations between predictors (for MLR).
 
@@ -164,14 +167,12 @@ library(moments)
 
 summary(trees)
 
-# Apply the sd function for each column 
+# Apply the sd function for each column
 apply(trees, 2, sd) # (margin = 2 means apply the function to columns)
 
 skewness(trees)
 
 ```
-
-### Diameter 
 
 The mean diameter is 13.25 inches and the median is 12.90 inches. The values range from 8.30 to 20.60 inches and the standard deviation is 3.14 inches. There is a slight skew, indicated by the skewness coefficient of 0.526. The slight skew is also visible in the following boxplot where the median lies closer to the first quartile. 
 
@@ -181,8 +182,6 @@ ggplot(trees, aes(x = "", y = Diameter)) +
     theme_bw()
 ```
 
-
-### Height
 
 The mean and median height is 76 feet and the values range from 63 to 87 feet. The standard deviation is 6.37 feet and the skewness coefficient is -0.37, indicating a relatively symmetrical distribution. The boxplot also shows a relatively symmetrical distribution, with the median lying close to the centre of the box.
 
@@ -195,9 +194,7 @@ ggplot(trees, aes(x = "", y = Height)) +
 ```
 
 
-### Volume
-
-The mean volume of timber is 30.17 cubic feet and the median is 24.20 cubic feet. The values range from 10.20 to 77.00 cubic feet and the standard deviation is 16.44 cubic feet. The skewness coefficient is 1.06, indicating a the variable is positively skewed. This is also visible in the boxplot, where the median lies closer to the first quartile and there are some high values that are potential outliers.
+The mean volume of timber is 30.17 cubic feet and the median is 24.20 cubic feet. The values range from 10.20 to 77.00 cubic feet and the standard deviation is 16.44 cubic feet. The skewness coefficient is 1.06, indicating that the variable is positively skewed. This is also visible in the boxplot, where the median lies closer to the first quartile and there are some high values that are potential outliers.
 
 ```{r}
 
@@ -212,13 +209,13 @@ ggplot(trees, aes(x = "", y = Volume)) +
 
 The high values would have high leverage in our model, causing the residuals to be skewed, violating our assumptions. The boxplot is therefore telling us that we might need to transform Volume to stabilise the variance of the regression, but it is worth confirming this with the diagnostic plots after fitting the model.
 
-### Correlations
+### Part B --- Correlations
 
 For both simple and multiple linear regression we need to check the correlation between our response variable and our predictor variable. 
 
 For multiple linear regression it is also important to check the relationships between the predictor variables, as a strong correlation may indicate collinearity, which can influence the model.
 
-We will start by looking at all correlations, and then for our simple linear regression we will select the variable that has the the strongest correlation with the response (Volume) to use as our single predictor variable.
+We will start by looking at all correlations, and then for our simple linear regression we will select the variable that has the strongest correlation with the response (Volume) to use as our single predictor variable.
 
 First we will use the correlation coefficient to understand the strength and direction of the relationships between the variables. Then we can look at the scatterplots between variables to verify the correlation coefficients and identify if there are any other types of relationships (e.g. non-linear) that may be occurring between variables. 
 
@@ -251,7 +248,7 @@ pairs(trees)
 
 The scatterplots confirm the strong positive linear relationship between Volume and Diameter as we can see the points following a clear trend on the plot. The points in the plot between height and volume also seem to follow a weaker positive trend as they appear more scattered across the plot area. 
 
-This is similar in the scatterplot between diameter and height where the points are also quite scattered but still follow weak positive trend. 
+This is similar in the scatterplot between diameter and height where the points are also quite scattered but still follow a weak positive trend. 
 
 You are welcome to use the above code to create scatterplots between each pair of variables, and calculate the correlation coefficients separately, but if you prefer something cleaner, you can also use the `pairs.panels()` function from the `psych` package which produces a neat array of plots and coefficients. 
 
@@ -265,11 +262,18 @@ psych::pairs.panels(trees)
 
 We can see the function produces scatterplots and correlation coefficients between each variable, as well as histograms for each individual variable. The histograms can supplement our EDA where we are looking at the distribution for each variable. 
 
-We have identified some potential collinearity occurring between height and diameter, but will run the models today. Next week we will cover how to manage collinearity in MLR.
+We have identified some potential collinearity occurring between height and diameter, but we will run the models today. Next week we will cover how to manage collinearity in MLR.
 
-## Implement the fitting process for each type of model
+::: callout-note
+## Checkpoint
 
-Our correlation analyses identified that Diameter is more strongly correlated with Volume, so we will use diameter as our response variable in the simple linear regression. 
+You should now be able to describe the distribution of each variable using summary statistics, histograms and boxplots, and identify any potential outliers. You should also be able to use correlation coefficients and scatterplots to identify the strength and direction of relationships between variables, and to spot potential collinearity between predictor variables.
+
+:::
+
+## Exercise 3: Fit models and check assumptions {.unnumbered}
+
+Our correlation analyses identified that Diameter is more strongly correlated with Volume, so we will use Diameter as our predictor variable in the simple linear regression.
 
 Fitting multiple and simple linear regression uses the same function in R, you just need to add on the additional predictors for multiple linear regression. 
 
@@ -281,15 +285,15 @@ mod_mlr <- lm(Volume ~ Diameter + Height, data = trees)
 
 ```
 
-Once you have fitted the models, you then need to check the assumptions have been met. 
+Once you have fitted the models, you then need to check the assumptions have been met.
 
-## Check assumptions and transform if needed
+You can check model assumptions using the `plot()` function, but the `check_model()` function from the `performance` package produces a more comprehensive set of diagnostic plots to check assumptions.
 
-You can check model assumptions using the plot() function, but the `check_model()` function from the `performance` package produces a more comprehensive set of diagnostic plots to check assumptions.
-
-### Assumptions: Simple linear regression 
+### Part A --- Simple linear regression
 
 ```{r}
+#| fig-height: 10
+#| fig-width: 8
 library(performance)
 
 check_model(mod_slr)
@@ -304,7 +308,7 @@ Our assumptions for a simple linear regression are L.I.N.E. - Linearity, Indepen
 
 * N: The Normality (QQ) plot shows that the residuals mostly follow the straight line, which indicates that the residuals are normally distributed. It looks like the assumption of normality has been met. 
 
-* E: The residuals vs fitted plot also shows the reference line is not overly flat and the points are not evenly scattered. This tells us that the variance of the residuals is not constant across all levels of diameter, which violates the assumption of equal variance (homoscedasticity). 
+* E: The residuals vs fitted plot also shows the reference line is not flat and the points are not evenly scattered. This tells us that the variance of the residuals is not constant across all levels of diameter, which violates the assumption of equal variance (homoscedasticity).
 
 * Influential observations: The residuals vs leverage plot shows that there is an outlier in the data which may have an influence on the model. This is likely due to the high values of volume that we identified in our EDA.
 
@@ -313,6 +317,8 @@ Decision: Our assumptions are not met, and we know that the volume variable is p
 
 
 ```{r}
+#| fig-height: 10
+#| fig-width: 8
 
 # Create column containing log10Volume
 
@@ -335,7 +341,7 @@ check_model(log_mod_slr)
 
 * N: The Normality (QQ) plot shows that the residuals follow the straight line much better now, which indicates that the residuals are normally distributed. It looks like the assumption of normality has been met. 
 
-* E: The standardised residuals vs fitted plot shows the reference line is flatter, does not deviate as much as before, and the points are are a bit more scattered. This tells us that the variance of the residuals has improved to a point where we can continue to our analyses. If you have something like this in a report, it is worth acknowledging that other models may be more appropriate and worth exploring.
+* E: The standardised residuals vs fitted plot shows the reference line is flatter, does not deviate as much as before, and the points are a bit more scattered. This tells us that the variance of the residuals has improved to a point where we can continue to our analyses. If you have something like this in a report, it is worth acknowledging that other models may be more appropriate and worth exploring.
 
 * Influential observations: The residuals vs leverage plot is no longer showing a point outside the dashed (Cook's distance) line. This means there are no longer observations that are having a higher influence on the model and we can proceed with our model interpretation. 
 
@@ -344,9 +350,11 @@ Decision: Transforming Volume has helped us meet the model assumptions.
 Some of the diagnostics have told us the relationship may be non-linear, so in the real world we would also consider fitting alternative models to see if there is something better out there to represent the relationship between tree volume and diameter. This is especially important if we wanted to use the model for prediction. 
 
 
-### Assumptions: Multiple Linear Regression
+### Part B --- Multiple linear regression
 
 ```{r}
+#| fig-height: 10
+#| fig-width: 8
 
 check_model(mod_mlr)
 
@@ -354,22 +362,24 @@ check_model(mod_mlr)
 
 Our assumptions for a multiple linear regression are L.I.N.E. - Linearity, Independence, Normality, Equal variance AND collinearity. We also need to check if there are any observations that are having a larger influence on the model (higher leverage).
 
-* L: The Linearity (residuals vs fitted) plot shows the residuals are not randomly scattered around the horizontal line at 0. This tells us that there is a non-linear relationship our predictors and volume. 
+* L: The Linearity (residuals vs fitted) plot shows the residuals are not randomly scattered around the horizontal line at 0. This tells us that there is a non-linear relationship between our predictors and volume. 
 
 * I: The Independence assumption is met as the data is collected from different trees, so the observations are independent of each other. (this is same as before; not something we can always test for and it links back to the original experimental design).
 
 * N: The Normality (QQ) plot shows that the residuals mostly follow the straight line, which indicates that the residuals are normally distributed. It looks like the assumption of normality has been met. 
 
-* E: The residuals vs fitted plot also shows the reference line is not very flat and the points are not evenly scattered. This tells us that the variance of the residuals is not constant across all levels of diameter, which violates the assumption of equal variance (homoscedasticity). 
+* E: The residuals vs fitted plot also shows the reference line is not very flat and the points are not evenly scattered. This tells us that the variance of the residuals is not constant across our predictors, which violates the assumption of equal variance (homoscedasticity).
 
 * Influential observations: The residuals vs leverage plot shows no points lying outside the Cook's distance (dashed) line, telling us that there are no single values influencing the model. 
 
 * Collinearity: We can check for collinearity using the VIF (Variance Inflation Factor) which is provided in our `check_model()` function from the `performance` package. A VIF value above 5 (or 10, depending on who you ask) indicates a potential issue with collinearity. In our model, the VIFs for Diameter and Height are both low (< 5), which indicates that there is no issue with collinearity between these two predictor variables. 
 
-Decision: Our assumptions are not met, and we know that the volume variable is positively skewed, so like in our Simple linear regression, we will use log-transformed Volume to stabilise the variance of the regression. This should reduce the skew and help meet our assumptions.
+Decision: Our assumptions are not met, and we know that the volume variable is positively skewed, so like in our simple linear regression, we will use log-transformed Volume to stabilise the variance of the regression. This should reduce the skew and help meet our assumptions.
 
 
 ```{r}
+#| fig-height: 10
+#| fig-width: 8
 
 # Refit model with transformed Volume
 
@@ -387,7 +397,7 @@ check_model(log_mod_mlr)
 
 * N: The Normality (QQ) plot shows that the residuals follow the straight line much better now, which indicates that the residuals are normally distributed. It looks like the assumption of normality has been met. 
 
-* E: The standardised residuals vs fitted plot shows the reference line is flatter and the points are are a bit more scattered. This tells us that the variance of the residuals has improved to a point where we can continue to our analyses. 
+* E: The standardised residuals vs fitted plot shows the reference line is flatter and the points are a bit more scattered. This tells us that the variance of the residuals has improved to a point where we can continue to our analyses. 
 
 * Influential observations: The residuals vs leverage plot shows the points are closer to the dashed line centred at 0 and no points are outside the dashed (Cook's distance) line, indicating that there are no individual observations impacting on the model.
 
@@ -405,7 +415,9 @@ We can now move onto interpretation!
 
 :::
 
-## Evaluate model fit of SLR and write up a conclusion.
+## Exercise 4: Evaluate model fit {.unnumbered}
+
+### Part A --- Simple linear regression conclusion
 
 ```{r}
 
@@ -415,24 +427,24 @@ summary(log_mod_slr)
 
 1. State the model equation
 
-Model equation is $Abundance = 10.401 + 9.778 log10(Area)$
+Model equation is $log10(Volume) = 0.486 + 0.0706 \cdot Diameter$
 
 2. Interpretation of regression coefficients
 
-For every 1 unit change in log10(Area), we expect a 9.778 increase in bird abundance.
+For every 1 unit change in Diameter, we expect a 0.0706 increase in log10(Volume).
 
 3. P-value
 
-The P-value for the slope coefficient is < 0.001, meaning we reject our null hypothesis that the slope is equal to zero ($H0: \beta_1 \neq 0$) and conclude that log10(Area) is a significant predictor of bird abundance. 
+The P-value for the slope coefficient is < 0.001, meaning we reject our null hypothesis that the slope is equal to zero ($H_0: \beta_1 = 0$) and conclude that Diameter is a significant predictor of log10(Volume).
 
 4. R-squared
 
-As we only have one predictor in the model, we can use the r^2^ value rather than the adjusted r^2^. 
+As we only have one predictor in the model, we can use the r^2^ value rather than the adjusted r^2^.
 
-The r^2^ value is,  which means that % of the variation in bird abundance can be explained by log10(Area). This is not really a strong r^2^ value, so it suggests that there are other factors influencing bird        abundance that are not included in the model.
+The r^2^ value is 0.94, which means that 94% of the variation in log10(Volume) can be explained by Diameter. This is a very strong r^2^ value, suggesting that Diameter alone is able to explain most of the variation in log10(Volume).
 
 
-## Evaluate model fit of MLR and write up a conclusion.
+### Part B --- Multiple linear regression conclusion
 
 ```{r}
 
@@ -442,60 +454,57 @@ summary(log_mod_mlr)
 
 
 1. State the model equation
-Model equation is: 
 
-$\textrm{runoff_volume} = 3.257 + 0.05631\cdot \textrm{lake_sabrina} + 0.210\cdot \textrm{pine_creek} + 0.438\cdot \textrm{rock_creek} $
+Model equation is:
+
+$log10(Volume) = 0.0446 + 0.0631 \cdot Diameter + 0.0071 \cdot Height$
 
 2. Interpretation of regression coefficients
 
 *Holding all other variables constant:* (very important to include this)
 
-* For every 1 unit change in precipitation at lake_sabrina, we expect a 0.056 increase in runoff_volume;
+* For every 1 unit change in Diameter, we expect a 0.0631 increase in log10(Volume);
 
-* For every 1 unit change in precipitation at pine_creek, we expect a 0.210 increase in runoff_volume;
-
-* For every 1 unit change in precipitation at rock_creek, we expect a 0.438 increase in runoff_volume.
+* For every 1 unit change in Height, we expect a 0.0071 increase in log10(Volume).
 
 
 3. P-value
 
-When assessing the p-values, we must consider the p-value associated with each partial regression coefficient, as well as the overall model. 
+When assessing the p-values, we must consider the p-value associated with each partial regression coefficient, as well as the overall model.
 
 
-a. Relationship between precipitation at lake_sabrina and runoff volume:
+a. Relationship between Diameter and log10(Volume):
 
-The P-value for the partial regression coefficient is > 0.001, meaning we FAIL TO reject our null hypothesis that the slope is equal to zero ($H0: \beta_1 = 0$) and conclude that precipitation at Lake Sabrina is NOT a significant predictor of runoff volume at the site near Bishop, California. 
+The P-value for the partial regression coefficient is < 0.001, meaning we reject our null hypothesis that the slope is equal to zero ($H_0: \beta_1 = 0$) and conclude that Diameter is a significant predictor of log10(Volume).
 
-b. Precipitation at pine_creek and runoff volume:
+b. Relationship between Height and log10(Volume):
 
-The P-value for the partial regression coefficient is < 0.05, meaning we reject our null hypothesis that the slope is equal to zero ($H0: \beta_2 = 0$) and conclude that precipitation at Pine Creek is a significant predictor of runoff volume at the site near Bishop, California. 
+The P-value for the partial regression coefficient is < 0.001, meaning we reject our null hypothesis that the slope is equal to zero ($H_0: \beta_2 = 0$) and conclude that Height is also a significant predictor of log10(Volume).
 
-c. Precipitation at rock_creek and runoff volume:
+c. Overall model:
 
-The P-value for the partial regression coefficient is < 0.05, meaning we reject our null hypothesis that the slope is equal to zero ($H0: \beta_3 = 0$) and conclude that precipitation at Rock Creek is a significant predictor of runoff volume at the site near Bishop, California. 
-
-d. Overall model: 
-
-The P-value for the model is < 0.001, indicating that at least one slope is not equal to zero. This means we reject our null hypothesis that the all partial slopes are equal to zero ($$H_0 : \beta_1 = \beta_2 = \beta_3 = 0$$)  and conclude that our model is significant.  
+The P-value for the model is < 0.001, indicating that at least one slope is not equal to zero. This means we reject our null hypothesis that all partial slopes are equal to zero ($$H_0 : \beta_1 = \beta_2 = 0$$) and conclude that our model is significant.
 
 
 4. R-squared
-As we more than one predictor in the model, we will need to use the adjusted r^2^. We will cover the reason for this in next week's lecture. 
 
-The r^2^ value is 0.87, which means that 87% of the variation in stream runoff volume can be explained our model. This is quite a strong r^2^ value, but we will need to acknowledge that more investigation is needed as the collinearity between predictors may be influencing our model.
+As we have more than one predictor in the model, we will need to use the adjusted r^2^. We will cover the reason for this in next week's lecture.
+
+The adjusted r^2^ value is 0.97, which means that 97% of the variation in log10(Volume) can be explained by our model. This is a very strong r^2^ value. Although there was some correlation between Diameter and Height in our EDA, the VIFs from our diagnostics were low, so collinearity is unlikely to be influencing our model.
 
 
 ::: callout-note
 ## Checkpoint
 
-You should now be able to ...\[PUT THIS AFTER EACH OBJECTIVE\]
+You should now be able to interpret the summary output of a fitted simple and multiple linear regression, including the model equation, the regression coefficients, the p-values and the (adjusted) r-squared. You should also be able to explain why multiple linear regression uses the adjusted r-squared rather than the r-squared, and why the interpretation of a partial regression coefficient always requires the phrase "holding all other variables constant".
+
 :::
 
 
 
 
 
-# Wrap-up {.unnumbered}
+## Wrap-up {.unnumbered}
 
 In this tutorial, we have walked through the processes for simple and multiple linear regression, including how to fit models, check assumptions and how to interpret the output. You will hopefully now be able to recall key differences between the two types of models, which will help direct your analysis. 
 
