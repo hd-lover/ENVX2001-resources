@@ -1,6 +1,6 @@
 ---
 title: "Tutorial 07"
-# reviewed-by: ACA, 2026
+# reviewed-by: ACA, 2026, updated by LP 2026
 format:
   sandstone-html:
     code-tools: true
@@ -53,7 +53,11 @@ If a package is already installed, R will simply reinstall it — no harm done.
 
 ## The data
 
+![Black Cherry tree foliage and flowers, from Wikimedia Commons, by Sten Porse.](images/Prunus-serotina.jpeg)
+
 For both examples we will use the *trees* dataset, which is an in-built dataset provided by R. It contains measurements of diameter (inches), height (feet) and volume of timber (cubic feet) of 31 felled Black Cherry trees. 
+
+`Volume` will be our response variable for both models. 
 
 Note: the 'girth' variable within the dataset is actually the diameter of the tree. We can rename it now, which also adds it into our R Environment: 
 
@@ -65,18 +69,17 @@ trees <- trees %>%
 head(trees)
 ```
 
-
 Original data source: 
 
 ⁠Meyer H. A. (1953). Forest Mensuration. Penns Valley Publishers.
 
 ⁠Ryan T. A., Joiner B. L., Ryan B. F. (1976). The Minitab Student Handbook. Duxbury Press, North Scituate, MA. ISBN 087150359X
 
-![Black Cherry tree foliage and flowers, from Wikimedia Commons, by Sten Porse.](images/Prunus-serotina.jpeg)
+
 
 # Analysis
 
-## Explore the data - EDA
+## Explore the data
 
 For each variable we need to check the distribution, identify outliers and check for correlations between predictors (for MLR).
 
@@ -93,7 +96,8 @@ skewness(trees)
 
 ```
 
-Diameter: 
+### Diameter 
+
 The mean diameter is 13.25 inches and the median is 12.90 inches. The values range from 8.30 to 20.60 inches and the standard deviation is 3.14 inches. There is a slight skew, indicated by the skewness coefficient of 0.526. The slight skew is also visible in the following boxplot where the median lies closer to the first quartile. 
 
 ```{r}
@@ -103,7 +107,8 @@ ggplot(trees, aes(x = "", y = Diameter)) +
 ```
 
 
-Height: 
+### Height
+
 The mean and median height is 76 feet and the values range from 63 to 87 feet. The standard deviation is 6.37 feet and the skewness coefficient is -0.37, indicating a relatively symmetrical distribution. The boxplot also shows a relatively symmetrical distribution, with the median lying close to the centre of the box.
 
 ```{r}
@@ -115,8 +120,9 @@ ggplot(trees, aes(x = "", y = Height)) +
 ```
 
 
-Volume: 
-The mean volume of timber is 30.17 and the median is 24.20 cubic feet. The values range from 10.20 to 77.00 cubic feet and the standard deviation is 16.44 cubic feet. The skewness coefficient is 1.06, indicating a the variable is positively skewed. This is also visible in the boxplot, where the median lies closer to the first quartile and there are some high values that are potential outliers.
+### Volume
+
+The mean volume of timber is 30.17 cubic feet and the median is 24.20 cubic feet. The values range from 10.20 to 77.00 cubic feet and the standard deviation is 16.44 cubic feet. The skewness coefficient is 1.06, indicating a the variable is positively skewed. This is also visible in the boxplot, where the median lies closer to the first quartile and there are some high values that are potential outliers.
 
 ```{r}
 
@@ -131,26 +137,64 @@ ggplot(trees, aes(x = "", y = Volume)) +
 
 The high values would have high leverage in our model, causing the residuals to be skewed, violating our assumptions. The boxplot is therefore telling us that we might need to transform Volume to stabilise the variance of the regression, but it is worth confirming this with the diagnostic plots after fitting the model.
 
-## Explore the data - correlations
+### Correlations
 
-Correlations 
+For both simple and multiple linear regression we need to check the correlation between our response variable and our predictor variable. 
+
+For multiple linear regression it is also important to check the relationships between the predictor variables, as a strong correlation may indicate collinearity, which can influence the model.
+
+We will start by looking at all correlations, and then for our simple linear regression we will select the variable that has the the strongest correlation with the response (Volume) to use as our single predictor variable.
+
+First we will use the correlation coefficient to understand the strength and direction of the relationships between the variables. Then we can look at the scatterplots between variables to verify the correlation coefficients and identify if there are any other types of relationships (e.g. non-linear) that may be occurring between variables. 
+
+::: {.callout-tip}
+## Remember
+
+Correlation coefficients only measure the strength and direction of LINEAR relationships. 
+
+It is therefore important to visualise the relationships between variables to check for non-linear relationships, which may not be captured by the correlation coefficient.
+
+:::
+
+Let's have a look at the correlation coefficients between variables: 
+
 ```{r}
 cor(trees)
 ```
 
+The correlation coefficient between Volume and Diameter is 0.967, which indicates a very strong positive linear relationship. 
 
+The correlation coefficient between Volume and Height is 0.598, which indicates a weak positive linear relationship. 
 
+The correlation coefficient between Diameter and Height is 0.519, which indicates a weak positive linear relationship, suggesting that there may be collinearity between these two predictor variables. 
 
+Now let's look at the scatterplots between variables to verify these relationships:
 
-**Why do we care about correlations between predictors?**
+```{r}
+pairs(trees)
+```
 
-multi-collinearity which may influence the model. If the relationship between these two variables was stronger, we would remove one of the variables to prevent this collinearity from affecting the model.
+The scatterplots confirm the strong positive linear relationship between Volume and Diameter as we can see the points following a clear trend on the plot. The points in the plot between height and volume also seem to follow a weaker positive trend as they appear more scattered across the plot area. 
 
-*Note: For more information on collinearity and how it may impact the model, see Quinn & Keough p 127.*
+This is similar in the scatterplot between diameter and height where the points are also quite scattered but still follow weak positive trend. 
 
+You are welcome to use the above code to create scatterplots between each pair of variables, and calculate the correlation coefficients separately, but if you prefer something cleaner, you can also use the `pairs.panels()` function from the `psych` package which produces a neat array of plots and coefficients. 
+
+```{r}
+# not using library(psych) as I am only using the function once
+
+# instead do the following: 
+psych::pairs.panels(trees)
+
+```
+
+We can see the function produces scatterplots and correlation coefficients between each variable, as well as histograms for each individual variable. The histograms can supplement our EDA where we are looking at the distribution for each variable. 
+
+We have identified some potential colinnearity occurring between height and diameter, but will run the models today. Next week we will cover how to manage collinearity in MLR.
 
 ## Implement the fitting process for each type of model
 
+Our correlation analyses identified that Diameter is more strongly correlated with Volume, so we will use diameter as our response variable in the simple linear regression. 
 
 ```{r}
 
