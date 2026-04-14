@@ -5,7 +5,8 @@ date: last-modified
 date-format: "MMM YYYY"
 author: Liana Pozza
 format:
-  ochre-revealjs: default
+  ochre-revealjs:
+    scrollable: true
   ochre-typst:
     fig-format: png
 # format: revealjs
@@ -14,7 +15,6 @@ execute:
   echo: true
   warning: false
   message: false
-scrolling: true
 ---
 
 ```{r setup, include=FALSE}
