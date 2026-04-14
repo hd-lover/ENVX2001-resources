@@ -554,6 +554,31 @@ How much variation is explained? R^2^ = 0.21 = 21%
 :::
 ::::
 
+## Plot the model
+
+::::{.columns}
+:::{.column width="50%"}
+
+```{r}
+ggplot(Galton, aes(x = parent, y = child)) +
+  geom_point(alpha = .2, size = 3) +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(subtitle = paste("R^2^:", round(summary(fit)$r.squared, 2)))
+
+```
+
+:::
+
+:::{.column width="50%"}
+
+$$\widehat{child} = 23.9 + 0.65 \cdot parent$$
+How much variation is explained? R^2^ = 0.21 = 21%
+
+If the r^2^ accounted for more variation, the points would follow the line more closely. 
+
+:::
+::::
+
 ## Making predictions
 
 What is the predicted child height for a parent height of 70 inches?
