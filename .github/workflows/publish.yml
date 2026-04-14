@@ -19,6 +19,13 @@ jobs:
         with:
           version: "1.8.27"
 
+      - name: Cache Typst packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/typst/packages
+          key: typst-packages-${{ hashFiles('_extensions/**/*.typ', '_quarto.yml') }}
+          restore-keys: typst-packages-
+
       - name: Render exercise site
         run: quarto render
 
