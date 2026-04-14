@@ -27,28 +27,37 @@ theme_set(theme_cowplot())
 ## About me
 
 ::: {layout-ncol=2}
-- Research topics: spatial modelling and mapping, precision agriculture, winter grains
-- Timeline at USYD
-  - BSc (Hons) in Agricultural Science
-  - PhD in Digital Agriculture
-  - Postdoc in Spatial Modelling
-  - Associate Lecturer in Agricultural Data Science
+::: {.column width="60%"}
+- Lecturer in Agricultural Data Science
+- Research topics: spatial modelling and mapping, precision agriculture, soil contamination
+- How did I get here?
+  - BSc (Hons) in Environmental Biology - Thesis on satellite detection of phytoplankton off Australian coast
+  - PhD in Agriculture - Thesis on soil contamination mapping and spatial modelling
+  - Various postdocs - Teaching, Wagyu metabolomics, soil constraints, soil carbon
+  
+<!---
+Make clear usefulness of transferrable skills - machine learning, R, modelling and mapping skills 
+--->  
+:::
 
-![Faba beans at Trangie](images/hello_world.jpeg)
+::: {.column width="40%"}
+  
+![Aerial view of marine phytoplankton bloom, Image by Mete Caner Arican via Adobe Stock](images/AdobeStock_565968044.jpeg)
+:::
 :::
 
 
-## Learning Outcomes {auto-animate=true}
+## Unit Learning Outcomes {auto-animate=true}
 
 LO1. demonstrate proficiency in designing sample schemes and analysing data from them using using R
 
 LO2. describe and identify the basic features of an experimental design; replicate, treatment structure and blocking structure
 
-**LO3. demonstrate proficiency in the use or the statistical programming language R to** an ANOVA and **fit regression models to experimental data**
+**LO3. demonstrate proficiency in the use or the statistical programming language R to** apply an ANOVA and **fit regression models to experimental data**
 
 LO4. demonstrate proficiency in the use or the statistical programming language R to use multivariate methods to find patterns in data
 
-**LO5. interpret the output and understand conceptually how its derived of a regression**, ANOVA and multivariate analysis that have been calculated by R
+**LO5. interpret the output and understand conceptually how its derived of a regression**, ANOVA and multivariate **analysis that have been calculated by R**
 
 LO6. write statistical and modelling results as part of a scientific report
 
@@ -61,7 +70,31 @@ therefore, want students how to fit a linear regression model and be able to int
 - Want to then be able to interpret the output
 --->
 
-## Refresher from ENVX1002
+## Topic 7 Learning Outcomes
+
+By the end of this week, students should be able to: 
+
+- Describe the purpose and application of linear regression
+- Identify the key components of a linear regression model
+- Understand the assumptions of linear regression and how to check them
+- Understand the concept of model fit and how to evaluate it
+- Interpret the output of a linear regression model
+- Distinguish key similarities and differences between simple linear regression (SLR) and multiple linear regression (MLR) models
+
+## Topic 7 lecture outline
+
+- Purpose and brief history of regression modelling
+- Simple linear regression
+    + Defining a linear relationship
+    + Fitting the model
+    + Assumptions
+    + Model fit
+    + Interpret output
+- Transformations
+- Multiple linear regression
+
+
+## What is regression modelling for?
 
 - Regression modelling is for one *continuous numerical* response ($y$) and one or more *numerical* predictors ($x_1$, $x_2$, $x_n$)
 - Can be for linear or nonlinear relationships -- focus on linear in ENVX2001
