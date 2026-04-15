@@ -419,6 +419,17 @@ We can now move onto interpretation!
 
 ### Part A --- Simple linear regression conclusion
 
+First, we can plot the model, to give some context to the reader and provide a visual representation to the model output we will be interpreting.
+
+```{r}
+ggplot(trees, aes(x = Diameter, y = log10Volume)) +
+    geom_point() +
+    geom_smooth(method = "lm", se = FALSE) +
+    theme_bw()
+```
+
+Once we have created the plot, we can interpret the statistical output. 
+
 ```{r}
 
 summary(log_mod_slr)
@@ -437,14 +448,20 @@ For every 1 unit change in Diameter, we expect a 0.0706 increase in log10(Volume
 
 The P-value for the slope coefficient is < 0.001, meaning we reject our null hypothesis that the slope is equal to zero ($H_0: \beta_1 = 0$) and conclude that Diameter is a significant predictor of log10(Volume).
 
+This is supported by our plot as we can see the regression line is not horizontal, but has a slope to it. 
+
 4. R-squared
 
 As we only have one predictor in the model, we can use the r^2^ value rather than the adjusted r^2^.
 
 The r^2^ value is 0.94, which means that 94% of the variation in log10(Volume) can be explained by Diameter. This is a very strong r^2^ value, suggesting that Diameter alone is able to explain most of the variation in log10(Volume).
 
+We can also see visual evidence of the r^2^ in the plot as the points sit close to the line. If the r^2^ were smaller, we would notice the points lying further away from the line or more evenly scattered about the plot area. 
 
 ### Part B --- Multiple linear regression conclusion
+
+It is harder to plot a multiple linear regression model because we add on a dimension with each additional predictor. While we can still plot the relationship between our response variable and each predictor variable separately, but we cannot visualise the relationship between all three variables at the same time, so we will not be providing a scatterplot here.
+
 
 ```{r}
 

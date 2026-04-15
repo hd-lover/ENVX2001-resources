@@ -159,7 +159,7 @@ Hint 1: you can use the the `check_model()` function from the `performance` pack
 
 Hint 2: If you do choose to transform a variable you will need to refit the model and check the assumptions again. 
 
-*(vii)* Interpret the model parameters and fit statistics. Recall the key information we draw from the output; what do these statistics tell you about the relationship between bird abundance and patch area?
+*(vii)* Provide a plot of your model and interpret the model parameters and fit statistics. Recall the key information we draw from the output; what do these statistics tell you about the relationship between bird abundance and patch area?
 
 *(viii)* Write a concluding statement on your findings. 
 
@@ -348,7 +348,21 @@ check_model(loyn_lm2)
 
 The assumptions of the model with the log10 transformed Area variable are much better. The relationship looks more linear, the residuals are more normally distributed, and there is less evidence of heteroscedasticity. 
 
-##### *(vii)* Interpret the model parameters and fit statistics. Recall the key information we draw from the output; what do these statistics tell you about the relationship between bird abundance and patch area?
+##### *(vii)* Provide a plot of your model and interpret the model parameters and fit statistics. Interpret the model parameters and fit statistics. Recall the key information we draw from the output; what do these statistics tell you about the relationship between bird abundance and patch area?
+
+Plot model to provide a visual of the relationship between bird abundance and patch area, with the fitted regression line.
+
+```{r}
+#| fig-cap: "Figure 4. Scatterplot and model of Bird abundance vs log10 transformed area of forest patch (ha) with fitted regression line"
+
+ggplot(loyn) +
+  geom_point(aes(x = log10_AREA, y = ABUND)) + 
+  geom_smooth(aes(x = log10_AREA, y = ABUND), method = "lm", se = FALSE) +
+  labs(title = "Bird abundance vs log10 transformed area of forest patch",
+       x = "log10 transformed area of forest patch (ha)",
+       y = "Bird abundance (number of birds)")
+```
+
 
 Get the model summary of your final model (with the transformed variable) 
 ```{r}
@@ -367,11 +381,15 @@ For every 1 unit change in log10(Area), we expect a 9.778 increase in bird abund
 
 The P-value for the slope coefficient is < 0.001, meaning we reject our null hypothesis that the slope is equal to zero ($H0: \beta_1 \neq 0$) and conclude that log10(Area) is a significant predictor of bird abundance. 
 
+This is also supported by Figure 4, where the model is sloped, indicating there is a relationship between the two variables. 
+
 4. R-squared
 
 As we only have one predictor in the model, we can use the r^2^ value rather than the adjusted r^2^. 
 
 The r^2^ value is `r round(summary(loyn_lm2)$r.squared, 2)`,  which means that `r round(summary(loyn_lm2)$r.squared,     2)*100`% of the variation in bird abundance can be explained by log10(Area). This is not really a strong r^2^ value, so it suggests that there are other factors influencing bird        abundance that are not included in the model.
+
+We can see this in Figure 4 where the points do not follow the regression line too closely. If the r^2^ were higher, then we would expect the points to sit closer to the line. 
 
 
 ##### *(viii)* Write a concluding statement on your findings. 
@@ -573,12 +591,12 @@ kable(summary_creeks, caption = "Table 2. Summary statistics for runoff volume (
 
 1. Runoff volume (ML/year)
 
-The mean runoff volume recorded at the site near Bishop, California is 4.96 ML/year and the median is 4.93 ML/year (Table 2). These are quite similar, suggesting a normal distribution. This is further supported by the skewness coefficient of 0.29, which is close to 0, and the relatively symmetrical boxplot (Fig. 3), indicating a fairly symmetric distribution. The median does seem to sit closer to the first quartile than the third quartile, suggesting a slight skew, but everything else seems to indicate a fairly normal distribution.
+The mean runoff volume recorded at the site near Bishop, California is 4.96 ML/year and the median is 4.93 ML/year (Table 2). These are quite similar, suggesting a normal distribution. This is further supported by the skewness coefficient of 0.29, which is close to 0, and the relatively symmetrical boxplot (Fig. 5), indicating a fairly symmetric distribution. The median does seem to sit closer to the first quartile than the third quartile, suggesting a slight skew, but everything else seems to indicate a fairly normal distribution.
 
 Runoff volume ranges from a minimum of 4.71 ML/year to 5.26 ML/year and the standard deviation is 0.14, which indicates that the spread of values is quite small. 
 
 ```{r}
-#| fig-cap: "Figure 3. Boxplot of Runoff volume (ML/year)"
+#| fig-cap: "Figure 5. Boxplot of Runoff volume (ML/year)"
 
 ggplot(stream_data) + 
   geom_boxplot(aes(x = "", y = runoff_volume)) +
@@ -588,12 +606,12 @@ ggplot(stream_data) +
 
 2. Precipitation at Lake Sabrina (mm)
 
-The mean precipitation recorded at Lake Sabrina is 2.03 mm and the median is 2.05 mm (Table 2). These are quite similar, but given the narrow range of values the difference could be quite large. We can see this in the skewness coefficient of -0.44, which suggests the distribution is symmetrical, but there is a slight skew to the left. Upon visual inspection of the boxplot (Fig. 4) we can see there are a number of outliers which may be influencing this skew. 
+The mean precipitation recorded at Lake Sabrina is 2.03 mm and the median is 2.05 mm (Table 2). These are quite similar, but given the narrow range of values the difference could be quite large. We can see this in the skewness coefficient of -0.44, which suggests the distribution is symmetrical, but there is a slight skew to the left. Upon visual inspection of the boxplot (Fig. 6) we can see there are a number of outliers which may be influencing this skew. 
 
 Precipitation at Lake Sabrina ranged from a minimum of 1.6 mm to 2.5 mm and the standard deviation is 0.20, indicating that there is some variability in precipitation at Lake Sabrina across the years. 
 
 ```{r}
-#| fig-cap: "Figure 4. Boxplot of precipitation at Lake Sabrina (mm)"
+#| fig-cap: "Figure 6. Boxplot of precipitation at Lake Sabrina (mm)"
 
 ggplot(stream_data) + 
   geom_boxplot(aes(x = "", y = lake_sabrina)) +
@@ -604,13 +622,13 @@ ggplot(stream_data) +
 
 3. Precipitation at Pine Creek (mm)
 
-The mean precipitation at Pine Creek was 2.45 mm and the median was 2.38 mm. The mean and median are similar and the skewness coefficient of 0.19 suggests the distribution is symmetrical. Upon visual inspection of the boxplot (Fig. 5) we can see the median lies closer to the first quartile, but otherwise the boxplot looks fairly symmetrical.
+The mean precipitation at Pine Creek was 2.45 mm and the median was 2.38 mm. The mean and median are similar and the skewness coefficient of 0.19 suggests the distribution is symmetrical. Upon visual inspection of the boxplot (Fig. 7) we can see the median lies closer to the first quartile, but otherwise the boxplot looks fairly symmetrical.
 
 Precipitation at Pine Creek ranged from a minimum of 2.01 mm to a maximum of 3.04 mm and the standard deviation is 0.24, indicating that there is some variability in precipitation at Pine Creek across the years.
 
 
 ```{r}
-#| fig-cap: "Figure 5. Boxplot of precipitation at Pine Creek (mm)"
+#| fig-cap: "Figure 7. Boxplot of precipitation at Pine Creek (mm)"
 
 ggplot(stream_data) + 
   geom_boxplot(aes(x = "", y = pine_creek)) +
@@ -621,12 +639,12 @@ ggplot(stream_data) +
 
 4. Precipitation at Rock Creek (mm)
 
-The mean precipitation at Rock Creek was the same as the median (2.45 mm), and the skewness coefficient of -0.03 suggests the distribution is very symmetrical. Upon visual inspection of the boxplot (Fig. 6) we can see the median lies exactly in the middle of the box, and there are no outliers, suggesting a very symmetrical distribution.
+The mean precipitation at Rock Creek was the same as the median (2.45 mm), and the skewness coefficient of -0.03 suggests the distribution is very symmetrical. Upon visual inspection of the boxplot (Fig. 8) we can see the median lies exactly in the middle of the box, and there are no outliers, suggesting a very symmetrical distribution.
 
 Precipitation ranged from 2.04 mm to 2.80 mm and the standard deviation is 0.18, indicating that there was a small amount of variability in precipitation at Rock Creek across the years.
 
 ```{r}
-#| fig-cap: "Figure 6. Boxplot of precipitation at Rock Creek (mm)"
+#| fig-cap: "Figure 8. Boxplot of precipitation at Rock Creek (mm)"
 
 ggplot(stream_data) + 
   geom_boxplot(aes(x = "", y = rock_creek)) +
