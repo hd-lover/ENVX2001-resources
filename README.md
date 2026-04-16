@@ -2,7 +2,7 @@
 
 [![DOI](https://zenodo.org/badge/1162177395.svg)](https://doi.org/10.5281/zenodo.19605517)
 
-Welcome to the open handbook for [ENVX2001](https://www.sydney.edu.au/units/ENVX2001), a second-year unit in applied statistics for students in the life and environmental sciences at The University of Sydney. Every lecture, tutorial, and lab is free to read, free to reuse, and available at:
+Welcome to the open handbook for [ENVX2001](https://www.sydney.edu.au/units/ENVX2001), a second-year unit in applied statistics for students in the life and environmental sciences at The University of Sydney.
 
 **[Read the handbook →](https://envx-resources.github.io/ENVX2001-resources/)**
 
@@ -64,4 +64,4 @@ TBC - Floris, Anahi, Alex, Geoffrey, Cleopatra for various contributions through
 
 [![CC BY 4.0](https://i.creativecommons.org/l/by/4.0/88x31.png)](LICENSE)
 
-This handbook is licensed under a [Creative Commons Attribution 4.0 International License](LICENSE).
+This handbook is licensed under a [Creative Commons Attribution 4.0 International License](LICENSE) and is part of the SOLES Open Educational Resources (OER) initiative.
