@@ -1,5 +1,7 @@
 # ENVX2001 — Applied Statistical Methods · Open Handbook
 
+[![DOI](https://zenodo.org/badge/1162177395.svg)](https://doi.org/10.5281/zenodo.19605517)
+
 Welcome to the open handbook for [ENVX2001](https://www.sydney.edu.au/units/ENVX2001), a second-year unit in applied statistics for students in the life and environmental sciences at The University of Sydney. Every lecture, tutorial, and lab is free to read, free to reuse, and available at:
 
 **[Read the handbook →](https://envx-resources.github.io/ENVX2001-resources/)**
@@ -36,7 +38,7 @@ How to contribute:
 This handbook is licensed for reuse in teaching and research. If you adapt, redistribute, or build on it, please use the following citation as it helps us make the case for continued funding and support for this resource.
 
 
-> Harianto, J., Han, S. Y., Pozza, L., & Greenville, A. (2026). *ENVX2001: Applied Statistical Methods (open handbook)*. School of Life and Environmental Sciences, The University of Sydney. https://envx-resources.github.io/ENVX2001-resources/
+> Harianto, J., Han, S. Y., Pozza, L., & Greenville, A. (2026). *ENVX2001: Applied Statistical Methods (open handbook)*. School of Life and Environmental Sciences, The University of Sydney. https://doi.org/10.5281/zenodo.19605517
 
 **BibTeX**
 
@@ -47,6 +49,7 @@ This handbook is licensed for reuse in teaching and research. If you adapt, redi
   year         = {2026},
   institution  = {School of Life and Environmental Sciences, The University of Sydney},
   howpublished = {\url{https://envx-resources.github.io/ENVX2001-resources/}},
+  doi          = {10.5281/zenodo.19605517},
   note         = {Licensed under CC BY 4.0}
 }
 ```
