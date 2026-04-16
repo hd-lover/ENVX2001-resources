@@ -73,5 +73,7 @@ ENVX1002-handbook/
 
 **/*.quarto_ipynb
 *.md
+!README.md
+!CONTRIBUTING.md
 
 /.luarc.json
