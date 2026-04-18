@@ -97,6 +97,52 @@ Last week we concluded that Lake Sabrina is NOT a significant predictor of runof
 Today we will follow steps to produce the most suitable model.
 :::
 
+
+##
+::: {.question}
+### Exercise 1
+
+*(i)* Read in the data and investigate the relationship between each of your variables. Describe the relationships, supported by values (correlation coefficient) and plots.
+
+*(ii)* Fit a multiple linear regression model to the data using all variables. Set  `runoff_volume` as the response variable and `lake_sabrina`, `pine_creek` and `rock_creek` as the predictor variables. This will be known as the 'full model'. 
+
+*(iii)* Check the assumptions of your model. Do you need to transform any variables? Do you notice any other issues?
+
+*(iv)* Make a note of the model parameters and fit statistics for the full model. 
+
+*(v)* Remove the least significant predictor variable from the model and run the model again. This will be known as the 'reduced model'.
+
+*(vi)* Is the reduced model an improvement on the full model? How can you tell? What statistics would you look at to determine this?
+
+:::
+
+
+##
+::: {.question}
+### Exercise 2
+
+We can compare the models using the adjusted r^2^, but we will need to use hypothesis testing  to decide whether the reduced model is a significant improvement or not. To do this, we can use the F-test to compare the full and reduced models.
+
+*(i)* State the null and alternative hypotheses for the F-test between the full and reduced models.
+
+*(ii)* Perform the F-test using the `anova()` function to compare the full and reduced models. What is the p-value? Is the reduced model a significant improvement on the full model?
+
+*(iii)* What does this mean in terms of the predictor variable you removed?
+
+
+
+
+:::
+
+
+
+
+
+
+
+:::
+
+
 revise from last week (not everyone will have done the prac last week)
 
 fit the model with all predictors
@@ -252,6 +298,41 @@ str(fish_data)
 ```
 
 Explore the data on your own before making any models. (*Hint:* remember that we are only interested in the numeric variables for our linear models)
+
+##
+::: {.question}
+### Exercise 2
+
+*(i)* Write out the statistical model for a multiple linear regression and define it in terms of the data (precipitation at each site vs runoff volume at Bishop). 
+
+You can write it out in words and/or in mathematical notation.
+
+*(ii)* State the hypotheses you will be testing for the relationship between each site and runoff volume.
+
+*(iii)* Read in the data and conduct some exploratory data analysis upon your variables. Describe the spread and central tendency of each, supported by values (summary statistics) and plots. 
+
+*(iv)* Investigate the relationship between each of your variables. Describe the relationship, supported by values (correlation coefficient) and plots.
+
+Hint: we are not only looking at relationship between response and predictors here, but also the relationships between predictor variables (signs of collinearity).
+
+*(v)* Fit a multiple linear regression model to the data, with `runoff_volume` as the response variable and `lake_sabrina`, `pine_creek` and `rock_creek` as the predictor variables.
+
+*(vi)* Check the assumptions of your model. Do you need to transform any variables?
+
+Hint 1: you can use the the `check_model()` function from the `performance` package to check the assumptions of your model.
+
+Hint 2: You may notice some collinearity occurring between predictors. This week you only need to acknowledge it and then you can move onto interpretation. Next week we will look at how to deal with collinearity in models.  
+
+*(vii)* Interpret the model parameters and fit statistics. Recall the key information we draw from the output; what do these statistics tell you about the relationship between precipitation at each site and runoff volume at Bishop, California?
+
+*(viii)* Write a concluding statement on your findings. 
+
+Hint: Consider the initial aim and hypothesis of the study and write it in a way that is easily understood by your client.
+
+:::
+
+
+
 
 ::: question
 ### Question 1
