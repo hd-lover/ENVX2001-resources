@@ -1,7 +1,13 @@
 ---
-title: "ENVX2001 - Model selection"
-# revised-by: aca
-editor: visual
+title: Lab 08
+# revised-by: aca + Liana
+subtitle: ENVX2001 Applied Statistical Methods
+description: The University of Sydney
+toc: true
+toc-depth: 3
+resources:
+  - data/Loyn_SLR.xlsx
+  - data/california_streamflow.xlsx
 ---
 
 ```{r setup, include=FALSE}
@@ -9,25 +15,163 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 ```
 
-## Learning Outcomes
+# Welcome to week 8!
 
-In this lab, you will work towards achieving learning outcomes
+This week's lab will give you some practice improving models by selecting the most useful predictors.  
 
-## Lab Objectives
+This will prepare you for next week's content where we will use models for prediction. 
 
-In this lab, we will:
+## Learning outcomes
 
-- []
-- []
+This module links to the following unit learning outcomes: 
 
-:::{.callout-tip}
+* LO3. demonstrate proficiency in the use or the statistical programming language R to apply an ANOVA and fit regression models to experimental data
+
+* LO5. interpret the output and understand conceptually how its derived of a regression, ANOVA and multivariate analysis that have been calculated by R
+
+* LO6. write statistical and modelling results as part of a scientific report
+
+In this lab, we will learn how to:
+
+**1. Fit and interpret simple linear regression (SLR) models**
+**2. Fit and interpret multiple linear regression (MLR) models**
+**3. Assess model assumptions and apply transformations when needed**
+**4. Evaluate and compare model fit statistics**
+
+## Specific goals
+
+**By the end of this lab, you should be able to:**
+
+- [ ] Fit a simple linear regression model
+- [ ] Assess model assumptions and apply transformations when needed
+- [ ] Interpret model parameters and fit statistics
+- [ ] Fit a multiple linear regression model
+- [ ] Assess model assumptions, including collinearity between predictor variables
+- [ ] Determine the most suitable fit statistics for a multiple linear regression model
+- [ ] Write a conclusion on your findings
+
+**FIX EVERYTHING UP above**
+
+
+## Preparation
+
+Please work on these exercises by creating your own Quarto file. You are welcome to write your responses up in the style of a report.
+
+### Packages
+
+This lab uses `tidyverse`, `readxl`, `moments`, `psych`, and `performance`. Install any you are missing by running the following **in the console**:
+
+```{r}
+#| eval: false
+
+install.packages(c("tidyverse", "readxl", "moments", "psych", "performance"))
+```
+
+If a package is already installed, R will simply reinstall it — no harm done.
+
+# 1. Variable selection for California_streamflow (~20 mins)
+
+#![Little Lakes Valley in the Eastern Sierra Nevada Mountains outside of Bishop, California. Source: Adobe Stock.](images/AdobeStock_668401555.jpeg)
+
+**You are a hydrologist tasked with analysing legacy data to investigate the relationship between precipitation at three sites (Lake Sabrina, Pine Creek, and Rock Creek) and stream runoff volume at a site near Bishop, California. The dataset contains 43 years of annual precipitation measurements (in mm) taken at (originally) 6 sites in the Owens Valley in California. You will focus on only 3 variables.**
+
+**not writing a report this week??? just the results!!!**
+
+The data is in the **california_streamflow.xlsx** file.
+
+Variables are as follows: 
+
+* `lake_sabrina`: Precipitation recorded at Lake Sabrina (mm)
+* `pine_creek`: Precipitation recorded at Big Pine Creek (mm), 
+* `rock_creek`: Precipitation recorded at Rock Creek (mm)
+* `runoff_volume`: Stream runoff volume measured at a site near Bishop, California (ML/year). This will be the response variable.
+
+Note the variables have already been log-transformed to increase normality of the residuals in the regressions.
+
+Data source: 
+Hollett, K.J., Danskin, F.M., McCaffrey, W.F., and Walti, S.L., 1991. Geology and water resources of Owens Valley, California. U.S. Geological Survey Water-Supply Paper 2370-H.
+
+::: callout-tip
+Last week we concluded that Lake Sabrina is NOT a significant predictor of runoff volume at the site near Bishop, California. 
+
+Today we will follow steps to produce the most suitable model.
+:::
+
+revise from last week (not everyone will have done the prac last week)
+
+fit the model with all predictors
+
+check assumptions
+
+interpret
+
+Which predictor is the less significant?
+
+
+Run the model removing this predictor
+
+
+interpret -> impoved r2 adj?
+
+rm one more predictor
+
+run the model 
+
+interpret --> improved?
+
+
+expecting a no
+
+let's try automation! step function of the full model - which one does it select?
+
+
+What is the AIC of the full model?
+
+What is the AIC of the reduced model?
+
+
+
+We concluded that Lake Sabrina was not a significant predictor of runoff volume, so let's see what happens when we remove it from the model 
+
+Has the model improved? how can we tell? (what statistics to look at here)
+
+let's try backwards selection (step function, automated), does it tell the same story?
+
+Which model has the lowest AIC? 
+
+
+Some in
+Fit last week's model again: 
+
+
+
+
+
+X. State hypothesis for the F-test between full and reduced models
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+::: callout-tip
 Please work on this exercise by creating your own R Markdown file.
 :::
 
+## Exercise 2: Model quality - multiple vs adjusted *r*^2^
 
-## Exercise 1: Model quality - multiple vs adjusted *r*^2^ 
-
-Data:  *California_streamflow* spreadsheet  
+Data: *California_streamflow* spreadsheet
 
 Import the "California_streamflow" sheet into R.
 
@@ -52,26 +196,25 @@ set.seed(100) # to make sure everybody gets the same results
 # this generates the random number into the dataset
 stream_data$random_no <- rnorm(n = nrow(stream_data), mean = 3, sd = 2) 
 ```
-  
+
 We will see the impact of including a totally useless variable, such as this random variable, has on measures of model quality, *r*^2^ and adjusted *r*^2^ values.
 
 **Task: create two regression models:**
 
-1.  `runoff_volume ~ rock_creek + pine_creek` 
-2.  `runoff_volume ~ rock_creek + pine_creek + random_no`  
+1.  `runoff_volume ~ rock_creek + pine_creek`
+2.  `runoff_volume ~ rock_creek + pine_creek + random_no`
 
-::: {.question}
+::: question
 ### Question 2
+
 Compare each in terms of their multiple *r*^2^ and adjusted *r*^2^ values. Which performance measure (multiple *r*^2^ or adj *r*^2^) would you use to identify which predictors to use in your model?
 :::
 
-::: {.content-visible when-profile="solution"}
-::: {.ans}
+:::: {.content-visible when-profile="solution"}
+::: ans
 ### Answer
 
-There is only a small difference in the multiple *r*^2^ and adj *r*^2^ between the models, but one goes up and the other goes down.
-Since the random number is a totally useless value, this demonstrates that the adjusted *r*^2^ is the better performance measure to use.
-
+There is only a small difference in the multiple *r*^2^ and adj *r*^2^ between the models, but one goes up and the other goes down. Since the random number is a totally useless value, this demonstrates that the adjusted *r*^2^ is the better performance measure to use.
 
 ```{r randno_solution, eval = T, echo = T}
 mod_rand1 <- lm(runoff_volume ~ rock_creek + pine_creek,data = stream_data)
@@ -80,22 +223,22 @@ summary(mod_rand1)
 mod_rand2 <- lm(runoff_volume ~ rock_creek + pine_creek + random_no ,data = stream_data)
 summary(mod_rand2)
 ```
+:::
+::::
 
-:::
-:::
-## Exercise 2: Fish productivity
+## Exercise 2: Fish productivity.  '[DO FULL RUN OF MODEL PROCESS]
 
 Fish communities were surveyed in lakes across a eutrophication gradient to investigate the relatioship between productivity and fish diversity.
 
 The datasheet has thefollowing variables:
 
-- `lake_id` Unique identifier for each lake 
-- `chla` Log-transformed Chlorophyll a
-- `richness` Log-transformed species richness
-- `evenness` Log-transformed Pielou’s evenness 	
-- `abundance` Log-transformed abundance per unit effort (NPUE) 	
-- `biomass` Log-transformed biomass per unit effort (BPUE) 
-- `productivity` Log-transformed productivity proxy
+-   `lake_id` Unique identifier for each lake
+-   `chla` Log-transformed Chlorophyll a
+-   `richness` Log-transformed species richness
+-   `evenness` Log-transformed Pielou’s evenness\
+-   `abundance` Log-transformed abundance per unit effort (NPUE)\
+-   `biomass` Log-transformed biomass per unit effort (BPUE)
+-   `productivity` Log-transformed productivity proxy
 
 ```{r}
 #Load library if necessary
@@ -108,17 +251,16 @@ fish_data <- read_csv("data/fish_communities.csv")
 str(fish_data)
 ```
 
-Explore the data on your own before making any models. 
-(*Hint:* remember that we are only interested in the numeric variables for our linear models)
+Explore the data on your own before making any models. (*Hint:* remember that we are only interested in the numeric variables for our linear models)
 
-::: {.question}
+::: question
 ### Question 1
 
 Are there any obvious relationships between the response variable (productivity) and the other variables?
 :::
 
-::: {.content-visible when-profile="solution"}
-::: {.ans}
+:::: {.content-visible when-profile="solution"}
+::: ans
 ### Answer
 
 ```{r}
@@ -129,24 +271,24 @@ cor(fish_data[,-1])
 
 pairs(fish_data[,-1])
 ```
+
 Productivity has a strong relationship with biomass and abundance
 :::
-:::
+::::
 
-::: {.question}
+::: question
 ### Question 2
 
 Are there any other patterns or potential issues you can see from the exploratory plots?
 :::
 
-::: {.content-visible when-profile="solution"}
-::: {.ans}
+:::: {.content-visible when-profile="solution"}
+::: ans
 ### Answer
 
 Biomass is also highly correlated with abundance, so collinearity might be an issue.
 :::
-:::
-
+::::
 
 ## Take home exercise:
 
