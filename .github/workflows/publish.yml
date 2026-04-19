@@ -32,9 +32,16 @@ jobs:
             install.packages(c("renv", "knitr", "rmarkdown"))
             pkgs <- unique(renv::dependencies(quiet = TRUE)$Package)
             pkgs <- setdiff(pkgs, c("R", rownames(installed.packages(priority = "base"))))
-            writeLines(paste0("any::", sort(pkgs)), "r-packages.txt")
-            cat("Detected", length(pkgs), "packages:\n")
-            cat(paste(" -", sort(pkgs)), sep = "\n")'
+            github_map <- c(
+              pairwiseAdonis = "pmartinezarbizu/pairwiseAdonis/pairwiseAdonis"
+            )
+            refs <- vapply(sort(pkgs), function(p) {
+              if (p %in% names(github_map)) paste0("github::", github_map[[p]])
+              else paste0("any::", p)
+            }, character(1))
+            writeLines(refs, "r-packages.txt")
+            cat("Detected", length(refs), "packages:\n")
+            cat(paste(" -", refs), sep = "\n")'
           {
             echo "packages<<EOF"
             cat r-packages.txt
