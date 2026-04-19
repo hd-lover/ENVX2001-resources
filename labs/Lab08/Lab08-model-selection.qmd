@@ -33,25 +33,21 @@ This module links to the following unit learning outcomes:
 
 In this lab, we will learn how to:
 
-**1. Fit and interpret simple linear regression (SLR) models**
-**2. Fit and interpret multiple linear regression (MLR) models**
-**3. Assess model assumptions and apply transformations when needed**
-**4. Evaluate and compare model fit statistics**
+**1. Fit multiple linear regression models and interpret associated indicators of collinearity**
+**2. Draw upon various methods to determine whether a full or reduced model is more suitable**
+
 
 ## Specific goals
 
 **By the end of this lab, you should be able to:**
 
-- [ ] Fit a simple linear regression model
-- [ ] Assess model assumptions and apply transformations when needed
-- [ ] Interpret model parameters and fit statistics
 - [ ] Fit a multiple linear regression model
-- [ ] Assess model assumptions, including collinearity between predictor variables
-- [ ] Determine the most suitable fit statistics for a multiple linear regression model
-- [ ] Write a conclusion on your findings
-
-**FIX EVERYTHING UP above**
-
+- [ ] Interpret VIF plots and output to determine whether collinearity is a concern in your model
+- [ ] Remove non-significant predictors to produce a more parsimonious model
+- [ ] Compare a full and reduced model using an F-test
+- [ ] Run and interpret stepwise regression and associated output
+- [ ] Compare a full and reduced model using the AIC
+- [ ] Use the results of model comparisons to select the best model for your data
 
 ## Preparation
 
@@ -59,12 +55,12 @@ Please work on these exercises by creating your own Quarto file. You are welcome
 
 ### Packages
 
-This lab uses `tidyverse`, `readxl`, `moments`, `psych`, and `performance`. Install any you are missing by running the following **in the console**:
+This lab uses `tidyverse`, `readxl`, `moments`, `psych`, `performance`, `car`, and `gridExtra`. Install any you are missing by running the following **in the console**:
 
 ```{r}
 #| eval: false
 
-install.packages(c("car", "tidyverse", "readxl", "moments", "psych", "performance"))
+install.packages(c("car", "tidyverse", "readxl", "moments", "psych", "performance", "car", "gridExtra"))
 ```
 
 If a package is already installed, R will simply reinstall it — no harm done.
@@ -312,13 +308,13 @@ Automated model selection methods are helpful when you have a large number of pr
 Before moving on to the next section, take a short break and stretch your legs.
 :::
 
-# 2. Variable selection for plant aridity (~20 mins)
+# 2. Variable selection for plant aridity (~ 45 mins)
 
 ![Image of invasive capeweed. Source: Adobe Stock.](images/AdobeStock_659883118.jpeg)
 
 This dataset examines the adaptation of invasive capeweed (*Arctotheca calendula*) populations to aridity gradients across southern Australia. A common garden experiment was conducted from 2018-2019 with populations sourced from varying aridity levels, subjecting them to wet and dry treatments to measure traits related to drought escape, avoidance, and tolerance. 
 
-The dataset has been reduced to contain only the variables you will need to fit in the model. Furthermore, only the samples that received the wet treatment will be used for this analysis (n = 94 observations). 
+The dataset has been reduced to contain only the variables you will need to fit in the model. Furthermore, only the samples that received the wet treatment will be used for this analysis (n = 89 observations). 
 
 The dataset is in the *plant_aridity.csv* file. 
 
@@ -361,18 +357,46 @@ Paper: Carvalho C, Davis R, Connallon T, Gleadow RM, Moore JL, Uesugi A. Multiva
 ```
 
 
-
-
-
-
-
-
-
-
-
 ##
 ::: {.question}
 ### Exercise 1 - initial analyses
+
+*(i)* Write out the statistical model for a multiple linear regression and define it in terms of the data (i.e. relative fitness vs all other variables). 
+
+*(ii)* State the hypotheses you will be testing for the relationship between each variable and relative fitness.
+
+*(iii)* Read in the data and conduct some exploratory data analysis upon your variables. Describe the spread and central tendency of each, supported by values (summary statistics) and plots. 
+
+*(iv)* Investigate the relationship between each of your variables. Describe the relationship, supported by values (correlation coefficient) and plots.
+
+Hint: we are not only looking at relationship between response and predictors here, but also the relationships between predictor variables (signs of collinearity).
+
+*(v)* Fit a multiple linear regression model to the data, with `rel_fitness` as the response variable and `growth_rate`, `days_to_flower`, `specific_leaf_area`, `root_shoot_ratio`, and `chlorogenic_acid` as the predictor variables. Label this model as `full_plant_model`. 
+
+*(vi)* Check the assumptions of your model. Do you need to transform any variables?
+
+Hint 1: you can use the the `check_model()` function from the `performance` package to check the assumptions of your model.
+
+Hint 2: If you are unsure about the collinearity plot, you can use the `vif()` function from the `car` package to get the VIF values for each predictor variable.
+
+Hint 3: If you find that the assumptions are not met you can use log-transformations or other transformations as appropriate based on the distribution of your variables. If you are log-transforming a variable which contains negative or zero values you will need to add a constant, i.e. `log(x+1)`
+
+*(vii)* Interpret the model parameters and fit statistics. Are there any significant predictors of relative fitness? does the model explain much variation in relative fitness?
+
+*(viii)* Remove any highly non-significant predictors (P > 0.1) from the model and run the model again. This will be known as the 'reduced model'.
+
+*(ix)* Run a partial f-test to determine whether the reduced model an improvement on the full model. Which model is better?
+
+*(x)* Run stepwise regression using the `step()` function fitted to the full model. Which model does it select as the best model?
+
+*(viii)* Write a concluding statement on your findings.
+
+:::
+
+
+:::: {.content-visible when-profile="solution"}
+::: {.ans}
+#### Solution
 
 *(i)* Write out the statistical model for a multiple linear regression and define it in terms of the data (i.e. relative fitness vs all other variables). 
 
@@ -382,7 +406,7 @@ $$
 \textrm{relative_fitness} = \beta_0 + \beta_1\cdot \textrm{growth_rate} + \beta_2\cdot \textrm{days_to_flower} + \beta_3\cdot \textrm{specific_leaf_area} + \beta_4\cdot \textrm{root_shoot_ratio} +  \beta_5\cdot \textrm{chlorogenic_acid} + \epsilon_{i}
 $$
 
-*(ii)* State the hypotheses you will be testing for the relationship between each site and runoff volume.
+*(ii)* State the hypotheses you will be testing for the relationship between each variable and relative fitness.
 
 In multiple linear regression we are testing multiple hypotheses (one per predictor + one for the overall model).
 
@@ -441,102 +465,195 @@ apply(plant_aridity, 2, sd) # apply sd over columns
 moments::skewness(plant_aridity, na.rm = TRUE)
 ```
 
-Growth rate: mean growth rate is 0.6526, which is similar to the median (0.6536), suggesting a relatively symmetric distribution. The standard deviation is 0.887. The skewness is 0.846, less than 1 but greater than 0.5, indicating a degree of skewness.
+Growth rate: mean growth rate is 0.533, which is similar to the median (0.570), suggesting a relatively symmetric distribution. The standard deviation is 0.713. The skewness is -0.389, which is close to 0, indicating a very symmetric distribution.
 
-Days to flower: mean is 0.089, which is very close to the median (0.116), suggesting a symmetric distribution. The standard deviation is 1.05. The skewness is 0.343, which is close to zero, indicating a very symmetric distribution.
+Days to flower: mean is 0.067, which is close to the median (-0.202). The standard deviation is 1.051. The skewness is 0.377, which is close to zero, indicating a very symmetric distribution.
 
-root_shoot_ratio: mean is -0.573, which is close to the median (-0.422), suggesting a symmetric distribution. The standard deviation is 0.501. The skewness is 1.42, which is greater than 1, indicating a positively skewed distribution.
+root_shoot_ratio: mean is -0.416, which is not too close to the median (-0.571), suggesting a possibly skewed distribution. The standard deviation is 0.510. The skewness is 1.395, which is greater than 1, indicating a positively skewed distribution.
 
-specific_leaf_area: mean is 0.070, which is close to the median (0.067), suggesting a symmetric distribution. The standard deviation is 0.633. The skewness is -0.808, which is between -0.5 and -0.1, indicating a degree of skewness.
+specific_leaf_area: mean is  0.084, which is close to the median (0.069). The standard deviation is 0.644. The skewness is -0.865, which is between -0.5 and -0.1, indicating a degree of skewness.
 
-chlorogenic_acid: mean is -0.024, which is close to the median (-0.008), suggesting a symmetric distribution. The standard deviation is 0.996. The skewness is -0.109, which is close to zero, indicating a very symmetric distribution.
+chlorogenic_acid: mean is 0.000006454, which is close to the median (0.00283). The standard deviation is 1.012. The skewness is -0.160, which is close to zero, indicating a very symmetric distribution.
 
-Specific leaf area: mean is 1.867, which is close to the median (1.821), suggesting a symmetric distribution. The standard deviation is 0.646. The skewness is 0.598, which is indicating a low amount of skewness.
+rel_fitness: mean is 1.867, which is close to the median (1.813), suggesting a symmetric distribution. The standard deviation is 0.070. The skewness is 0.717, which is indicating a low amount of skewness.
+
+Boxplots indicate the at there are outliers present within each variable, but we can address the leverage plot when we go to test our model assumptions. 
+
+```{r}
+
+library(gridExtra)
+
+grid.arrange(
+    ggplot(plant_aridity, aes(y = rel_fitness)) + geom_boxplot(),
+    ggplot(plant_aridity, aes(y = growth_rate)) + geom_boxplot(),
+    ggplot(plant_aridity, aes(y = days_to_flower)) + geom_boxplot(),
+    ggplot(plant_aridity, aes(y = root_shoot_ratio)) + geom_boxplot(),
+    ggplot(plant_aridity, aes(y = specific_leaf_area)) + geom_boxplot(),
+    ggplot(plant_aridity, aes(y = chlorogenic_acid)) + geom_boxplot(),
+    nrow = 2
+)
+
+```
 
 
 *(iv)* Investigate the relationship between each of your variables. Describe the relationship, supported by values (correlation coefficient) and plots.
 
 Hint: we are not only looking at relationship between response and predictors here, but also the relationships between predictor variables (signs of collinearity).
 
+```{r}
+
+cor(plant_aridity)
+pairs(plant_aridity)
+
+pairs.panels(plant_aridity)
+
+```
+
+Low correlation coefficients (r < 0.2) between all variables, but the correlations are stronger between each variable and rel_fitness. 
 
 
-
-*(v)* Fit a multiple linear regression model to the data, with `runoff_volume` as the response variable and `lake_sabrina`, `pine_creek` and `rock_creek` as the predictor variables.
+*(v)* Fit a multiple linear regression model to the data, with `rel_fitness` as the response variable and `growth_rate`, `days_to_flower`, `specific_leaf_area`, `root_shoot_ratio`, and `chlorogenic_acid` as the predictor variables. Label this model as `full_plant_model`. 
 
 ```{r}
 
-
-full_plant_model <- lm(rel_fitness ~ growth_rate + days_to_flower + 
-    specific_leaf_area + root_shoot_ratio + chlorogenic_acid, 
+full_plant_model <- lm(log(rel_fitness) ~ growth_rate + days_to_flower + 
+    log(specific_leaf_area+3) + log(root_shoot_ratio+1) + chlorogenic_acid, 
     data = plant_aridity)
 
-summary(full_plant_model)
 
-library(performance)
+
+
+```
+
+
+*(vi)* Check the assumptions of your model. Do you need to transform any variables?
+
+Hint 1: you can use the the `check_model()` function from the `performance` package to check the assumptions of your model.
+
+Hint 2: If you are unsure about the collinearity plot, you can use the vif() function from the car package to get the VIF values for each predictor variable.
+
+Hint 3: If you find that the assumptions are not met you can use log-transformations or other transformations as appropriate based on the distribution of your variables. If you are log-transforming a variable which contains negative or zero values you will need to add a constant, i.e. `log(x+1)`
+
+```{r}
+
 check_model(full_plant_model)
+
 car::vif(full_plant_model)
 ```
 
+Linearity: The residuals vs fitted plot shows a random scatter of points, suggesting that the linearity assumption is met.
 
-*(vi)* Check the assumptions of your model. Do you need to transform any variables?
+Independence: The residuals appear to be randomly distributed (if correlated, they may follow a trend), which suggests that the independence assumption is met. We also know from the experimental design the observations are independant. 
 
-Hint 1: you can use the the `check_model()` function from the `performance` package to check the assumptions of your model.
+Normality: The Q-Q plot shows that the residuals are not normally distributed, as the points deviate from the straight line, especially in the tails producing a u-shape. This suggests that the normality assumption may be violated.
 
-Hint 2: You may notice some collinearity occurring between predictors. This week you only need to acknowledge it and then you can move onto interpretation. Next week we will look at how to deal with collinearity in models.  
+Equal variance: The scale-location plot shows a random scatter of points but the line is not too straight suggesting there may be some weird things happening. 
 
-*(vii)* Interpret the model parameters and fit statistics. Recall the key information we draw from the output; what do these statistics tell you about the relationship between precipitation at each site and runoff volume at Bishop, California?
+Influential observations: The residuals vs leverage plot shows that there are no influential observations, as all points are within the Cook's distance lines.
 
-*(viii)* Write a concluding statement on your findings. 
+Collinearity: No concern about collinearity as all VIFs are below 5. 
 
-
+Decision: We saw there were some issues with normality and equal variance, so we could try transforming the response variable to see if this improves the model assumptions. 
 
 
 ```{r}
-#Load library if necessary
-library(tidyverse)
+full_plant_log_model <- lm(log(rel_fitness) ~ growth_rate + days_to_flower + 
+    specific_leaf_area + log(root_shoot_ratio+ 1) + chlorogenic_acid, 
+    data = plant_aridity)
 
-#Read in data
-fish_data <- read_csv("data/fish_communities.csv")
-
-#Have a look at the structure of the data
-str(fish_data)
+check_model(full_plant_log_model)
 ```
 
-Explore the data on your own before making any models. (*Hint:* remember that we are only interested in the numeric variables for our linear models)
+After further testing, we found that log-transforming the response variable improved the normality and equal variance of the residuals, but it was improved further by transforming root_shoot_ratio, which was highly skewed, so thiswasalso transformed.
 
-##
-::: {.question}
-### Exercise 2
+Herein we will use the transformed model. 
 
-*(i)* Write out the statistical model for a multiple linear regression and define it in terms of the data (precipitation at each site vs runoff volume at Bishop). 
+*(vii)* Interpret the model parameters and fit statistics. Are there any significant predictors of relative fitness? does the model explain much variation in relative fitness?
 
-You can write it out in words and/or in mathematical notation.
+```{r}
 
-*(ii)* State the hypotheses you will be testing for the relationship between each site and runoff volume.
+summary(full_plant_log_model)
 
-*(iii)* Read in the data and conduct some exploratory data analysis upon your variables. Describe the spread and central tendency of each, supported by values (summary statistics) and plots. 
+```
 
-*(iv)* Investigate the relationship between each of your variables. Describe the relationship, supported by values (correlation coefficient) and plots.
 
-Hint: we are not only looking at relationship between response and predictors here, but also the relationships between predictor variables (signs of collinearity).
+The overall model is not significant (p > 0.05), but we do see that chlorogenic_acid is significant and growth_rate is borderline significant.  The adjusted R^2^ value is 0.055, which means that approximately 6% of the variation in relative fitness can be explained by the model. This is a very low value, suggesting that the model does not explain much of the variation in relative fitness.
 
-*(v)* Fit a multiple linear regression model to the data, with `runoff_volume` as the response variable and `lake_sabrina`, `pine_creek` and `rock_creek` as the predictor variables.
+Although the model is not significant, let's see if there is a way to make it more parsimonious. 
 
-*(vi)* Check the assumptions of your model. Do you need to transform any variables?
+*(viii)* Remove any highly non-significant predictors (P > 0.1) from the model and run the model again. This will be known as the 'reduced model'.
 
-Hint 1: you can use the the `check_model()` function from the `performance` package to check the assumptions of your model.
+```{r}
 
-Hint 2: You may notice some collinearity occurring between predictors. This week you only need to acknowledge it and then you can move onto interpretation. Next week we will look at how to deal with collinearity in models.  
+reduced_plant_log_model <- lm(log(rel_fitness) ~ growth_rate + chlorogenic_acid, 
+    data = plant_aridity)
 
-*(vii)* Interpret the model parameters and fit statistics. Recall the key information we draw from the output; what do these statistics tell you about the relationship between precipitation at each site and runoff volume at Bishop, California?
+AIC(full_plant_log_model, reduced_plant_log_model)
 
-*(viii)* Write a concluding statement on your findings. 
+anova(full_plant_log_model, reduced_plant_log_model)
 
-Hint: Consider the initial aim and hypothesis of the study and write it in a way that is easily understood by your client.
+summary(reduced_plant_log_model)
+
+```
+
+*(ix)* Run a partial f-test to determine whether the reduced model an improvement on the full model. Which model is better?
+
+The p-value from the F-test is 0.6298, which is greater than 0.05, so we fail to reject the null hypothesis. This means that the reduced model is not a significant improvement on the full model, and we would opt for the reduced model as it is more parsimonious.
+
+*(x)* Run stepwise regression using the `step()` function fitted to the full model. Which model does it select as the best model?
+
+```{r}
+
+step_model <- step(full_plant_log_model, direction = "backward")
+
+AIC(full_plant_log_model, reduced_plant_log_model)
+```
+
+The step() function has told us that the full model is better than the reduced model, which is inconsistent with our previous analysis using the F-test. This is because the step() function uses the AIC to compare models, which is a different criterion. In this case, the AIC may be favoring the full model again due to its better fit, even though it includes a non-significant predictor.
+
+When we check this with the AIC() function to compare between full and reduced models, we can see that the reduced model is a better choice. 
+
+This goes to show that we can use automated methods, but we also need to understand the underlying statistics and not rely solely on these methods for model selection. It is good to do some good ol' hypothesis testing where realistic. 
+
+*(viii)* Write a concluding statement on your findings.
+
+Based on our analyses, we found that the full model with all predictors was not significant, and only chlorogenic_acid was a significant predictor of relative fitness. 
+
+Removing the non-significant predictors did not result in a significant improvement in the model, so given we fail to reject the null hypothesis, it is better to select the reduced model.  
+
+As our model is not significant, it is worth investigating whether another model would be better fit. In the original article they actually incorporated a treatment interaction into their model, so if you want to see how this was done, feel free to check out the article (source listed at the beginning of the exercise). 
+
 
 :::
+::::
 
 
 
 
 
+
+
+
+
+
+
+# Conclusion
+
+## Closing thoughts
+
+You have done a great job working to improve and produce more parsimonious models.
+
+As you may have noticed in this lab, models are rarely perfect, which is okay; it is our job to find the best way to explain variation in our response variables by exploring alternatives.
+
+Keep up the great work and see you in the week 9 lecture for the last week of modelling!
+
+If you have any questions, please approach your tutors or you are welcome to post to the Ed Discussion board.
+
+### Attribution
+
+This lab was developed using resources that are available under a
+[Creative Commons Attribution 4.0 International license], made available
+on the [SOLES Open Educational Resources repository].
+
+  [Creative Commons Attribution 4.0 International license]: http://creativecommons.org/licenses/by/4.0/
+  [SOLES Open Educational Resources repository]: https://github.com/usyd-soles-edu/
