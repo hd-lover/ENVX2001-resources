@@ -94,7 +94,7 @@ Hollett, K.J., Danskin, F.M., McCaffrey, W.F., and Walti, S.L., 1991. Geology an
 ::: callout-tip
 Last week we concluded that Lake Sabrina is NOT a significant predictor of runoff volume at the site near Bishop, California. 
 
-Today we will follow steps to produce the most suitable model.
+Today we will follow steps to see if we can produce a more parsimonious model.
 :::
 
 
@@ -163,26 +163,49 @@ Our threshold is 5, so we are not too concerned about collinearity here, but it 
 summary(full_model)
 ```
 
-As we saw last week, 
+As we saw last week, Lake Sabrina is not a significant predictor of runoff volume, but Pine Creek and Rock Creek are. The model has an adjusted R^2^ of 0.87, which means that 87% of the variation in runoff volume can be explained by the three predictor variables. 
 
-*(v)* Remove the least significant predictor variable from the model and run the model again. This will be known as the 'reduced model'.
+*(v)* Remove `lake_sabrina` from the model and run the model again. This will be known as the 'reduced model'.
+
+```{r}
+
+reduced_model <- lm(runoff_volume ~ pine_creek + rock_creek, data = stream_data)
+
+```
+
 
 *(vi)* Is the reduced model an improvement on the full model? How can you tell? What statistics would you look at to determine this?
 
+```{r}
+summary(full_model)
+summary(reduced_model)
+```
+
+Removing the `lake_sabrina` predictor from the model has slightly decreased the adjusted R^2^ value, but it has also removed a non-significant predictor from the model. This is an improvement in terms of parsimony, but we will need to use hypothesis testing to determine whether the reduced model is a *significant* improvement on the full model. We can do this using an F-test, which we will explore in the next exercise.
+
 :::
 
 
 ##
 ::: {.question}
-### Exercise 2
+### Exercise 2 - model comparison
 
-We can compare the models using the adjusted r^2^, but we will need to use hypothesis testing  to decide whether the reduced model is a significant improvement or not. Let's explore this by using the F-test to compare the full and reduced models.
+We can compare the models using the adjusted r^2^, but we will need to use hypothesis testing to decide whether the reduced model is a significant improvement or not. Let's explore this by using the F-test to compare the full and reduced models.
 
 *(i)* State the null and alternative hypotheses for the F-test between the full and reduced models.
 
+H0: No significant difference between full and reduced models
+H1: There is a significant difference between full and reduced models
+
 *(ii)* Perform the F-test using the `anova()` function to compare the full and reduced models. What is the p-value? Is the reduced model a significant improvement on the full model?
 
-*(iii)* What does this mean in terms of the predictor variable you removed?
+```{r}
+
+anova(full_model, reduced_model)
+
+```
+
+The P-value is 0.1419, which is larger than 0.05, so we fail to reject the null hypothesis. This means that the reduced model is not a significant improvement on the full model, and we would opt for the reduced model as it is more parsimonious.
 
 :::
 
@@ -190,15 +213,51 @@ We can compare the models using the adjusted r^2^, but we will need to use hypot
 
 ##
 ::: {.question}
-### Exercise 3
+### Exercise 3 - stepwise regression
 
 Instead of removing one predictor at a time, there is a much quicker way involving the `step()` function in R. This function performs stepwise regression, which is an automated process of adding or removing predictors based on their significance in the model and the Akaike Information Criterion (AIC).
 
-*(i)* State the null and alternative hypotheses for the F-test between the full and reduced models.
+*(i)* When using the AIC, how do we select the better model? 
 
-*(ii)* Perform the F-test using the `anova()` function to compare the full and reduced models. What is the p-value? Is the reduced model a significant improvement on the full model?
+Select the model with the lowest AIC value. 
 
-*(iii)* What does this mean in terms of the predictor variable you removed?
+The AIC is a measure of the relative quality of a statistical model for a given set of data. It takes into account the goodness of fit and the complexity of the model (number of predictors). A lower AIC value indicates a better model.
+
+*(ii)* Have a go at running the `step()` function on the full model. Which model does it select as the best model?
+
+```{r}
+
+step_model <- step(full_model, direction = "backward")
+
+```
+
+The `step()` function selects the full model as the best model, which is inconsistent with our previous analysis using the F-test. 
+
+This is because the `step()` function uses the AIC to compare models, which is a different criterion than the F-test. The AIC takes into account both the goodness of fit and the complexity of the model, while the F-test only compares the goodness of fit between two models. 
+
+In this case, the AIC may be favoring the full model due to its better fit, even though it includes a non-significant predictor.
+
+*(iii)* One final check: what are the AIC values for the full and reduced models? Which model has the lowest AIC value?
+
+HINT: you can use the `AIC()` function to get the AIC values for each model. Insert the model name between the brackets. 
+
+```{r}
+AIC(full_model)
+
+AIC(reduced_model)
+```
+
+*(iv)* Based on our tests, which model do you think is the best model to use for predicting runoff volume at Bishop, California? Why have you chosen this model?
+
+The reduced model is better. It is more parsimonious and does not include a non-significant predictor. 
+
+The F-test also indicates that the reduced model is not a significant improvement on the full model, so we would opt for the reduced model as it is simpler and just as good at explaining the variation in runoff volume.
+
+We did see that the step function selected the full model as the best model based on AIC, but we would be cautious about this result given that it includes a non-significant predictor and the F-test did not support it as a significant improvement. 
+
+It was also helpful to calculate the AIC for our full and reduced models to confirm that the reduced model had a lower AIC value, which supports our choice of the reduced model.
+
+Automated model selection methods are helpful when you have a large number of predictors, but our results demonstrate why we should not rely solely on these methods. We should also consider the significance of predictors and the overall fit of the model when making decisions about which model to use.
 
 :::
 
