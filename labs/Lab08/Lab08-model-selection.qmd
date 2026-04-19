@@ -70,9 +70,69 @@ install.packages(c("car", "tidyverse", "readxl", "moments", "psych", "performanc
 If a package is already installed, R will simply reinstall it — no harm done.
 
 
-**COMPARE R and r-adj here!!!**
+# 1. Model quality - multiple vs adjusted *r*^2^ (10 mins)
 
-# 1. Variable selection for California_streamflow (~20 mins)
+You may have noticed how much we are focusing on the adjusted *r*^2^ value when interpreting our multiple linear regression models. This is because the multiple *r*^2^ value can be misleading when comparing models with different numbers of predictors.
+
+In this exercise we will explore the difference between multiple *r*^2^ and adjusted *r*^2^ values and see how including a useless predictor can affect these values.
+
+For this exercise we will use the same dataset as last week, which contains 43 years of annual precipitation measurements (in mm) taken at (originally) 6 sites in the Owens Valley in California. The response variable is the stream runoff volume measured at a site near Bishop, California (ML/year).
+
+Data: *California_streamflow* spreadsheet
+
+Import the "California_streamflow" sheet into R.
+
+```{r}
+# Load library if needed
+library(readxl)
+# Load data
+stream_data <- read_xlsx("data/california_streamflow.xlsx", "streamflow")
+```
+
+In this exercise we will use the same data as last week. To jog your memory, the dataset contains 43 years of annual precipitation measurements (in mm) taken at (originally) 6 sites in the Owens Valley in California. Through model selection via partial F-test we have the final model as below:
+
+```{r}
+fit <- lm(runoff_volume ~ rock_creek + pine_creek, data = stream_data)
+```
+
+We will now add a totally useless variable to the dataset. This variable is a random number generated from a normal distribution with mean 3 and standard deviation 2. We use the `set.seed()` function to make sure that everybody gets the same random values.
+
+```{r}
+set.seed(100) # to make sure everybody gets the same results
+
+# this generates the random number into the dataset
+stream_data$random_no <- rnorm(n = nrow(stream_data), mean = 3, sd = 2) 
+```
+
+We will see the impact of including a totally useless variable, such as this random variable, has on measures of model quality, *r*^2^ and adjusted *r*^2^ values.
+
+**Task: create two regression models:**
+
+1.  `runoff_volume ~ rock_creek + pine_creek`
+2.  `runoff_volume ~ rock_creek + pine_creek + random_no`
+
+::: question
+### Question 2
+
+Compare each in terms of their multiple *r*^2^ and adjusted *r*^2^ values. Which performance measure (multiple *r*^2^ or adj *r*^2^) would you use to identify which predictors to use in your model?
+:::
+
+:::: {.content-visible when-profile="solution"}
+::: ans
+### Answer
+
+There is only a small difference in the multiple *r*^2^ and adj *r*^2^ between the models, but one goes up and the other goes down. Since the random number is a totally useless value, this demonstrates that the adjusted *r*^2^ is the better performance measure to use.
+
+```{r randno_solution, eval = T, echo = T}
+mod_rand1 <- lm(runoff_volume ~ rock_creek + pine_creek,data = stream_data)
+summary(mod_rand1)
+
+mod_rand2 <- lm(runoff_volume ~ rock_creek + pine_creek + random_no ,data = stream_data)
+summary(mod_rand2)
+```
+:::
+
+# 2. Variable selection for California_streamflow (~20 mins)
 
 #![Little Lakes Valley in the Eastern Sierra Nevada Mountains outside of Bishop, California. Source: Adobe Stock.](images/AdobeStock_668401555.jpeg)
 
@@ -269,139 +329,11 @@ Automated model selection methods are helpful when you have a large number of pr
 
 
 
-
-
-
-:::
-
-
-revise from last week (not everyone will have done the prac last week)
-
-fit the model with all predictors
-
-check assumptions
-
-interpret
-
-Which predictor is the less significant?
-
-
-Run the model removing this predictor
-
-
-interpret -> impoved r2 adj?
-
-rm one more predictor
-
-run the model 
-
-interpret --> improved?
-
-
-expecting a no
-
-let's try automation! step function of the full model - which one does it select?
-
-
-What is the AIC of the full model?
-
-What is the AIC of the reduced model?
-
-
-
-We concluded that Lake Sabrina was not a significant predictor of runoff volume, so let's see what happens when we remove it from the model 
-
-Has the model improved? how can we tell? (what statistics to look at here)
-
-let's try backwards selection (step function, automated), does it tell the same story?
-
-Which model has the lowest AIC? 
-
-
-Some in
-Fit last week's model again: 
-
-
-
-
-
-X. State hypothesis for the F-test between full and reduced models
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ::: callout-tip
 Please work on this exercise by creating your own R Markdown file.
 :::
 
-## Exercise 2: Model quality - multiple vs adjusted *r*^2^
 
-Data: *California_streamflow* spreadsheet
-
-Import the "California_streamflow" sheet into R.
-
-```{r}
-# Load library if needed
-library(readxl)
-# Load data
-stream_data <- read_xlsx("data/california_streamflow.xlsx", "streamflow")
-```
-
-in this exercise we will use the same data as last week. To jog your memory, the dataset contains 43 years of annual precipitation measurements (in mm) taken at (originally) 6 sites in the Owens Valley in California. Through model selection via partial F-test we have the final model as below:
-
-```{r}
-fit <- lm(runoff_volume ~ rock_creek + pine_creek, data = stream_data)
-```
-
-We will now add a totally useless variable to the dataset. This variable is a random number generated from a normal distribution with mean 3 and standard deviation 2. We use the `set.seed()` function to make sure that everybody gets the same random values.
-
-```{r}
-set.seed(100) # to make sure everybody gets the same results
-
-# this generates the random number into the dataset
-stream_data$random_no <- rnorm(n = nrow(stream_data), mean = 3, sd = 2) 
-```
-
-We will see the impact of including a totally useless variable, such as this random variable, has on measures of model quality, *r*^2^ and adjusted *r*^2^ values.
-
-**Task: create two regression models:**
-
-1.  `runoff_volume ~ rock_creek + pine_creek`
-2.  `runoff_volume ~ rock_creek + pine_creek + random_no`
-
-::: question
-### Question 2
-
-Compare each in terms of their multiple *r*^2^ and adjusted *r*^2^ values. Which performance measure (multiple *r*^2^ or adj *r*^2^) would you use to identify which predictors to use in your model?
-:::
-
-:::: {.content-visible when-profile="solution"}
-::: ans
-### Answer
-
-There is only a small difference in the multiple *r*^2^ and adj *r*^2^ between the models, but one goes up and the other goes down. Since the random number is a totally useless value, this demonstrates that the adjusted *r*^2^ is the better performance measure to use.
-
-```{r randno_solution, eval = T, echo = T}
-mod_rand1 <- lm(runoff_volume ~ rock_creek + pine_creek,data = stream_data)
-summary(mod_rand1)
-
-mod_rand2 <- lm(runoff_volume ~ rock_creek + pine_creek + random_no ,data = stream_data)
-summary(mod_rand2)
-```
-:::
 ::::
 
 ## Exercise 2: Fish productivity.  '[DO FULL RUN OF MODEL PROCESS]
