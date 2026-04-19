@@ -64,10 +64,13 @@ This lab uses `tidyverse`, `readxl`, `moments`, `psych`, and `performance`. Inst
 ```{r}
 #| eval: false
 
-install.packages(c("tidyverse", "readxl", "moments", "psych", "performance"))
+install.packages(c("car", "tidyverse", "readxl", "moments", "psych", "performance"))
 ```
 
 If a package is already installed, R will simply reinstall it — no harm done.
+
+
+**COMPARE R and r-adj here!!!**
 
 # 1. Variable selection for California_streamflow (~20 mins)
 
