@@ -75,7 +75,7 @@ If a package is already installed, R will simply reinstall it — no harm done.
 
 **You are a hydrologist tasked with analysing legacy data to investigate the relationship between precipitation at three sites (Lake Sabrina, Pine Creek, and Rock Creek) and stream runoff volume at a site near Bishop, California. The dataset contains 43 years of annual precipitation measurements (in mm) taken at (originally) 6 sites in the Owens Valley in California. You will focus on only 3 variables.**
 
-**not writing a report this week??? just the results!!!**
+**focussing on the process rather than report writing, but can still write up conclusions as if it were for a report. **
 
 The data is in the **california_streamflow.xlsx** file.
 
@@ -104,11 +104,66 @@ Today we will follow steps to produce the most suitable model.
 
 *(i)* Read in the data and investigate the relationship between each of your variables. Describe the relationships, supported by values (correlation coefficient) and plots.
 
+```{r}
+
+library(readxl)
+
+# read in the data
+stream_data <- read_xlsx("data/california_streamflow.xlsx", "streamflow")
+
+library(tidyverse)
+glimpse(stream_data) # check the data
+
+# Correlations and scatterplots all in one (+ histograms for each variable)
+library(psych)
+pairs.panels(stream_data)
+
+# can also get the same results separately
+cor(stream_data)
+pairs(stream_data)
+
+```
+
+We see that runoff volume has a strong relationship with rock creek and pine creek, but not with lake sabrina. We also see that there is a strong relationship between rock creek and pine creek, which could be a sign of collinearity. We can confirm if this may be an issue with the model by observing the Variance inflation factor (VIF) later on when we check our model assumptions.
+
 *(ii)* Fit a multiple linear regression model to the data using all variables. Set  `runoff_volume` as the response variable and `lake_sabrina`, `pine_creek` and `rock_creek` as the predictor variables. This will be known as the 'full model'. 
 
-*(iii)* Check the assumptions of your model. Do you need to transform any variables? Do you notice any other issues?
+```{r}
+# fit the full model
+
+full_model <- lm(runoff_volume ~ lake_sabrina + pine_creek + rock_creek, data = stream_data)
+
+```
+
+
+*(iii)* Check the assumptions of your model. Do you need to transform any variables? What does the Variance Inflation Factor (VIF) tell you about the collinearity between predictor variables?
+
+```{r}
+library(performance)
+
+check_model(full_model)
+
+# Lake Sabrina is doing something weird, so let's get VIF values too
+
+car::vif(full_model) |> round(2) # numbers
+
+```
+
+Lake Sabrina = 1.01
+
+Pine_creek = 4.57
+
+Rock_creek = 4.58 
+
+Our threshold is 5, so we are not too concerned about collinearity here, but it is something to keep in mind when interpreting the model parameters.
 
 *(iv)* Make a note of the model parameters and fit statistics for the full model. 
+
+```{r}
+summary(full_model)
+```
+
+As we saw last week, 
 
 *(v)* Remove the least significant predictor variable from the model and run the model again. This will be known as the 'reduced model'.
 
@@ -121,7 +176,7 @@ Today we will follow steps to produce the most suitable model.
 ::: {.question}
 ### Exercise 2
 
-We can compare the models using the adjusted r^2^, but we will need to use hypothesis testing  to decide whether the reduced model is a significant improvement or not. To do this, we can use the F-test to compare the full and reduced models.
+We can compare the models using the adjusted r^2^, but we will need to use hypothesis testing  to decide whether the reduced model is a significant improvement or not. Let's explore this by using the F-test to compare the full and reduced models.
 
 *(i)* State the null and alternative hypotheses for the F-test between the full and reduced models.
 
@@ -129,10 +184,25 @@ We can compare the models using the adjusted r^2^, but we will need to use hypot
 
 *(iii)* What does this mean in terms of the predictor variable you removed?
 
+:::
 
 
+
+##
+::: {.question}
+### Exercise 3
+
+Instead of removing one predictor at a time, there is a much quicker way involving the `step()` function in R. This function performs stepwise regression, which is an automated process of adding or removing predictors based on their significance in the model and the Akaike Information Criterion (AIC).
+
+*(i)* State the null and alternative hypotheses for the F-test between the full and reduced models.
+
+*(ii)* Perform the F-test using the `anova()` function to compare the full and reduced models. What is the p-value? Is the reduced model a significant improvement on the full model?
+
+*(iii)* What does this mean in terms of the predictor variable you removed?
 
 :::
+
+
 
 
 
