@@ -178,9 +178,18 @@ Some other commonly used measures:
         -   2 variables: $x_1$ + $x_2$; $x_1$ + $x_3$; $x_2$ + $x_3$
         -   3 variables: $x_1$ + $x_2$ + $x_3$
     -   So...not recommended
+
+:::{.fragment}    
+    
 -   **Stepwise regression**: add/remove predictors one at a time until removing a variable makes the model worse.
+
+:::
+
+:::{.fragment}
 -   **Select meaningful predictors** based on domain knowledge, correlation, or significance.
 -   More complex approaches are available for big data and machine learning.
+
+:::
 
 ## Air quality: can we reduce the number of predictors? {auto-animate=true}
 
@@ -221,28 +230,45 @@ where $n$ is the number of observations and $p$ is the number of predictors.
 
 # Partial F-test
 
-## Partial F-test {auto-animate="true"}
+## Partial F-test
 
 How much of an improvement in adjusted $R^2$ is worth having an extra variable / more complex model?
 
+:::{.fragment}
+
 -   We can perform a hypothesis test to determine whether the improvement is significant.
+
+:::
+:::{.fragment}
+
 -   The F-test measures the full model against an intercept only model in terms of explained variance (residual sum of squares).
+:::
+:::{.fragment}
 -   The **partial F-test** compares the full model to a reduced model in terms of the trade-off between model complexity and variance explained (i.e. **adjusted** $R^2$).
     -   $H_0$: no significant difference between the full and reduced models
     -   $H_1$: the full model is significantly better than the reduced model
     -   Calculating the F-stat:
 
 $$F = \big| \frac{SS_{reg,full} - SS_{reg,reduced}}{(df_{res,full} - df_{res,reduced})} \big | \div MS_{res, full}$$
+:::
 
-## Partial F-test: calculation {auto-animate="true"}
+## Partial F-test: calculation 
 
-$$F = \big| \frac{SS_{reg,full} - SS_{reg,reduced}}{(df_{res,full} - df_{res,reduced})} \big | \div MS_{res, full}$$ where:
+$$F = \big| \frac{SS_{reg,full} - SS_{reg,reduced}}{(df_{res,full} - df_{res,reduced})} \big | \div MS_{res, full}$$ 
+
+:::{.fragment}
+where:
 
 -   $SS_{reg,full}$ is the sum of squares of the full model (total of predictors)
 -   $SS_{reg,reduced}$ is the sum of squares of the reduced model (total of predictors)
 -   $df_{res,full}$ is the degrees of freedom of the residuals of the full model
 -   $df_{res,reduced}$ is the degrees of freedom of the residuals of the reduced model
 -   $MS_{res, full}$ is the mean square of the residuals of the full model
+:::
+
+## Partial F-test: full and reduced models
+
+:::{.fragment}
 
 ::: {.columns}
 ::: {.column width="50%"}
@@ -262,6 +288,8 @@ reduced
 :::
 
 Each row is the *individual effect* of each predictor on the response $log(Ozone)$ (whilst holding all other predictors constant).
+
+:::
 
 ## By hand
 
@@ -330,12 +358,7 @@ This is because the reduced model is *nested* within the full model so the parti
 
 # Another example: Bird abundance
 
-## About
-
-```{r}
-loyn <- read.csv("data/loyn.csv")
-str(loyn)
-```
+## Bird Abundance
 
 -   Can we predict the abundance of birds in forest patches cleared for agriculture, based on patch size, area, grazing and other variables?
 -   Loyn ([1987](https://www.researchgate.net/profile/Richard-Loyn/publication/279541149_Effects_of_patch_area_and_habitat_on_bird_abundances_species_numbers_and_tree_health_in_fragmented_Victoria_forests/links/563ae1bc08ae337ef2985592/Effects-of-patch-area-and-habitat-on-bird-abundances-species-numbers-and-tree-health-in-fragmented-Victoria-forests.pdf))
@@ -345,6 +368,14 @@ str(loyn)
     -   GRAZE: Grazing pressure 1 (light) – 5 (heavy) – ALT: Altitude (m)
     -   YR.ISOL: Years since isolation (years)
     -   ABUND: Density of forest birds in a forest patch (birds/patch)
+
+## Bird abundance: data
+
+```{r}
+loyn <- read.csv("data/loyn.csv")
+str(loyn)
+```
+
 
 ## Data exploration
 
@@ -543,9 +574,10 @@ In backward selection, the model fit is assessed using the Akaike Information Cr
 
 $$AIC = 2k - 2\ln(L)$$
 
-## About AIC {auto-animate="true"}
+## About AIC 
 
 $$AIC = 2k - 2\ln(L)$$
+where: 
 
 - $k$ is the number of parameters in the model (predictors + intercept)
 - $L$ is the maximum value of the likelihood function
