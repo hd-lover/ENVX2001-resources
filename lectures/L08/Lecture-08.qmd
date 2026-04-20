@@ -159,10 +159,14 @@ Some model quality measures you should be familiar with:
 -   **Residual standard error**: the mean error of the observed values from the predicted/fitted values (i.e. line of best fit).
 -   **Partial F-test**: compare the full model to a reduced model, works well when the number of predictors is small and simple models.
 
+:::{.fragment}
+
 Some other commonly used measures:
 
 -   **Information criteria**: AIC, BIC, etc. (more on this later).
 -   **Error measures**: useful when the aim for the model is to **predict**. The best model has the smallest residual error (or other similar metrics).
+
+:::
 
 ## What models do we try?
 
