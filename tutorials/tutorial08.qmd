@@ -1,6 +1,9 @@
 ---
 title: "Tutorial 08"
-# reviewed-by: ACA, 2026
+# reviewed-by: ACA, 2026, updated by LP 2026
+format:
+  sandstone-html:
+    code-tools: true
 ---
 
 ```{r setup, include=FALSE}
@@ -8,265 +11,55 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 ```
 
-# from tut07 old - need to use this to update for week 8!!: 
+## Welcome to week 8! {.unnumbered}
 
-## Bird abundance
+**This week's lecture introduced you to Simple- and Multiple- Linear Regression. For both of these regression techniques we defined the key steps in model fitting and how to interpret model output. **
 
-Fragmentation of forest habitat has an impact of wildlife abundance. This study looked at the relationship between bird abundance (bird ha^-1^) and the characteristics of forest patches at 56 locations in SE Victoria.
+**In this tutorial, we will explore key differences between simple linear regression (SLR) and multiple linear regression (MLR), and we will learn how to fit these models in R. We will also discuss how to test assumptions and evaluate model fit for both types of regression.**
 
-The predictor variables are:
+**You will learn how to:**
 
--   `ALT` Altitude (m)
--   `YR.ISOL` Year when the patch was isolated (years)
--   `GRAZE` Grazing (coded 1-5 which is light to heavy)
--   `AREA` Patch area (ha)
--   `DIST` Distance to nearest patch (km)
--   `LDIST` Distance to largest patch (km)
+1.  Distinguish key similarities and differences between simple linear regression (SLR) and multiple linear regression (MLR) models
+2.  Implement the fitting process for each type of model
+3.  Test assumptions and evaluate model fit of SLR and MLR models.
 
-Import the data from the "Loyn" tab in the MS Excel file.
 
-```{r}
-library(readxl)
-loyn <- read_xlsx("data/mlr.xlsx", "Loyn")
-```
+# Key functions to use for this week?
+- show individual performance plots
+- show how to interpret base plots for assumptions
 
-Often, the first step in model development is to examine the data. This is a good way to get a feel for the data and to identify any issues that may need to be addressed. In this case, we will examine the data using histograms and a correlation matrix.
+# Use built in dataset, should have a good eg of step function (need something good at least!)
 
-### Histograms
+OR cam use dippers dataset at end
 
-There are a breadth of ways to create histograms in R. In each tab below you will find some different ways to create the same plot outputs.
+# explain that step function and AIC function use different methods to calculate, that's why AICs are different between step and AIC. 
 
-::: panel-tabset
-### `hist()`
 
-This is a straightforward way to create multiple histograms with `hist()`. The `par()` function is used to arrange the plots on the page. The `mfrow` argument specifies the number of rows and columns of plots.
 
-```{r}
-# par(mfrow=c(3,3))
-hist(loyn$ABUND)
-hist(loyn$ALT)
-hist(loyn$YR.ISOL)
-hist(loyn$GRAZE)
-hist(loyn$AREA)
-hist(loyn$DIST)
-hist(loyn$LDIST)
-# par(mfrow=c(1,1))
-```
 
-### `hist.data.frame()` from `Hmisc`
+# Setting up for our analysis - FIX THIS UP
 
-The `Hmisc` package provides a function `hist.data.frame()` that can be used to create multiple histograms, which can be called by simply using `hist()`. You may need to tweak the `nclass` argument to get the desired number of bins, as the default may not look appropriate.
+## Packages
 
-```{r eval=FALSE}
-#| message: false
-# install.packages("Hmisc")
-library(Hmisc)
-hist(loyn, nclass = 50)
-```
-
-### `ggplot()`
-
-A more modern approach is to use `ggplot()` with `facet_wrap()` to arrange multiple plots on a single page. To do this, the `pivot_longer()` function from the `tidyr` package is used to reshape the data into a tidy format.
-
-```{r}
-#| message: false
-# tidy the data
-loyn_tidy <- pivot_longer(loyn, cols = everything())
-
-# plot
-ggplot(loyn_tidy, aes(x = value)) +
-    geom_histogram() +
-    facet_wrap(~name, scales = "free") +
-    theme_bw()
-```
-
-### `ggplot()` with `dplyr`
-
-Here we use the pipe operator `%>%` from `dplyr` to chain together a series of commands. The pipe operator takes the output of the command on the left and passes it to the command on the right (or below) the pipe. This means that we can create a series of commands that are executed in order.
-
-```{r}
-#| message: false
-loyn %>%
-    pivot_longer(cols = everything()) %>%
-    ggplot(aes(x = value)) +
-    geom_histogram() +
-    facet_wrap(~name, scales = "free") +
-    theme_bw()
-```
-:::
-
-::: question
-### Question 1
-
-Comment on the histograms in terms of leverage. *Hint: what is the relationship between leverage and skewness?*
-:::
-
-::: {.content-visible when-profile="solution"}
-### Answer {style="color:green;"}
-
-The histograms of `AREA`, `DIST` and `LDIST` are very skewed. The high values would have high leverage, this means that these would cause the residuals to be skewed. These would be candidates for transformation.
-:::
-
-### Correlation matrix
-
-Calculate the correlation matrix using `cor(Loyn)`.
-
-```{r}
-cor(loyn)
-```
-
-::: question
-### Question 2
-
-Which independent variables are useful for predicting the dependent variable abundance? Is there evidence for multi-collinearity?
-:::
-
-```{r corLoyn, eval=F, echo=F}
-cor(loyn)
-```
-
-::: {.content-visible when-profile="solution"}
-### Answer {style="color:green;"}
-
-Some of the predictors are useful, but AREA has a low r.
-
-The correlation between `GRAZE` and `YR.ISOL` is quite high (r = -0.63556710), suggesting multi-collinearity which may influence the model. If the relationship between these two variables was stronger, we would remove one of the variables to prevent this collinearity from affecting the model.
-
-*Note: For more information on collinearity and how it may impact the model, see Quinn & Keough p 127.*
-:::
-
-### Plotting correlation
-
-Examine correlations visually using `pairs()` or `corrplot()` from the `corrplot` package.
-
-::: panel-tabset
-### Scatterplot matrix
-
-```{r}
-pairs(loyn)
-```
-
-### Correlation matrix
-
-```{r}
-#| message: false
-library(corrplot)
-corrplot(cor(loyn))
-```
-:::
-
-::: question
-### Question 3
-
-Are there any trends visible from the plots?
-:::
-
-::: {.content-visible when-profile="solution"}
-### Answer {style="color:green;"}
-
-Not really; the pairs plot reflects the strength of the linear relationship between each of the variables. There may be some stronger relationships occurring, but it is evident a few of the variables are skewed so it is harder to distinguish within the plots.
-:::
-
-::: callout-tip
-We can also bring in variance inflation factors (VIF) to help us identify multi-collinearity, but that is done only after we have selected a model.
-:::
-
-### Transformations
-
-The AREA predictor has a small number of observations with very large values. Apply a log~10~ transformation and label the new variable `Loyn$L10AREA`.
+This tutorial uses `tidyverse`, `readxl`, `moments`, `psych`, and `performance`. Install any you are missing by running the following **in the console**:
 
 ```{r}
 #| eval: false
-loyn$L10AREA <- log10(loyn$AREA)
+
+install.packages(c("tidyverse", "readxl", "moments", "psych", "performance"))
 ```
 
-::: question
-### Question 4
+If a package is already installed, R will simply reinstall it — no harm done.
 
-Why are we transforming AREA?
-:::
+## The data
 
-::: {.content-visible when-profile="solution"}
-### Answer {style="color:green;"}
-
-You do this to stabilise the variance of the regression to manage the leverage of the outliers in the variable. This reduces the skew. L10AREA is more likely to be a significant predictor.
-:::
-
-::: question
-### Question 5
-
-Re-run `pairs(Loyn)` and create a histogram using the transformed value of AREA, how do the plots look?
-:::
-
-```{r}
-#| eval: false
-hist(loyn$L10AREA)
-pairs(loyn)
-```
-
-::: {.content-visible when-profile="solution"}
-### Answer {style="color:green;"}
-
--   Histogram looks better, less skewed
--   Pairs plot shows a trend between ABUND and L10AREA
-:::
-
-::: question
-### Question 6
-
-In preparation for modelling, transform the remaining skewed variables, DIST and LDIST the same way you did for AREA and examine the histogram and pairs plots using these new variables.
-:::
-
-Make sure you end up with two new variables labelled `loyn$L10DIST` and `loyn$L10LDIST`.
-
-```{r}
-#| eval: false
-#| include: false
-loyn$L10DIST <- log10(loyn$DIST)
-hist(loyn$L10DIST)
-
-loyn$L10LDIST <- log10(loyn$LDIST)
-hist(loyn$L10LDIST)
-
-pairs(loyn)
-```
-
-::: {.content-visible when-profile="solution"}
-### Answer {style="color:green;"}
-
-Histogram for both look better, less skewed Pairs plot shows potential trend between ABUND and L10DIST, and ABUND with L10LDIST compared to untransformed DIST and LDIST
-:::
-
-::: callout-note
-## Checkpoint
-
-You should now be able to ...\[PUT THIS AFTER EACH OBJECTIVE\]
-:::
-
-## Wrap-up {.unnumbered}
-
-In this tutorial, **we explored factorial designs and their analysis using ANOVA. We learned about main effects, interactions, and blocking effects, and how to interpret ANOVA results in the context of factorial experiments. We also visualised these effects using ggplot2 and emmeans, enhancing our understanding of the relationships between factors and response variables in experimental designs.**
-
-### Example exam questions
-
-**1. In a 2-way factorial design with factors A (2 levels) and B (3 levels), describe how you would identify and interpret main effects and interactions using ANOVA. Provide an example of how to visualise these effects.**
-
-2.  Explain the difference between a treatment design and an experimental design. Provide examples of each and discuss how they can be combined in a factorial design with blocking.
-
-3.  **If you conducted a factorial experiment with blocking and found a significant interaction between two factors, how would you interpret this result? Would you still consider the main effects of each factor? Justify your answer with reference to ANOVA principles.**
-
-
-
-
-
-## Exercise 1: Backward elimination in R
-
-Data:  *Dippers* spreadsheet
-
+![Cute little Dipper standing on a rock. Image source: markmedcalf via Adobe Stock.](images/AdobeStock_93907188.jpeg)
 
 [Dippers](https://en.wikipedia.org/wiki/Dipper) are thrush-sized birds living mainly in the upper reaches of rivers, which feed on benthic invertebrates by probing the river beds with their beaks. The dataset in this exercise contains data from a biological survey which examined the nature of the variables thought to influence the breeding of British dippers. 
 
 Twenty-two sites were included in the survey. Some of the variables have been transformed. 
+
+Data can be found in:  *Dippers.xlsx?????*
 
 The variables measured were:  
 
@@ -280,6 +73,16 @@ The variables measured were:
 - `Br_Dens` the number of breeding pairs of dippers per 10 km of river  
 
 In the analyses, the four invertebrate variables were transformed using a $log(x+1)$ transformation.
+
+
+# Analysis
+
+## Exercise 1: Backward elimination in R {.unnumbered}
+
+
+
+
+
 
 ```{r readingData}
 library(readxl)
@@ -342,3 +145,30 @@ AIC(FullMod, RedMod)
 ```
 
 :::
+
+
+
+
+
+::: callout-note
+## Checkpoint
+
+You should now be able to ...\[PUT THIS AFTER EACH OBJECTIVE\]
+:::
+
+## Wrap-up {.unnumbered}
+
+In this tutorial, **we explored factorial designs and their analysis using ANOVA. We learned about main effects, interactions, and blocking effects, and how to interpret ANOVA results in the context of factorial experiments. We also visualised these effects using ggplot2 and emmeans, enhancing our understanding of the relationships between factors and response variables in experimental designs.**
+
+### Example exam questions
+
+**1. In a 2-way factorial design with factors A (2 levels) and B (3 levels), describe how you would identify and interpret main effects and interactions using ANOVA. Provide an example of how to visualise these effects.**
+
+2.  Explain the difference between a treatment design and an experimental design. Provide examples of each and discuss how they can be combined in a factorial design with blocking.
+
+3.  **If you conducted a factorial experiment with blocking and found a significant interaction between two factors, how would you interpret this result? Would you still consider the main effects of each factor? Justify your answer with reference to ANOVA principles.**
+
+
+
+
+
