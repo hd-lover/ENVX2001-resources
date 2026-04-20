@@ -34,6 +34,7 @@ This module links to the following unit learning outcomes:
 In this lab, we will learn how to:
 
 **1. Fit multiple linear regression models and interpret associated indicators of collinearity**
+
 **2. Draw upon various methods to determine whether a full or reduced model is more suitable**
 
 
@@ -55,12 +56,12 @@ Please work on these exercises by creating your own Quarto file. You are welcome
 
 ### Packages
 
-This lab uses `tidyverse`, `readxl`, `moments`, `psych`, `performance`, `car`, and `gridExtra`. Install any you are missing by running the following **in the console**:
+This lab uses `tidyverse`, `readxl`, `moments`, `psych`, `performance`, `car`. Install any you are missing by running the following **in the console**:
 
 ```{r}
 #| eval: false
 
-install.packages(c("car", "tidyverse", "readxl", "moments", "psych", "performance", "car", "gridExtra"))
+install.packages(c("car", "tidyverse", "readxl", "moments", "psych", "performance"))
 ```
 
 If a package is already installed, R will simply reinstall it — no harm done.
@@ -100,7 +101,32 @@ Hollett, K.J., Danskin, F.M., McCaffrey, W.F., and Walti, S.L., 1991. Geology an
 
 *(iii)* Check the assumptions of your model. Do you need to transform any variables? What does the Variance Inflation Factor (VIF) tell you about the collinearity between predictor variables?
 
-HINT: The VIF will appear as one of the plots in the `check_model()` function, but it can also be helpful to get the values. You can use the `vif()` function from the `car` package to get the VIF values for each predictor variable. 
+HINT: The VIF will appear as one of the plots in the `check_model()` function, but it can also be helpful to get the values. You can use the `vif()` function from the `car` package to get the VIF values for each predictor variable.
+
+The check_model function has been squishing plots, so it may be better at times to plot them individually. You may use the following code, adapted to your model object names:
+
+```{r performance_demo, eval=FALSE}
+
+library(performance)
+
+# Linearity
+check_model(full_model, check = c("linearity"))
+
+# Normality
+check_model(full_model, check = c("qq", "normality"))
+
+# Equal variance
+check_model(full_model, check = c("homogeneity"))
+
+# Outliers
+check_model(full_model, check = c("outliers", "pp_check"))
+
+# VIF - visual
+plot(performance::check_collinearity(full_model))
+
+# VIF - numbers
+car::vif(full_model)
+```
 
 *(iv)* Make a note of the model parameters and fit statistics for the full model. 
 
@@ -183,14 +209,38 @@ full_model <- lm(runoff_volume ~ lake_sabrina + pine_creek + rock_creek, data = 
 
 HINT: The VIF will appear as one of the plots in the `check_model()` function, but it can also be helpful to get the values. You can use the `vif()` function from the `car` package to get the VIF values for each predictor variable. 
 
+The check_model function has been squishing plots, so it may be better at times to plot them individually. You may use the following code, adapted to your model object names:
+
 ```{r}
+
 library(performance)
 
-check_model(full_model)
+# Linearity
+check_model(full_model, check = c("linearity"))
 
-# Lake Sabrina is doing something weird, so let's get VIF values too
+# Normality
+check_model(full_model, check = c("qq", "normality"))
 
-car::vif(full_model) |> round(2) # numbers
+# Equal variance
+check_model(full_model, check = c("homogeneity"))
+
+# Outliers
+check_model(full_model, check = c("outliers", "pp_check"))
+
+# VIF - visual
+plot(performance::check_collinearity(full_model))
+
+# VIF - numbers
+car::vif(full_model)
+
+
+#### ALTERNATIVE: plot() function to check assumptions 
+
+par(mfrow=c(2,2))
+
+plot(full_model)
+
+par(mfrow=c(1,1))
 
 ```
 
@@ -359,7 +409,7 @@ Paper: Carvalho C, Davis R, Connallon T, Gleadow RM, Moore JL, Uesugi A. Multiva
 
 ##
 ::: {.question}
-### Exercise 1 - initial analyses
+### Exercise 1
 
 *(i)* Write out the statistical model for a multiple linear regression and define it in terms of the data (i.e. relative fitness vs all other variables). 
 
@@ -375,7 +425,7 @@ Hint: we are not only looking at relationship between response and predictors he
 
 *(vi)* Check the assumptions of your model. Do you need to transform any variables?
 
-Hint 1: you can use the the `check_model()` function from the `performance` package to check the assumptions of your model.
+Hint 1: you can use the the `check_model()` function from the `performance` package to check the assumptions of your model. Because the performance package can squish plots and make them hard to interpret, you can specify plots of interest, as shown in the previous exercises. 
 
 Hint 2: If you are unsure about the collinearity plot, you can use the `vif()` function from the `car` package to get the VIF values for each predictor variable.
 
@@ -520,9 +570,6 @@ full_plant_model <- lm(log(rel_fitness) ~ growth_rate + days_to_flower +
     log(specific_leaf_area+3) + log(root_shoot_ratio+1) + chlorogenic_acid, 
     data = plant_aridity)
 
-
-
-
 ```
 
 
@@ -538,7 +585,35 @@ Hint 3: If you find that the assumptions are not met you can use log-transformat
 
 check_model(full_plant_model)
 
+# Individual plots: 
+
+# Linearity
+check_model(full_plant_model, check = c("linearity"))
+
+# Normality
+check_model(full_plant_model, check = c("qq", "normality"))
+
+# Equal variance
+check_model(full_plant_model, check = c("homogeneity"))
+
+# Outliers
+check_model(full_plant_model, check = c("outliers", "pp_check"))
+
+# VIF - visual
+plot(performance::check_collinearity(full_plant_model))
+
+# VIF - numbers
 car::vif(full_plant_model)
+
+
+
+### Alternately, you can use the base R plot function
+par(mfrow=c(2,2))
+
+plot(full_plant_model)
+
+par(mfrow=c(1,1))
+
 ```
 
 Linearity: The residuals vs fitted plot shows a random scatter of points, suggesting that the linearity assumption is met.
@@ -573,6 +648,13 @@ Herein we will use the transformed model.
 ```{r}
 
 summary(full_plant_log_model)
+
+### Alternately, you can use the base R plot function
+par(mfrow=c(2,2))
+
+plot(full_plant_log_model)
+
+par(mfrow=c(1,1))
 
 ```
 
@@ -626,15 +708,6 @@ As our model is not significant, it is worth investigating whether another model
 
 :::
 ::::
-
-
-
-
-
-
-
-
-
 
 
 # Conclusion
