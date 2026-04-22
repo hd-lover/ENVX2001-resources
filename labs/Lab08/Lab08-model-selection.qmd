@@ -451,7 +451,11 @@ Hint 3: If you find that the assumptions are not met you can use log-transformat
 You can write it out in words and/or in mathematical notation.
 
 $$
-\textrm{relative\_fitness} = \beta_0 + \beta_1\cdot \textrm{growth\_rate} + \beta_2\cdot \textrm{days\_to\_flower} + \beta_3\cdot \textrm{specific\_leaf\_area} + \beta_4\cdot \textrm{root\_shoot\_ratio} +  \beta_5\cdot \textrm{chlorogenic\_acid} + \epsilon_{i}
+\begin{aligned}
+\textrm{relative\_fitness} = {} & \beta_0 + \beta_1\cdot \textrm{growth\_rate} + \beta_2\cdot \textrm{days\_to\_flower} \\
+& {}+ \beta_3\cdot \textrm{specific\_leaf\_area} + \beta_4\cdot \textrm{root\_shoot\_ratio} \\
+& {}+ \beta_5\cdot \textrm{chlorogenic\_acid} + \epsilon_{i}
+\end{aligned}
 $$
 
 *(ii)* State the hypotheses you will be testing for the relationship between each variable and relative fitness.
