@@ -136,37 +136,6 @@ car::vif(full_model)
 
 :::
 
-
-##
-::: {.question}
-### Exercise 2 - which model is a significant improvement?
-
-We can compare the models using the adjusted r^2^, but we will need to use hypothesis testing to decide whether the reduced model is a significant improvement or not. Let's explore this by using the F-test to compare the full and reduced models.
-
-*(i)* State the null and alternative hypotheses for the F-test between the full and reduced models.
-
-*(ii)* Perform the F-test using the `anova()` function to compare the full and reduced models. What is the p-value? Based on this, what might we conclude to be the better model?
-
-:::
-
-##
-::: {.question}
-### Exercise 3 - stepwise regression
-
-Instead of removing one predictor at a time, there is a much quicker way involving the `step()` function in R. This function performs stepwise regression, which is an automated process of adding or removing predictors based on their significance in the model and the Akaike Information Criterion (AIC).
-
-*(i)* When using the AIC, how do we select the better model? 
-
-*(ii)* Have a go at running the `step()` function on the full model. Which model does it select as the best model?
-
-*(iii)* One final check: what are the AIC values for the full and reduced models? Which model has the lowest AIC value?
-
-HINT: you can use the `AIC()` function to get the AIC values for each model. Insert the model name between the brackets. 
-
-*(iv)* Based on our tests, which model do you think is the best model to use for predicting runoff volume at Bishop, California? Why have you chosen this model?
-
-:::
-
 :::: {.content-visible when-profile="solution"}
 ::: {.ans}
 #### Solution
@@ -279,12 +248,24 @@ summary(reduced_model)
 Removing the `lake_sabrina` predictor from the model has slightly decreased the adjusted R^2^ value, but it has also removed a non-significant predictor from the model. This is an improvement in terms of parsimony, but we will need to use hypothesis testing to determine whether the reduced model is a *significant* improvement on the full model. We can do this using an F-test, which we will explore in the next exercise.
 
 :::
+::::
+
 
 ##
 ::: {.question}
 ### Exercise 2 - which model is a significant improvement?
 
 We can compare the models using the adjusted r^2^, but we will need to use hypothesis testing to decide whether the reduced model is a significant improvement or not. Let's explore this by using the F-test to compare the full and reduced models.
+
+*(i)* State the null and alternative hypotheses for the F-test between the full and reduced models.
+
+*(ii)* Perform the F-test using the `anova()` function to compare the full and reduced models. What is the p-value? Based on this, what might we conclude to be the better model?
+
+:::
+
+:::: {.content-visible when-profile="solution"}
+::: {.ans}
+#### Solution
 
 ##### *(i)* State the null and alternative hypotheses for the F-test between the full and reduced models.
 
@@ -302,12 +283,29 @@ anova(full_model, reduced_model)
 The P-value is 0.1419, which is larger than 0.05, so we fail to reject the null hypothesis. This means that the reduced model is not a significant improvement on the full model, and we would opt for the reduced model as it is more parsimonious.
 
 :::
+::::
 
 ##
 ::: {.question}
 ### Exercise 3 - stepwise regression
 
 Instead of removing one predictor at a time, there is a much quicker way involving the `step()` function in R. This function performs stepwise regression, which is an automated process of adding or removing predictors based on their significance in the model and the Akaike Information Criterion (AIC).
+
+*(i)* When using the AIC, how do we select the better model? 
+
+*(ii)* Have a go at running the `step()` function on the full model. Which model does it select as the best model?
+
+*(iii)* One final check: what are the AIC values for the full and reduced models? Which model has the lowest AIC value?
+
+HINT: you can use the `AIC()` function to get the AIC values for each model. Insert the model name between the brackets. 
+
+*(iv)* Based on our tests, which model do you think is the best model to use for predicting runoff volume at Bishop, California? Why have you chosen this model?
+
+:::
+
+:::: {.content-visible when-profile="solution"}
+::: {.ans}
+#### Solution
 
 ##### *(i)* When using the AIC, how do we select the better model? 
 

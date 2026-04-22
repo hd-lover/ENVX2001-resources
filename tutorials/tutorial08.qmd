@@ -13,53 +13,59 @@ library(tidyverse)
 
 ## Welcome to week 8! {.unnumbered}
 
-**This week's lecture introduced you to Simple- and Multiple- Linear Regression. For both of these regression techniques we defined the key steps in model fitting and how to interpret model output. **
+This week's lecture introduced you to variable selection and how to produce a more parsimonious model. We explored developing our models by fitting the full model, checking assumptions and deciding whether anything needed transformation. Once we were happy assumptions were met we could consider whether all of our predictors were useful in explaining the variation in our response variable.
 
-**In this tutorial, we will explore key differences between simple linear regression (SLR) and multiple linear regression (MLR), and we will learn how to fit these models in R. We will also discuss how to test assumptions and evaluate model fit for both types of regression.**
+In this tutorial, we will explore a new dataset and follow the steps of model selection to produce a model that explains a sufficient amount of variation, without being unnecessarily complex. 
 
 **You will learn how to:**
 
-1.  Distinguish key similarities and differences between simple linear regression (SLR) and multiple linear regression (MLR) models
-2.  Implement the fitting process for each type of model
-3.  Test assumptions and evaluate model fit of SLR and MLR models.
+1.  Check for collinearity and influential observations in a MLR model
+2.  Run partial F-tests to compare nested models
+3.  Implement stepwise regression using the `step()` function in R
 
 
-# Key functions to use for this week?
-- show individual performance plots
-- show how to interpret base plots for assumptions
+# Setting up for our analysis
 
-# Use built in dataset, should have a good eg of step function (need something good at least!)
+## Workflow for fitting parsimonious models
 
-OR cam use dippers dataset at end
+*1. Model development*
 
-# explain that step function and AIC function use different methods to calculate, that's why AICs are different between step and AIC. 
+* Start with full model and check assumptions (e.g. normality, homoscedasticity, linearity, etc.)
+* Look for additional issues (e.g. multicollinearity, outliers, etc.) 
+  <br> -–> correlations, leverage plot, VIF plots and statistics
+* Consider transformations (e.g. log, sqrt, etc.).
+  <br> --> Response: if assumptions aren't met, transform the response variable
+  <br> --> Predictors: it may help to explore transformations of skewed predictors before fitting the model to explore if there is a relationship present. Transforming predictors generally does not affect assumptions, but it can help to linearise relationships and make them easier to interpret.
+* Following any transformations, test assumptions again.
 
+*2. Model selection*
 
-
-
-# Setting up for our analysis - FIX THIS UP
+- Use VIF as an initial step to get rid of highly correlated predictors.
+- Perform variable selection using backward elimination (good and fast), because:
+- Using r^2^2 as a criterion is not recommended (it is not a good measure of model fit, only a good measure of variance explained).
+- Using partial F-test is good, but slow.
 
 ## Packages
 
-This tutorial uses `tidyverse`, `readxl`, `moments`, `psych`, and `performance`. Install any you are missing by running the following **in the console**:
+This tutorial uses `tidyverse`, `readxl`, `moments`, `psych`, `performance` and `car`. Install any you are missing by running the following **in the console**:
 
 ```{r}
 #| eval: false
 
-install.packages(c("tidyverse", "readxl", "moments", "psych", "performance"))
+install.packages(c("tidyverse", "readxl", "moments", "psych", "performance", "car"))
 ```
 
 If a package is already installed, R will simply reinstall it — no harm done.
 
 ## The data
 
-![Cute little Dipper standing on a rock. Image source: markmedcalf via Adobe Stock.](images/AdobeStock_93907188.jpeg)
+![Cute little Dipper (bird) standing on a rock by the water. Image source: markmedcalf via Adobe Stock.](images/AdobeStock_93907188.jpeg)
 
 [Dippers](https://en.wikipedia.org/wiki/Dipper) are thrush-sized birds living mainly in the upper reaches of rivers, which feed on benthic invertebrates by probing the river beds with their beaks. The dataset in this exercise contains data from a biological survey which examined the nature of the variables thought to influence the breeding of British dippers. 
 
 Twenty-two sites were included in the survey. Some of the variables have been transformed. 
 
-Data can be found in:  *Dippers.xlsx?????*
+Data can be found in:  *Dippers.csv*
 
 The variables measured were:  
 
@@ -74,101 +80,249 @@ The variables measured were:
 
 In the analyses, the four invertebrate variables were transformed using a $log(x+1)$ transformation.
 
+`Br_Dens` will be the response variable in our models. 
 
 # Analysis
 
-## Exercise 1: Backward elimination in R {.unnumbered}
+## Model development
 
+*(i)* Read in the data and investigate the relationship between each of your variables. Describe the relationships, supported by values (correlation coefficient) and plots.
 
-
-
-
-
-```{r readingData}
-library(readxl)
-Dippers <- read_xlsx("data/mlr.xlsx" , sheet = "Dippers")
-glimpse(Dippers)
-```
-
-You may explore the data on your own (hint: look at last week's exercise on histogram and scatterplot matrices).
-
-::: {.content-visible when-profile="solution"}
 ```{r}
-pairs(Dippers)
-cor(Dippers)
+
+# read in the data
+dippers <- read.csv("data/Dippers.csv")
+
+library(tidyverse)
+glimpse(dippers) # check the data
+
+# Correlations and scatterplots all in one (+ histograms for each variable)
+library(psych)
+pairs.panels(dippers)
+
+# can also get the same results separately
+cor(dippers)
+pairs(dippers)
+
 ```
+
+Between Br_Dens and other variables, there are a number of relatively stong correlations, particularly with LogStone (r = 763), RiverSlope (r = 0.710) and LogCadd (r = 0.613). 
+
+There are also some strong correlations between the predictor variables themselves, particularly between RiverSlope and LogStone (r = 0.575) and LogOther and Hardness (r = 0.554). This could be an issue for our model, as collinearity can make it difficult to interpret the model parameters and can inflate the standard errors of the estimates.
+
+We can confirm if correlations between predictors may be an issue with the model by observing the Variance inflation factor (VIF) later on when we check our model assumptions.
+
+*(ii)* Fit a multiple linear regression model to the data using all variables. Set  `Br_Dens` as the response variable and the remaining variables as the predictors.  This will be known as the 'full model'. 
+
+```{r}
+# fit the full model
+
+full_model <- lm(Br_Dens ~ Altitude + Hardness + RiverSlope + LogCadd + LogStone + LogMay + LogOther, data = dippers)
+
+```
+
+
+*(iii)* Check the assumptions of your model. Do you need to transform any variables? What does the Variance Inflation Factor (VIF) tell you about the collinearity between predictor variables?
+
+The VIF will appear as one of the plots in the `check_model()` function, but it can also be helpful to get the values. You can use the `vif()` function from the `car` package to get the VIF values for each predictor variable. 
+
+The check_model function has been squishing plots, so it may be better at times to plot them individually. You may use the following code, adapted to your model object names:
+
+```{r}
+
+library(performance)
+
+# Linearity
+check_model(full_model, check = c("linearity"))
+
+# Normality
+check_model(full_model, check = c("qq", "normality"))
+
+# Equal variance
+check_model(full_model, check = c("homogeneity"))
+
+# Outliers
+check_model(full_model, check = c("outliers", "pp_check"))
+
+# VIF - visual
+plot(performance::check_collinearity(full_model))
+
+# VIF - numbers
+# comes from the car package
+car::vif(full_model)
+
+
+#### ALTERNATIVE: plot() function to check assumptions 
+
+par(mfrow=c(2,2))
+
+plot(full_model)
+
+par(mfrow=c(1,1))
+
+```
+
+* Linearity: The relationship between the predictors and the response variable appears to be linear, as the residuals are mostly scattered around the horizontal line at zero in the residuals vs fitted plot.
+
+* Independence: The residuals appear to be independent, as there is no clear pattern in the residuals vs fitted plot.
+
+* Normality: The residuals appear to be approximately normally distributed, as the points in the Q-Q plot roughly follow a straight line. When we look at the `check_model()` version of the plot we a slight n-shape to the points, but this is only small compared to the overall distribution of the points, so we are not too concerned about this.
+
+* Equal variance: The residuals appear to have constant variance, as there is no clear pattern or fanning present in the standardised residuals vs fitted plot (scale-location in the base plot).
+
+* Leverage: No single observations lying outside the Cook's distance line, indicating no influential observations.
+
+**VIF and collinearity**
+
+VIF Thresholds vary, depending on who you ask. General rule is that if it is greater than 10, then you need to remove the associated predictor. Some conservative people prefer a value of 5, so we will go with this. 
+
+Our threshold is 5, so given all of our VIFs are below this, we are not too concerned about collinearity. However, because they are close to the threshold it is something to keep in mind when interpreting the model parameters.
+
+*(iv)* Make a note of the model parameters and fit statistics for the full model. 
+
+```{r}
+summary(full_model)
+```
+
+We can see that there are two significant predictors (RiverSlope and LogStone) in the full model, but there are also a number of non-significant predictors. The adjusted R^2^ value is 0.77, which indicates that the model explains 77% of the variation in the response variable.
+
+Because there are so many non-significant predictors in the model, we may want to consider removing some of them to produce a more parsimonious model. 
+
+*(v)*  Select the least significant predictor and remove it from the model. 
+
+In this case, the least significant predictor is `Altitude` (P = 0.619). Remove it from the model and run the model again. This will be known as the 'reduced model'.
+
+```{r}
+
+reduced_model <- lm(Br_Dens ~ Hardness + RiverSlope + LogCadd + LogStone + LogMay + LogOther, data = dippers)
+
+```
+
+*(vi)* Is the reduced model an improvement on the full model? How can you tell? What statistics would you look at to determine this?
+
+```{r}
+summary(full_model)
+summary(reduced_model)
+```
+
+Removing the `Altitude` predictor from the model has slightly increased the adjusted R^2^ value. This is an improvement in terms of parsimony, but we will need to use hypothesis testing to determine whether the reduced model is a *significant* improvement on the full model. We can do this using an F-test. 
+
+::: callout-note
+## Checkpoint
+
+You should now be able to prepare an appropriate model by refining it, checking your assumptions, and ensuring collinearity is not an issue.
 
 :::
 
-When ready, perform a backward elimination starting from the full model: 
+## Model selection with F-tests
+
+We wil use the partial F-test to determine whether there is a significant difference between the models. 
+
+*(i)* State hypotheses
+
+H0: no significant difference between the full and reduced models
+H1: There is a significant difference between the full and reduced models
+
+If we fail to reject H0, then we would opt for the reduced model as it is more parsimonious (i.e. it is explaining a similar amount of variation with fewer predictors). 
+
+If we reject H0, then we would opt for the full model as it is a significant improvement on the reduced model.
+
+*(ii)* Run the test
+
+Once we have established our hypotheses, we can perform the F-test using the `anova()` function to compare the full and reduced models. 
 
 ```{r}
-#| eval: false
-FullMod <- lm(Br_Dens ~ ., data=Dippers)
-RedMod <- step(FullMod, direction = "backward")
-summary(FullMod)
-summary(RedMod)
-AIC(FullMod, RedMod)
+
+anova(full_model, reduced_model)
+
 ```
 
-:::{.question}
-### Question 1
+*(iii)* Are the models significantly different?
 
-Which model is chosen? Why?
-:::
+The P-value is 0.6186, which is larger than 0.05, so we fail to reject the null hypothesis.
 
-::: {.content-visible when-profile="solution"}
-### Answer {style="color:green;"}
-
-The reduced model is chosen as it is better and has the lower AIC. In addition, the adjusted *r*^2^ is higher for the reduced model, indicating that the reduced model is a better fit to the data. 
-
-```{r VarSelectSolution, echo = T, eval = T}
-
-FullMod <- lm(Br_Dens ~ ., data=Dippers)
-RedMod <- step(FullMod, direction = "backward", trace = 0) # backward selection
-
-# Plot as table (a good trick for reports!)
-compare <- AIC(FullMod, RedMod) %>% # get AIC data frame
-  # then, add adjusted r-squared values in a new column using `mutate()`
-  mutate(adj_r2 = c(summary(FullMod)$adj.r.squared, summary(RedMod)$adj.r.squared)) %>%
-  # then, round all numeric values to 2 decimal places
-  mutate(across(where(is.numeric), \(x) round(x, 2)))
-
-knitr::kable(compare)
-```
-
-
-```{r}
-summary(FullMod)
-summary(RedMod)
-AIC(FullMod, RedMod)
-```
-
-:::
-
-
-
+This means that the full model is not a significant improvement on the reduced model, and we would opt for the reduced model as it is more parsimonious.
 
 
 ::: callout-note
 ## Checkpoint
 
-You should now be able to ...\[PUT THIS AFTER EACH OBJECTIVE\]
+You should now be able to use an F-test to determine whether the reduced model is a significant improvement on the full model. 
+
+**Remember:** the F-test is only useful if comparing nested models. 
+:::
+
+# Model selection using Stepwise regression
+
+When we have many predictors, this manual testing can become time consuming, so we can choose to use the `step()` function in R, which performs stepwise regression. This function will automatically remove the least significant predictor and test the model again, until it finds the best model based on the AIC criterion.
+
+*(i)* Run the `step()` function on the full model to perform stepwise regression.
+
+```{r}
+step_model <- step(full_model, direction = "backward")
+
+```
+
+*(ii)* What is the final model that the `step()` function has produced? How does it compare to the full and reduced models?
+
+Since we have stored the step() output as an object, we can just call the object, which will show us the final model: 
+
+```{r}
+step_model
+
+## OR
+
+summary(step_model)
+```
+
+We can see that the selected model is: 
+
+Br_Dens ~ Hardness + RiverSlope + LogCadd + LogStone + 
+    LogOther
+    
+Or with the addition of the partial regression coefficients, our equation is: 
+
+Br_Dens = -0.725 + 0.012 * Hardness + 0.065 * RiverSlope + 0.549 * LogCadd + 0.512 * LogStone - 0.268 * LogOther
+
+We can see there has also been a marginal change in the adjusted R^2^ value, which is now 0.7765, compared to 0.765 for the full model and 0.7766 for the reduced model. This supports the idea that the full model explained a similar amount of variation in the response compared to the simplest model obtained from the `step()` function. Therefore it makes sense to select the simpler model. 
+
+*(iii)* How does the AIC of the stepwise regression model compare to the full and reduced models?
+
+We can test this using the AIC() function: 
+
+```{r}
+AIC(full_model, reduced_model, step_model)
+
+```
+
+Full_model AIC = 56.1
+
+Reduced_model AIC = 54.5
+
+step_model AIC = 53.9
+
+As we select the model with the smallest AIC, we can confirm that the model selected by the `step()` function is better. 
+
+You may notice that the AIC values are different between the `step()` function and the `AIC()` function. This is because the `step()` function uses a different method to calculate the AIC values, which is based on the likelihood of the model, while the `AIC()` function uses a different method based on the residual sum of squares.
+
+::: callout-note
+## Checkpoint
+
+You should now be able to run the `step()` function to select the most appropriate model. 
+
 :::
 
 ## Wrap-up {.unnumbered}
 
-In this tutorial, **we explored factorial designs and their analysis using ANOVA. We learned about main effects, interactions, and blocking effects, and how to interpret ANOVA results in the context of factorial experiments. We also visualised these effects using ggplot2 and emmeans, enhancing our understanding of the relationships between factors and response variables in experimental designs.**
+In this tutorial, we used the dippers dataset to get some practice testing model assumptions and checking for collinearity. We then used partial F-tests and stepwise regression to select a more parsimonious model. 
+
 
 ### Example exam questions
 
-**1. In a 2-way factorial design with factors A (2 levels) and B (3 levels), describe how you would identify and interpret main effects and interactions using ANOVA. Provide an example of how to visualise these effects.**
+1. What assumptions do we need to check for when fitting a multiple linear regression?
 
-2.  Explain the difference between a treatment design and an experimental design. Provide examples of each and discuss how they can be combined in a factorial design with blocking.
+2. Why don't we just rely on the adjusted r^2^ to compare models?
 
-3.  **If you conducted a factorial experiment with blocking and found a significant interaction between two factors, how would you interpret this result? Would you still consider the main effects of each factor? Justify your answer with reference to ANOVA principles.**
-
-
-
+3. Can F-tests be run on non-nested models? Why or why not?
 
 
