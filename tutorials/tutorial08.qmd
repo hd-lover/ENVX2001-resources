@@ -4,6 +4,8 @@ title: "Tutorial 08"
 format:
   sandstone-html:
     code-tools: true
+resources:
+  - data/Dippers.csv
 ---
 
 ```{r setup, include=FALSE}
@@ -65,7 +67,7 @@ If a package is already installed, R will simply reinstall it — no harm done.
 
 Twenty-two sites were included in the survey. Some of the variables have been transformed. 
 
-Data can be found in:  *Dippers.csv*
+Data can be found in: **Dippers.csv**
 
 The variables measured were:  
 
