@@ -270,6 +270,7 @@ We can compare the models using the adjusted r^2^, but we will need to use hypot
 ##### *(i)* State the null and alternative hypotheses for the F-test between the full and reduced models.
 
 H0: No significant difference between full and reduced models
+
 H1: There is a significant difference between full and reduced models
 
 ##### *(ii)* Perform the F-test using the `anova()` function to compare the full and reduced models. What is the p-value? Based on this, what might we conclude to be the better model?
@@ -280,7 +281,9 @@ anova(full_model, reduced_model)
 
 ```
 
-The P-value is 0.1419, which is larger than 0.05, so we fail to reject the null hypothesis. This means that the reduced model is not a significant improvement on the full model, and we would opt for the reduced model as it is more parsimonious.
+The P-value is 0.1419, which is larger than 0.05, so we fail to reject the null hypothesis. 
+
+This means that the reduced model is not significantly different to the full model, so we would opt for the reduced model as it is more parsimonious.
 
 :::
 ::::
@@ -337,17 +340,17 @@ AIC(full_model)
 AIC(reduced_model)
 ```
 
+We can see that the full model has the lowest AIC value. 
+
 ##### *(iv)* Based on our tests, which model do you think is the best model to use for predicting runoff volume at Bishop, California? Why have you chosen this model?
 
 The reduced model is better. It is more parsimonious and does not include a non-significant predictor. 
 
 The F-test also indicates that the reduced model is not a significant improvement on the full model, so we would opt for the reduced model as it is simpler and just as good at explaining the variation in runoff volume.
 
-We did see that the step function selected the full model as the best model based on AIC, but we would be cautious about this result given that it includes a non-significant predictor and the F-test did not support it as a significant improvement. 
+We did see that the step function selected the full model as the best model based on AIC, as did our separate AIC calculation, but we would be cautious about this result given that it includes a non-significant predictor and the F-test did not support it as a significant improvement. 
 
-It was also helpful to calculate the AIC for our full and reduced models to confirm that the reduced model had a lower AIC value, which supports our choice of the reduced model.
-
-Automated model selection methods are helpful when you have a large number of predictors, but our results demonstrate why we should not rely solely on these methods. We should also consider the significance of predictors and the overall fit of the model when making decisions about which model to use.
+Automated model selection methods are helpful when you have a large number of predictors, and calculating the AIC can assist with model selection, but our results demonstrate why we should not rely solely on these methods. We should also consider the significance of predictors and the overall fit of the model when making decisions about which model to use.
 
 :::
 ::::
@@ -483,14 +486,14 @@ $$H_1 : \beta_3 \neq 0$$
 
 4. root_shoot_ratio and relative_fitness:
 
-$$H_0 : \beta_3 = 0$$
+$$H_0 : \beta_4 = 0$$
 
-$$H_1 : \beta_3 \neq 0$$
+$$H_1 : \beta_4 \neq 0$$
 
 5. chlorogenic_acid and relative_fitness:
 
-$$H_0 : \beta_4 = 0$$
-$$H_1 : \beta_4 \neq 0$$
+$$H_0 : \beta_5 = 0$$
+$$H_1 : \beta_5 \neq 0$$
 
 4. Overall model: 
 
@@ -521,7 +524,7 @@ Growth rate: mean growth rate is 0.533, which is similar to the median (0.570), 
 
 Days to flower: mean is 0.067, which is close to the median (-0.202). The standard deviation is 1.051. The skewness is 0.377, which is close to zero, indicating a very symmetric distribution.
 
-root_shoot_ratio: mean is -0.416, which is not too close to the median (-0.571), suggesting a possibly skewed distribution. The standard deviation is 0.510. The skewness is 1.395, which is greater than 1, indicating a positively skewed distribution.
+root_shoot_ratio: mean is -0.416, which is not too close to the median (-0.571), suggesting a possibly skewed distribution. The standard deviation is 0.510. The skewness is 1.395, which is greater than 1, indicating a positively skewed distribution. It may be worth transforming this variable to see if a relationship becomes apparent. 
 
 specific_leaf_area: mean is  0.084, which is close to the median (0.069). The standard deviation is 0.644. The skewness is -0.865, which is between -0.5 and -0.1, indicating a degree of skewness.
 
@@ -568,8 +571,8 @@ Low correlation coefficients (r < 0.2) between all variables, but the correlatio
 
 ```{r}
 
-full_plant_model <- lm(log(rel_fitness) ~ growth_rate + days_to_flower + 
-    log(specific_leaf_area+3) + log(root_shoot_ratio+1) + chlorogenic_acid, 
+full_plant_model <- lm(rel_fitness ~ growth_rate + days_to_flower + 
+    specific_leaf_area + root_shoot_ratio + chlorogenic_acid, 
     data = plant_aridity)
 
 ```
@@ -639,9 +642,17 @@ full_plant_log_model <- lm(log(rel_fitness) ~ growth_rate + days_to_flower +
     data = plant_aridity)
 
 check_model(full_plant_log_model)
+
+### Alternately, you can use the base R plot function
+par(mfrow=c(2,2))
+
+plot(full_plant_log_model)
+
+par(mfrow=c(1,1))
+
 ```
 
-After further testing, we found that log-transforming the response variable improved the normality and equal variance of the residuals, but it was improved further by transforming root_shoot_ratio, which was highly skewed, so thiswasalso transformed.
+After further testing, we found that log-transforming the response variable improved the normality and equal variance of the residuals, but it was improved further by transforming root_shoot_ratio, which was highly skewed, so this was also transformed.
 
 Herein we will use the transformed model. 
 
@@ -650,13 +661,6 @@ Herein we will use the transformed model.
 ```{r}
 
 summary(full_plant_log_model)
-
-### Alternately, you can use the base R plot function
-par(mfrow=c(2,2))
-
-plot(full_plant_log_model)
-
-par(mfrow=c(1,1))
 
 ```
 
@@ -672,9 +676,6 @@ Although the model is not significant, let's see if there is a way to make it mo
 reduced_plant_log_model <- lm(log(rel_fitness) ~ growth_rate + chlorogenic_acid, 
     data = plant_aridity)
 
-AIC(full_plant_log_model, reduced_plant_log_model)
-
-anova(full_plant_log_model, reduced_plant_log_model)
 
 summary(reduced_plant_log_model)
 
@@ -682,7 +683,16 @@ summary(reduced_plant_log_model)
 
 *(ix)* Run a partial f-test to determine whether the reduced model an improvement on the full model. Which model is better?
 
-The p-value from the F-test is 0.6298, which is greater than 0.05, so we fail to reject the null hypothesis. This means that the reduced model is not a significant improvement on the full model, and we would opt for the reduced model as it is more parsimonious.
+```{r}
+
+anova(full_plant_log_model, reduced_plant_log_model)
+
+```
+
+
+The p-value from the F-test is 0.6298, which is greater than 0.05, so we fail to reject the null hypothesis. 
+
+This means that the reduced model is not significantly different to the full model, and we would opt for the reduced model as it is more parsimonious.
 
 *(x)* Run stepwise regression using the `step()` function fitted to the full model. Which model does it select as the best model?
 
@@ -693,19 +703,19 @@ step_model <- step(full_plant_log_model, direction = "backward")
 AIC(full_plant_log_model, reduced_plant_log_model)
 ```
 
-The step() function has told us that the full model is better than the reduced model, which is inconsistent with our previous analysis using the F-test. This is because the step() function uses the AIC to compare models, which is a different criterion. In this case, the AIC may be favoring the full model again due to its better fit, even though it includes a non-significant predictor.
+The step() function has told us that the most appropriate model is the reduced model, as indicated by the smaller (more negative) AIC value. We can also see a similar outcome when we run the `AIC()` function for our models (70.0 for full model, 65.8 for reduced). This is consistent with our previous analysis using the F-test. 
 
-When we check this with the AIC() function to compare between full and reduced models, we can see that the reduced model is a better choice. 
+```{r}
+summary(step_model)
+```
+In addition to the model becoming more parsimonious, we can also see that the model itself is now significant (P<0.05), however it still only explains 7% of variation in log(rel_fitness). 
 
-This goes to show that we can use automated methods, but we also need to understand the underlying statistics and not rely solely on these methods for model selection. It is good to do some good ol' hypothesis testing where realistic. 
 
 *(viii)* Write a concluding statement on your findings.
 
-Based on our analyses, we found that the full model with all predictors was not significant, and only chlorogenic_acid was a significant predictor of relative fitness. 
+As identified by the partial F-test and stepwise regression, we found that the reduced model is most appropriate, which includes `growth rate` and `chlorogenic_acid` as the predictors. This reduction in predictors has also made our model more significant, though it only explains 7% of variation in log(rel_fitness). 
 
-Removing the non-significant predictors did not result in a significant improvement in the model, so given we fail to reject the null hypothesis, it is better to select the reduced model.  
-
-As our model is not significant, it is worth investigating whether another model would be better fit. In the original article they actually incorporated a treatment interaction into their model, so if you want to see how this was done, feel free to check out the article (source listed at the beginning of the exercise). 
+As our model does not explain much variation in the response, it is worth investigating whether another model would be better fit. In the original article they actually incorporated a treatment interaction into their model, so if you want to see how this was done, feel free to check out the article (source listed at the beginning of the exercise). 
 
 
 :::
