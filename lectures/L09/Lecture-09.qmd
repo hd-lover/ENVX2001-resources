@@ -128,6 +128,8 @@ predict_df <- data.frame(Temp = 80, Solar.R = 145, Wind = 10.9)
 - We use the `predict()` function to obtain the predicted value.
 - Specifying `interval = "confidence"` or `interval = "prediction"` also calculates the confidence or prediction interval.
 
+## Predictions in R
+
 ```{r}
 predict(fit, newdata = predict_df) # the predicted value
 predict(fit, newdata = predict_df, interval = "confidence") # predicted value and CI
@@ -313,7 +315,7 @@ $+$
 
 [Dataset]{style="color: #2780e3;" .absolute top=130 left=275 data-id="text1"}
 
-[(Training)]{style="color: #2780e3;" .absolute top=130 left=368 data-id="text2"}
+[\  (Training)]{style="color: #2780e3;" .absolute top=130 left=368 data-id="text2"}
 
 [Subset (Test)]{style="color: #3fb618;" .absolute top=130 left=680}
 
@@ -329,7 +331,7 @@ $+$
 
 [Dataset]{style="color: #2780e3;" .absolute top=130 left=275 data-id="text1"}
 
-[(Training)]{style="color: #2780e3;" .absolute top=130 left=368 data-id="text2"}
+[\  (Training)]{style="color: #2780e3;" .absolute top=130 left=368 data-id="text2"}
 
 [Subset (Test)]{style="color: #3fb618;" .absolute top=130 left=680}
 
@@ -351,7 +353,7 @@ $+$
 
 [Dataset]{style="color: #2780e3;" .absolute top=130 left=275 data-id="text1"}
 
-[(Training)]{style="color: #2780e3;" .absolute top=130 left=368 data-id="text2"}
+[\  (Training)]{style="color: #2780e3;" .absolute top=130 left=368 data-id="text2"}
 
 [Subset (Test)]{style="color: #3fb618;" .absolute top=130 left=680}
 
@@ -482,9 +484,13 @@ $+$
 :::
 :::
 
+
 [Iteration 1]{style="color: #000; font-size: 18pt;" .absolute top=55 right=790 data-id="text1"}
+
 [Iteration 2]{style="color: #000; font-size: 18pt;" .absolute top=75 right=790 data-id="text2"}
+
 [Iteration 3]{style="color: #000; font-size: 18pt;" .absolute top=95 right=790 data-id="text3"}
+
 [3-fold cross-validation]{style="color: #000; font-size: 18pt;" .absolute top=120 right=790 data-id="text4"}
 [Fold 1]{style="color: #000; font-size: 18pt;" .absolute top=120 right=660}
 [Fold 2]{style="color: #000; font-size: 18pt;" .absolute top=120 right=494}
@@ -543,9 +549,9 @@ We can also use metrics to quantify how well the model predicts new data:
 - How close points are to the 1:1 line
 - How *linear* the relationship is between observed and predicted values
 
-## Error {auto-animate=true}
+## Mean Error {auto-animate=true}
 
-The smaller the error, the better the model.
+<br> 
 
 **Mean error**: the average difference between observed and predicted values.
 
@@ -553,9 +559,23 @@ The smaller the error, the better the model.
   
 $$ME = \frac{1}{n} \sum_{i=1}^{n} y_i - \hat{y}_i$$ (in $y$ units)
 
+The smaller the error, the better the model.
+
+## Mean Absolute Error {auto-animate=true}
+
+<br> 
+
 **Mean absolute error**: the average (absolute) difference between observed and predicted values (residual).
 
 $$MAE = \frac{1}{n} \sum_{i=1}^{n} |y_i - \hat{y}_i|$$ (in $y$ units)
+
+<br> 
+
+The smaller the error, the better the model.
+
+## Mean Square Error {auto-animate=true}
+
+<br> 
 
 **Mean squared error**: the average of the squared residuals
 
@@ -564,11 +584,23 @@ $$MAE = \frac{1}{n} \sum_{i=1}^{n} |y_i - \hat{y}_i|$$ (in $y$ units)
 
 $$MSE = \frac{1}{n} \sum_{i=1}^{n} (y_i - \hat{y}_i)^2$$
 
+<br> 
+
+The smaller the error, the better the model.
+
+## Root Mean Squared Error {auto-animate=true}
+
+<br> 
+
 **Root mean squared error**: the standard deviation of the residuals
 
 - Squaring the error penalises poor predictions more
   
 $$RMSE = \sqrt{\frac{1}{n} \sum_{i=1}^{n} (y_i - \hat{y}_i)^2}$$ (in $y$ units)
+
+<br> 
+
+The smaller the error, the better the model.
 
 ## Linearity {auto-animate=true}
 
@@ -581,6 +613,10 @@ The more linear the relationship between observed and predicted values, the bett
 
 $$r = \frac{\sum_{i=1}^{n} (y_i - \bar{y})(\hat{y}_i - \bar{\hat{y}})}{\sqrt{\sum_{i=1}^{n} (y_i - \bar{y})^2 \sum_{i=1}^{n} (\hat{y}_i - \bar{\hat{y}})^2}}$$
 
+## Linearity {auto-animate=true}
+
+The more linear the relationship between observed and predicted values, the better the model.
+
 **R^2^**: 
 
 - The proportion of variance explained by the variables in the model.
@@ -588,6 +624,11 @@ $$r = \frac{\sum_{i=1}^{n} (y_i - \bar{y})(\hat{y}_i - \bar{\hat{y}})}{\sqrt{\su
 - A value of 1 indicates a perfect linear relationship.
 
 $$R^2 = 1 - \frac{\sum_{i=1}^{n} (y_i - \hat{y}_i)^2}{\sum_{i=1}^{n} (y_i - \bar{y})^2}$$
+
+## Linearity {auto-animate=true}
+
+The more linear the relationship between observed and predicted values, the better the model.
+
 **Lin's concordance correlation coefficient ($\rho_c$)**:
 
 - A measure of agreement between two variables (based on covariance, variances, and difference in means).
@@ -627,18 +668,21 @@ ggplot(df_long, aes(x, y)) +
   geom_blank() 
 ```
 
-## Limitations
+## Limitations 
 
-No one metric is perfect.
+<br>
 
-Each prediction below has an LCCC of 0.6.
+No one metric is perfect, so we must use multiple metrics to test prediction quality AND always plot predicted vs observed.
 
-[Wadoux and Minasny 2024](https://www.sciencedirect.com/science/article/pii/S1574954124003625)
+
+
+## Limitations 
+
+e.g. in the following image from [Wadoux and Minasny 2024](https://www.sciencedirect.com/science/article/pii/S1574954124003625), each prediction below has an LCCC of 0.6.
+
 ![](images/LCCC.jpg)
 
-:::{.callout-tip}
-Use multiple metrics to test prediction quality, and always plot the predicted vs observed.
-:::
+
 
 # Example: Loyn dataset
 
@@ -783,7 +827,9 @@ check_model(full_fit, check = c("vif"))
 
 Use the `step()` function perform backwards stepwise selection. This function uses AIC to select the best model. 
 
-Depending on the dataset splitting, the best model may be different each time we randomly sample the data. In this case we should all have the same results as we set the seed.
+Depending on the dataset splitting, the best model may be different each time we randomly sample the data. In this case we should all have the same results as we set the seed when subsetting.
+
+## Backwards stepwise selection
 
 If we compare to the full model, the adjusted r-squared is slightly higher, and the AIC is lower.
 
@@ -812,7 +858,35 @@ summary(step_fit)
 ## Assumptions - Round 2
 
 ```{r}
-check_model(step_fit, check = c("linearity", "qq", "homogeneity", "outliers", "vif"))
+check_model(step_fit, check = c("linearity"))
+```
+
+## Assumptions - Round 2
+
+```{r}
+check_model(step_fit, check = c("qq"))
+```
+
+
+## Assumptions - Round 2
+
+```{r}
+check_model(step_fit, check = c("homogeneity"))
+```
+
+
+## Assumptions - Round 2
+
+```{r}
+check_model(step_fit, check = c("outliers", "vif"))
+```
+
+## Assumptions - Round 2 using `plot()` function
+
+```{r}
+par(mfrow=c(2,2))
+plot(step_fit)
+par(mfrow=c(1,1))
 ```
 
 # Model validation
@@ -859,13 +933,78 @@ p1 + p2
   
 ```
 
+
+## Training dataset: Confidence Interval 
+
+For our trained model, we can plot the confidence interval to demonstrate the uncertainty in the mean response, with the model overlaid.
+
+```{r}
+#| code-fold: true
+
+train_ci <- predict(step_fit, newdata = loyn_train, interval = "confidence")
+
+p <-
+  ggplot(loyn_train, aes(ABUND, pred)) +
+  geom_point() + 
+  geom_smooth(data = train_ci, aes(fit, lwr), color = "blue", se = F) +
+  geom_smooth(data = train_ci, aes(fit, upr), color = "blue", se = F) +
+  labs(x = "Observed log(Ozone)", y = "Predicted log(Ozone)") +
+  theme_classic()
+
+p + geom_abline(intercept = 0, slope = 1, color = "maroon") # want obs vs pred to be lm
+```
+
+
+## Test dataset: Prediction interval 
+
+For our independent predictions, we can use the prediction interval to give an idea of the precision of the model. 
+
+```{r}
+#| code-fold: true
+
+test_pi <- predict(step_fit, newdata = loyn_test, interval = "prediction")
+
+p <-
+  ggplot(loyn_test, aes(ABUND, pred)) +
+  geom_point() + 
+  geom_smooth(data = test_pi, aes(fit, lwr), color = "red", se = F) +
+  geom_smooth(data = test_pi, aes(fit, upr), color = "red", se = F) +
+  labs(x = "Observed log(Ozone)", y = "Predicted log(Ozone)") +
+  theme_classic()
+p
+```
+
+## Test dataset: Prediction interval coverage
+
+We can also calculate the coverage of the prediction interval. 
+
+Our prediction interval is 95%, so we expect 95% of our predictions to fall within it. 
+
+- < 0.95, intervals are too narrow
+- \ >0.95, intervals are too wide
+- approx 0.95, optimal model
+
+```{r}
+
+covered <- loyn_test$pred >= test_pi[, "lwr"] & loyn_test$pred <= test_pi[, "upr"]
+coverage <- mean(covered)
+
+coverage
+```
+
+::: {.callout-important}
+We don't overlay CI and PI as we did earlier in the lecture because we have training and test datasets. CI is useful for the training set, PI is useful for our test set to indicate prediction quality of new values. 
+:::
+
 ## Calculating metrics - error
 
 Generally the training dataset will have lower error and higher linearity than the test dataset. If this difference is very large -- it suggests the model is not applicable to the test data and overfitting.
 
+<br>
+
 With error -- lower is better. The following all measure error **in the same units as the response variable** (number of birds in each forest patch).
 
-### Mean error
+## Calculating metrics - Mean error
 
 ```{r}
 mean(loyn_train$ABUND - loyn_train$pred) |> round(2)
@@ -874,14 +1013,16 @@ mean(loyn_test$ABUND - loyn_test$pred) |> round(2)
 
 We expect the ME for the training dataset to be near 0 -- a well-fitted linear regression model will have positive and negative residuals balance each other out.
 
-### Mean absolute error
+## Calculating metrics - Mean absolute error
 
 ```{r}
 mean(abs(loyn_train$ABUND - loyn_train$pred)) |> round(2)
 mean(abs(loyn_test$ABUND - loyn_test$pred)) |> round(2)
 ```
 
-### Root mean squared error (`caret` package)
+## Calculating metrics - RMSE
+
+- Root mean squared error via the `caret` package
 
 ```{r}
 RMSE(loyn_train$ABUND, loyn_train$pred) |> round(2)
@@ -894,14 +1035,14 @@ With linearity -- higher is better.
 
 Both training and test datasets perform similarly, which is a good sign the model is not overfitting.
 
-### Pearson's correlation coefficient *r*
+## Linearity metrics - Pearson's correlation coefficient *r*
 
 ```{r}
 cor(loyn_train$ABUND, loyn_train$pred) |> round(2)
 cor(loyn_test$ABUND, loyn_test$pred) |> round(2)
 ```
 
-### R^2^
+## Linearity metrics - R^2^
 
 Can either square the correlation coefficient or use the `R2()` function from the `caret` package.
 
@@ -910,7 +1051,9 @@ R2(loyn_train$ABUND, loyn_train$pred) |> round(2)
 R2(loyn_test$ABUND, loyn_test$pred) |> round(2)
 ```
 
-### Lin's concordance correlation coefficient (CCC) (`epiR` package)
+## Linearity metrics - LCCC (aka CCC) 
+
+- Lin's concordance correlation coefficient via the `epiR` package
 
 ```{r}
 epi.ccc(loyn_train$ABUND, loyn_train$pred)$rho.c$est |> round(2)
@@ -951,6 +1094,8 @@ tibble(
 ) %>%
     knitr::kable(digits = 2)
 ```
+
+<br>
 
 - The model fit for the training dataset is marginally better (slight overfitting, but not a concern)
 - Small differences are also expected due to the small sample size or the chosen `set.seed()`
