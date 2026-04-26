@@ -1,11 +1,72 @@
 ---
-title: "ENVX2001 Lab - Predictive modelling"
-# revised-by: aca
+title: Lab 09
+# revised-by: aca + Liana
 subtitle: ENVX2001 Applied Statistical Methods
 description: The University of Sydney
-date: today
-date-format: "[Semester 1,] YYYY"
+toc: true
+toc-depth: 3
+resources:
+  - data/Loyn_SLR.xlsx
+  - data/california_streamflow.xlsx
 ---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+# Welcome to week 9 - the last week of modelling!
+
+This week's lab will give you some practice testing how well our models predict new values.  
+
+Next week you will start on multivariate approaches.  
+
+## Learning outcomes
+
+This module links to the following unit learning outcomes: 
+
+* LO3. demonstrate proficiency in the use or the statistical programming language R to apply an ANOVA and fit regression models to experimental data
+
+* LO5. interpret the output and understand conceptually how its derived of a regression, ANOVA and multivariate analysis that have been calculated by R
+
+* LO6. write statistical and modelling results as part of a scientific report
+
+In this lab, we will learn how to:
+
+**1. Use the parsimonious models we produced last week to predict new values**
+
+**2. Interpret key prediction quality metrics - do our models model predict well?**
+
+
+## Specific goals
+
+**By the end of this lab, you should be able to:**
+
+- [ ] Fit a multiple linear regression model
+- [ ] Interpret VIF plots and output to determine whether collinearity is a concern in your model
+- [ ] Remove non-significant predictors to produce a more parsimonious model
+- [ ] Compare a full and reduced model using an F-test
+- [ ] Run and interpret stepwise regression and associated output
+- [ ] Compare a full and reduced model using the AIC
+- [ ] Use the results of model comparisons to select the best model for your data
+
+## Preparation
+
+Please work on these exercises by creating your own Quarto file. You are welcome to write your responses up in the style of a report.
+
+### Packages
+
+This lab uses `tidyverse`, `readxl`, `moments`, `psych`, `performance`, `car`. Install any you are missing by running the following **in the console**:
+
+```{r}
+#| eval: false
+
+install.packages(c("car", "tidyverse", "readxl", "moments", "psych", "performance"))
+```
+
+If a package is already installed, R will simply reinstall it — no harm done.
+
+# 1. Variable selection for California streamflow (~ 45 mins)
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
