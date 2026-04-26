@@ -35,14 +35,21 @@ In this lab, we will learn how to:
 
 **1. Use the parsimonious models we produced last week to predict new values**
 
-**2. Interpret key prediction quality metrics - do our models model predict well?**
+**2. Interpret key prediction quality metrics - do our models predict well?**
 
 
 ## Specific goals
 
 **By the end of this lab, you should be able to:**
 
-- [ ] Fit a multiple linear regression model
+- [ ] Subset data into training and test sets
+- [ ] LOOCV?
+- [ ] Obtain measures of prediction quality
+
+**PROVIDE A SET OF CODE FOR EACH METRIC; EITHER AT BEGINNING OR DURING TASK***
+
+
+it a parsimonious multiple linear regression model
 - [ ] Interpret VIF plots and output to determine whether collinearity is a concern in your model
 - [ ] Remove non-significant predictors to produce a more parsimonious model
 - [ ] Compare a full and reduced model using an F-test
@@ -56,46 +63,102 @@ Please work on these exercises by creating your own Quarto file. You are welcome
 
 ### Packages
 
-This lab uses `tidyverse`, `readxl`, `moments`, `psych`, `performance`, `car`. Install any you are missing by running the following **in the console**:
+This lab uses `tidyverse`, `readxl`, `moments`, `psych`, `performance`, `caret`. Install any you are missing by running the following **in the console**:
 
 ```{r}
 #| eval: false
 
-install.packages(c("car", "tidyverse", "readxl", "moments", "psych", "performance"))
+install.packages(c("caret", "tidyverse", "readxl", "moments", "psych", "performance"))
 ```
 
 If a package is already installed, R will simply reinstall it — no harm done.
 
-# 1. Variable selection for California streamflow (~ 45 mins)
+# 1. Making predictions with California streamflow (~ 45 mins)
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-library(tidyverse)
+![Little Lakes Valley in the Eastern Sierra Nevada Mountains outside of Bishop, California. Source: Adobe Stock.](images/AdobeStock_668401555.jpeg)
+Last week we found that precipitation at Lake Sabrina was not a significant predictor of runoff volume near Bishop, California. 
+
+Our Partial F-test between our full and reduced model resulted in a P-value< 0.05, so we failed to reject the null hypothesis. This told us that there was no significant difference between full and reduced models, so we selected the reduced model as it was less complex and therefore more parsimonious.  
+
+Our selected model was: 
+
+```{r}
+
+reduced_model <- lm(runoff_volume ~ pine_creek + rock_creek, data = stream_data)
+
 ```
 
-## Learning Outcomes
+This week we will use this optimal model to predict new values of runoff volume near Bishop, California. 
 
-In this lab, you will work towards achieving learning outcomes
+We will then assess the prediction quality by comparing observed to predicted values and calculating validation metrics to assess how well this model predicts new values. 
 
-## Lab Objectives
+As a recap, the california_streamflow dataset you were analysing contains 43 years of annual precipitation measurements (in mm) taken at (originally) 6 sites in the Owens Valley in California. You will focus on only 3 variables.
 
-In this lab, we will:
+The data is in the **california_streamflow.xlsx** file.
 
-- []
-- []
+Variables are as follows: 
+
+* `lake_sabrina`: Precipitation recorded at Lake Sabrina (mm)
+* `pine_creek`: Precipitation recorded at Big Pine Creek (mm), 
+* `rock_creek`: Precipitation recorded at Rock Creek (mm)
+* `runoff_volume`: Stream runoff volume measured at a site near Bishop, California (ML/year). This will be the response variable.
+
+Note the variables have already been log-transformed to increase normality of the residuals in the regressions.
+
+Data source: 
+Hollett, K.J., Danskin, F.M., McCaffrey, W.F., and Walti, S.L., 1991. Geology and water resources of Owens Valley, California. U.S. Geological Survey Water-Supply Paper 2370-H.
 
 
-:::{.callout-tip}
-Please work on this exercise by creating your own R Markdown file.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+::: callout-tip
+Before moving on to the next section, take a short break and stretch your legs.
 :::
 
-## Exercise 1:
+# 2. Making predictions with the plant aridity data (~ 45 mins)
 
-## Exercise 2:
+![Image of invasive capeweed. Source: Adobe Stock.](images/AdobeStock_659883118.jpeg)
 
-## Take home exercise:
+We used this dataset last week as an example of model selection. 
 
-## Review
+As identified by the partial F-test and stepwise regression last week, we found that the reduced model wass most appropriate, which includes `growth rate` and `chlorogenic_acid` as the predictors. This reduction in predictors made our model more significant, though it only explained 7% of variation in log(rel_fitness). 
 
-### Attribution 
+**We will use this data to get some practice making predictions, and to see what happens when we use a model that doesn't e** UP TO HERE
+
+
+This dataset examines the adaptation of invasive capeweed (*Arctotheca calendula*) populations to aridity gradients across southern Australia. A common garden experiment was conducted from 2018-2019 with populations sourced from varying aridity levels, subjecting them to wet and dry treatments to measure traits related to drought escape, avoidance, and tolerance. 
+
+The dataset has been reduced to contain only the variables you will need to fit in the model. Furthermore, only the samples that received the wet treatment will be used for this analysis (n = 89 observations). 
+
+The dataset is in the *plant_aridity.csv* file. 
+
+Variables are as follows: 
+
+* `growth_rate`: growth rate measured as differences in # of rosette leaves between zero and eight weeks after transplanting
+* `days_to_flower`: days to first flowering since transplant (days)
+* `specific_leaf_area`: specific leaf area as [leaf area (cm2) / dry mass (g)]
+* `root_shoot_ratio`: root-to-shoot ratio [root mass/shoot mass]
+* `chlorogenic_acid`: concentration of chlorogenic acid (mg/g frwt sample)
+* `rel_fitness`: Relative fitness of each plant, seed count divided by the mean seed count
+
+`rel_fitness` will be the response variable in your models, and the other variables will be the predictor variables.
+
+Data source: Uesugi, Akane (2022). Data from: Multivariate selection mediated by aridity predicts divergence of drought resistant traits along natural aridity gradients of an invasive weed [Dataset]. Dryad. https://doi.org/10.5061/dryad.tht76hf17
+
+Paper: Carvalho C, Davis R, Connallon T, Gleadow RM, Moore JL, Uesugi A. Multivariate selection mediated by aridity predicts divergence of drought-resistant traits along natural aridity gradients of an invasive weed. New Phytol. 2022 May;234(3):1088-1100. doi: 10.1111/nph.18018.
+
+
 
