@@ -18,6 +18,28 @@ library(tidyverse)
 
 **NEED TO CREATE NEW TUT!!! MAKE CONSISTENT FROM LAST WEEK**
 
+Why are we separating the dataset?
+
+What if we want to know how well the model predicts new data, i.e. data that we did not use to fit the model?
+
+We build the model with one dataset (calibration).
+
+We validate the model's predictions with an independent dataset.
+
+If the model is good, we expect the predictions to be close to the actual values.
+
+If the model is bad, we expect the predictions to be far from the actual values.
+
+The dataset can be obtained by:
+
+Collecting new data.
+
+Splitting the existing data into two parts before model building.
+
+Data splitting
+
+Cross-validation
+
 *use cars dataset?*
 
 This week's lecture introduced you to variable selection and how to produce a more parsimonious model. We explored developing our models by fitting the full model, checking assumptions and deciding whether anything needed transformation. Once we were happy assumptions were met we could consider whether all of our predictors were useful in explaining the variation in our response variable.

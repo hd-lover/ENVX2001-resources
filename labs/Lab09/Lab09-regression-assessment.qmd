@@ -6,8 +6,8 @@ description: The University of Sydney
 toc: true
 toc-depth: 3
 resources:
-  - data/Loyn_SLR.xlsx
   - data/california_streamflow.xlsx
+  - data/plant_aridity.csv
 ---
 
 ```{r setup, include=FALSE}
@@ -63,15 +63,17 @@ Please work on these exercises by creating your own Quarto file. You are welcome
 
 ### Packages
 
-This lab uses `tidyverse`, `readxl`, `moments`, `psych`, `performance`, `caret`. Install any you are missing by running the following **in the console**:
+This lab uses `tidyverse`, `readxl`, `moments`, `psych`, `performance`, `caret`, `epiR`. Install any you are missing by running the following **in the console**:
 
 ```{r}
 #| eval: false
 
-install.packages(c("caret", "tidyverse", "readxl", "moments", "psych", "performance"))
+install.packages(c("epiR", "caret", "tidyverse", "readxl", "moments", "psych", "performance"))
 ```
 
 If a package is already installed, R will simply reinstall it — no harm done.
+
+
 
 # 1. Making predictions with California streamflow (~ 45 mins)
 
@@ -92,7 +94,9 @@ This week we will use this optimal model to predict new values of runoff volume 
 
 We will then assess the prediction quality by comparing observed to predicted values and calculating validation metrics to assess how well this model predicts new values. 
 
-As a recap, the california_streamflow dataset you were analysing contains 43 years of annual precipitation measurements (in mm) taken at (originally) 6 sites in the Owens Valley in California. You will focus on only 3 variables.
+## Data recap
+
+The california_streamflow dataset you were analysing contains 43 years of annual precipitation measurements (in mm) taken at (originally) 6 sites in the Owens Valley in California. You will focus on only 3 variables.
 
 The data is in the **california_streamflow.xlsx** file.
 
@@ -108,9 +112,276 @@ Note the variables have already been log-transformed to increase normality of th
 Data source: 
 Hollett, K.J., Danskin, F.M., McCaffrey, W.F., and Walti, S.L., 1991. Geology and water resources of Owens Valley, California. U.S. Geological Survey Water-Supply Paper 2370-H.
 
+##
+::: {.question}
+### Exercise 1 - data splitting and model fitting
 
 
 
+
+:::
+
+:::: {.content-visible when-profile="solution"}
+::: {.ans}
+#### Solution
+
+##### *(i)* Read the data in. What is the sample size? How do you think the sample size might impact the prediction quality?
+
+Read in the data
+```{r}
+library(readxl)
+
+# read in the data
+stream_data <- read_xlsx("data/california_streamflow.xlsx", "streamflow")
+
+library(tidyverse)
+glimpse(stream_data) # check the data
+
+```
+
+From the glimpse() or str() function, we can see that the sample size (number of rows in this case) is 43. 
+
+Generally, the more observations you use to train the model, the more accurate the predictions are expected to be. Our 43 observations is quite a small sample size and when we go to split this into training and test subsets, the training set will be smaller, so we need to understand our prediction quality may not be as good compared to a larger sample size. 
+
+We will continue with splitting here, but a potentially better validation method would be Leave-One-Out Cross-validation. 
+
+##### *(ii)* Split the data into training and test subsets. We recommend an 80/20 training/test split. 
+
+```{r}
+set.seed(42)
+
+indexes <- sample(1:nrow(stream_data), size = 0.2 * nrow(stream_data)) # randomly sample 20% of rows in the dataset
+
+stream_train <- stream_data[-indexes, ] # remove the 20% - training dataset
+stream_test <- stream_data[indexes, ] # select the 20% - test dataset
+```
+
+##### *(iii)* Check the sample size and distribution of each subset. Does the sample size of each subset reflect the 80/20 split?  Are the distributions (mean, median, min, max) similar between the two subsets?
+
+```{r}
+str(stream_train)
+str(stream_test)
+
+summary(stream_train)
+summary(stream_test)
+```
+
+Looks good, 35 obs in training set, 8 in test set. This is what we are after.
+
+We can see from the output of the `summary()` function that the distribution of each variable is similar between training and test subsets. 
+
+Now we can fit the model to the steam_train subset. 
+
+
+##### *(iv)* Fit the linear model to the training subset using runoff_volume as the response, and pine_creek and rock_creek as the predictor variables. 
+
+```{r}
+stream_train_fit <- lm(runoff_volume ~ pine_creek + rock_creek, data = stream_train)
+```
+
+We fit the model on training set ONLY as we do not want the model to be built using any of the test set. It needs to remain unseen by the model. That way we can gauge how well our model can predict new values. 
+
+##### *(v)* Check whether assumptions have been met for your trained model. Have the assumptions been met? or do we need to explore transformation?
+
+```{r}
+performance::check_model(stream_train_fit, check = c("linearity", "qq", "homogeneity", "outliers"))
+
+car::vif(stream_train_fit)
+```
+
+```{r}
+
+par(mfrow=c(2,2))
+plot(stream_train_fit)
+par(mfrow=c(1,1))
+```
+ 
+
+* Collinearity: VIF is approx 5, so collinearity could be an issue, but it has not exceeded the less conservative accepted threshold of 10, so we don't need to remove anything. 
+
+* Linear relationship: Points are evenly scattered in the plot, line is somewhat flat
+
+* Independence: As far as we know, there is no issue. 
+ 
+* Normality: Points mostly follow the line, so all good
+
+* Equal variances: No fanning, points evenly scattered. 
+
+* Outliers: Leverage plot indicates no points outside Cook's distance so no issues here. 
+
+Assumptions look ok, let's continue!
+
+##### *(vi)* Use the model to predict using the training set and then using the test set. 
+
+Then use model to predict
+
+```{r}
+stream_train$pred <- predict(stream_train_fit, newdata = stream_train)
+
+stream_test$pred <- predict(stream_train_fit, newdata = stream_test)
+```
+
+
+Have a look at what the function has produced. We should see a new column at the end of both dataframes containing the predictions from the model. 
+
+```{r}
+head(stream_train)
+
+head(stream_test)
+```
+
+how good are our predictions??
+
+1. Plot observed vs predicted
+
+```{r}
+#| code-fold: true
+p1 <- ggplot(stream_train, aes(runoff_volume, pred)) +
+  geom_point() +
+  geom_abline(intercept = 0, slope = 1, color = "red") +
+  labs(x = "Observed runoff volume (ML/year)", y = "Predicted runoff volume (ML/year)",
+       title = "Training") +
+  theme_classic()
+
+p2 <- ggplot(stream_test, aes(runoff_volume, pred)) +
+  geom_point() +
+  geom_abline(intercept = 0, slope = 1, color = "red") +
+  labs(x = "Observed runoff volume (ML/year)", y = "Predicted runoff volume (ML/year)",
+       title = "Test") +
+  theme_classic()
+
+p1 + p2
+```
+
+
+2. Confidence interval for training, Pred interval for test
+
+```{r}
+train_ci <- predict(stream_train_fit, newdata = stream_train, interval = "confidence")
+test_pi <- predict(stream_train_fit, newdata = stream_test, interval = "prediction")
+```
+
+Plot the CI and PI
+
+```{r}
+
+p1 <-
+  ggplot(stream_train, aes(runoff_volume, pred)) +
+  geom_point() + 
+  geom_smooth(data = train_ci, aes(fit, lwr), color = "blue", se = F) +
+  geom_smooth(data = train_ci, aes(fit, upr), color = "blue", se = F) +
+  geom_abline(intercept = 0, slope = 1, color = "maroon")  # 1:1 line
+  labs(x = "Observed runoff volume (ML/year)", y = "Predicted runoff volume (ML/year)") +
+  theme_classic()
+  
+
+p2 <-
+  ggplot(stream_test, aes(runoff_volume, pred)) +
+  geom_point() + 
+  geom_smooth(data = test_pi, aes(fit, lwr), color = "red", se = F) +
+  geom_smooth(data = test_pi, aes(fit, upr), color = "red", se = F) +
+  geom_abline(intercept = 0, slope = 1, color = "maroon")  # 1:1 line
+  labs(x = "Observed runoff volume (ML/year)", y = "Predicted runoff volume (ML/year)") +
+  theme_classic()  
+  
+  
+p1 + p2
+
+
+```
+
+
+Error metrics
+
+to check: values themselves, PLUS compare between training and test sets
+If big difference between training and test, shows doesn't predict new values well (unstable)
+it suggests the model is not applicable to the test data and overfitting.
+
+
+Mean error
+
+```{r}
+mean(stream_train$ABUND - stream_train$pred) |> round(2)
+mean(stream_test$ABUND - stream_test$pred) |> round(2)
+```
+
+We expect the ME for the training dataset to be near 0 -- a well-fitted linear regression model will have positive and negative residuals balance each other out.
+
+
+Mean Absolute error
+
+```{r}
+mean(abs(stream_train$ABUND - stream_train$pred)) |> round(2)
+mean(abs(stream_test$ABUND - stream_test$pred)) |> round(2)
+```
+
+
+RMSE
+
+- Root mean squared error via the `caret` package
+
+```{r}
+RMSE(stream_train$ABUND, stream_train$pred) |> round(2)
+RMSE(stream_test$ABUND, stream_test$pred) |> round(2)
+```
+
+
+Error: closer to zero is better
+
+
+Linearity metrics - Pearson's correlation coefficient *r*
+
+```{r}
+cor(stream_train$ABUND, stream_train$pred) |> round(2)
+cor(stream_test$ABUND, stream_test$pred) |> round(2)
+```
+
+
+Linearity metrics - R^2^
+
+Can either square the correlation coefficient or use the `R2()` function from the `caret` package.
+
+```{r}
+R2(stream_train$ABUND, stream_train$pred) |> round(2)
+R2(stream_test$ABUND, stream_test$pred) |> round(2)
+
+
+```
+
+- Lin's concordance correlation coefficient via the `epiR` package
+
+```{r}
+epi.ccc(stream_train$ABUND, stream_train$pred)$rho.c$est |> round(2)
+epi.ccc(stream_test$ABUND, stream_test$pred)$rho.c$est |> round(2)
+```
+
+
+
+
+
+
+:::
+
+
+
+
+
+
+
+
+
+
+
+:::: {.content-visible when-profile="solution"}
+::: {.ans}
+#### Solution
+
+
+
+
+
+:::
+::::
 
 
 
@@ -134,10 +405,11 @@ Before moving on to the next section, take a short break and stretch your legs.
 
 We used this dataset last week as an example of model selection. 
 
-As identified by the partial F-test and stepwise regression last week, we found that the reduced model wass most appropriate, which includes `growth rate` and `chlorogenic_acid` as the predictors. This reduction in predictors made our model more significant, though it only explained 7% of variation in log(rel_fitness). 
+As identified by the partial F-test and stepwise regression last week, we found that the reduced model was most appropriate, which includes `growth rate` and `chlorogenic_acid` as the predictors. This reduction in predictors made our model more significant, though it only explained 7% of variation in log(rel_fitness). 
 
-**We will use this data to get some practice making predictions, and to see what happens when we use a model that doesn't e** UP TO HERE
+Although the model does not explain much variation, we will use this data to get some practice making predictions, and to see what happens when we use a sub-optimal model. 
 
+## Data recap
 
 This dataset examines the adaptation of invasive capeweed (*Arctotheca calendula*) populations to aridity gradients across southern Australia. A common garden experiment was conducted from 2018-2019 with populations sourced from varying aridity levels, subjecting them to wet and dry treatments to measure traits related to drought escape, avoidance, and tolerance. 
 
@@ -162,3 +434,42 @@ Paper: Carvalho C, Davis R, Connallon T, Gleadow RM, Moore JL, Uesugi A. Multiva
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Conclusion
+
+## Closing thoughts
+
+You have done a great job investigating how well our chosen models predict new values of the response. 
+
+**As you may have noticed in this lab, models are rarely perfect, which is okay; it is our job to find the best way to explain variation in our response variables by exploring alternatives.**
+
+Thank you for all of your hard work and participation in this module. Keep up the great work and enjoy learning about multivariate approaches from next week!
+
+If you have any questions, please approach your tutors or you are welcome to post to the Ed Discussion board.
+
+### Attribution
+
+This lab was developed using resources that are available under a
+[Creative Commons Attribution 4.0 International license], made available
+on the [SOLES Open Educational Resources repository].
+
+  [Creative Commons Attribution 4.0 International license]: http://creativecommons.org/licenses/by/4.0/
+  [SOLES Open Educational Resources repository]: https://github.com/usyd-soles-edu/
