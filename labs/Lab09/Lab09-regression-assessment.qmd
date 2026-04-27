@@ -15,6 +15,12 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 ```
 
+```{r}
+#| include: false
+library(readxl)
+stream_data <- read_xlsx("data/california_streamflow.xlsx", "streamflow")
+```
+
 # Welcome to week 9 - the last week of modelling!
 
 This week's lab will give you some practice testing how well our models predict new values.  
@@ -236,6 +242,9 @@ head(stream_train)
 head(stream_test)
 ```
 
+:::
+
+::::
 
 ##
 ::: {.question}
@@ -459,7 +468,7 @@ There is a difference between metrics between the training and test subsets, wit
 
 :::
 
-
+::::
 
 ::: callout-tip
 Before moving on to the next section, take a short break and stretch your legs.
@@ -633,12 +642,15 @@ head(plant_train)
 head(plant_test)
 ```
 
+:::
+
+::::
 
 ##
 ::: {.question}
 ### Exercise 2 - How well does our model predict new values?
 
-*(i)* Before we continue, we will need to backtransform our predicted and observed values for the training and test subsets by exponentiating them. 
+*(i)* Before we continue, we will need to backtransform our predicted and observed values for the training and test subsets by exponentiating them.
 
 *(ii)* Plot observed vs predicted for the training and test subsets. Do the points follow the 1:1 line? Do the points sit close to the line, or are they scattered about the plot area?
 
@@ -868,6 +880,8 @@ As we can see from Table 2, The errors are close to zero, but are still relative
 There is a difference between metrics between the training and test subsets, with the training predictions having a lower error and higher r^2^ and LCCC values compared to the test predictions. This suggests that our model may be overfitted to the training data, and may not predict new values as well as it predicts the training data.
 
 :::
+
+::::
 
 # Conclusion
 
