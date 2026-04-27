@@ -471,6 +471,334 @@ Data source: Uesugi, Akane (2022). Data from: Multivariate selection mediated by
 Paper: Carvalho C, Davis R, Connallon T, Gleadow RM, Moore JL, Uesugi A. Multivariate selection mediated by aridity predicts divergence of drought-resistant traits along natural aridity gradients of an invasive weed. New Phytol. 2022 May;234(3):1088-1100. doi: 10.1111/nph.18018.
 
 
+##
+::: {.question}
+### Exercise 1 - Making predictions
+
+
+
+
+:::
+
+:::: {.content-visible when-profile="solution"}
+::: {.ans}
+#### Solution
+
+##### *(i)* Read the data in. What is the sample size? How do you think the sample size might impact the prediction quality?
+
+Read in the data
+```{r}
+
+# read in the data
+plant_aridity <- read.csv("data/plant_aridity.csv")
+
+library(tidyverse)
+glimpse(plant_aridity) # check the data
+
+```
+
+From the glimpse() or str() function, we can see that the sample size (number of rows in this case) is 89. This is a much better sample size than 43. 
+
+##### *(ii)* Split the data into training and test subsets. We recommend an 80/20 training/test split. 
+
+```{r}
+set.seed(42)
+
+indexes <- sample(1:nrow(plant_aridity), size = 0.2 * nrow(plant_aridity)) # randomly sample 20% of rows in the dataset
+
+plant_train <- plant_aridity[-indexes, ] # remove the 20% - training dataset
+plant_test <- plant_aridity[indexes, ] # select the 20% - test dataset
+```
+
+##### *(iii)* Check the sample size and distribution of each subset. Does the sample size of each subset reflect the 80/20 split?  Are the distributions (mean, median, min, max) similar between the two subsets?
+
+```{r}
+str(plant_train)
+str(plant_test)
+
+summary(plant_train)
+summary(plant_test)
+```
+
+Looks good, 72 obs in training set, 17 in test set. This is what we are after.
+
+We can see from the output of the `summary()` function that the distribution of each variable is similar between training and test subsets. This dataset contains all of the variables we used last week, but we only need to check the distributions of log(rel_fitness), growth_rate and chlorogenic_acid as these are the variables we will be using in our model.
+
+Now we can fit the model to the plant_train subset. 
+
+
+##### *(iv)* Fit the linear model to the training subset using log(rel_fitness) as the response, and growth_rate and chlorogenic_acid as the predictor variables. 
+
+```{r}
+plant_train_fit <- lm(log(rel_fitness) ~ growth_rate + chlorogenic_acid, data = plant_train)
+```
+
+We fit the model on training set ONLY as we do not want the model to be built using any of the test set. It needs to remain unseen by the model. That way we can gauge how well our model can predict new values. 
+
+##### *(v)* Check whether assumptions have been met for your trained model. Have the assumptions been met? or do we need to explore transformation?
+
+```{r}
+performance::check_model(plant_train_fit, check = c("linearity", "qq", "homogeneity", "outliers"))
+
+car::vif(plant_train_fit)
+```
+
+```{r}
+
+par(mfrow=c(2,2))
+plot(plant_train_fit)
+par(mfrow=c(1,1))
+```
+ 
+ 
+ 
+ 
+ 
+
+
+
+
+**UP TO HERE**
+
+
+
+
+
+ 
+
+* Collinearity: VIF is 1 for both growth_rate and chlorogenic_acid, so collinearity is not an issue.
+
+* Linear relationship: Points are evenly scattered in the plot, line is somewhat flat
+
+* Independence: As far as we know, there is no issue. 
+ 
+* Normality: Points mostly follow the line, so all good
+
+* Equal variances: No fanning, points evenly scattered. 
+
+* Outliers: Leverage plot indicates no points outside Cook's distance so no issues here. 
+
+Assumptions look ok, let's continue!
+
+##### *(vi)* Use the model to predict using the training set and then using the test set.    
+
+Then use model to predict
+
+```{r}
+plant_train$pred <- predict(plant_train_fit, newdata = plant_train)
+
+plant_test$pred <- predict(plant_train_fit, newdata = plant_test)
+```
+
+
+##### *(vii)* Have a look at what the `predict()` function has produced using the `head()` function. We should see a new column at the end of both dataframes containing the predictions from the model. 
+
+```{r}
+head(plant_train)
+
+head(plant_test)
+```
+
+
+##
+::: {.question}
+### Exercise 2 - How well does our model predict new values?
+
+
+
+
+:::
+
+:::: {.content-visible when-profile="solution"}
+::: {.ans}
+#### Solution
+
+##### *(i)* Plot observed vs predicted for the training and test subsets. Do the points follow the 1:1 line? Do the points sit close to the line, or are they scattered about the plot area?
+
+```{r}
+#| code-fold: true
+p1 <- ggplot(plant_train, aes(runoff_volume, pred)) +
+  geom_point() +
+  geom_abline(intercept = 0, slope = 1, color = "red") +
+  labs(x = "Observed runoff volume (ML/year)", y = "Predicted runoff volume (ML/year)",
+       title = "Training") +
+  theme_classic()
+
+p2 <- ggplot(plant_test, aes(runoff_volume, pred)) +
+  geom_point() +
+  geom_abline(intercept = 0, slope = 1, color = "red") +
+  labs(x = "Observed runoff volume (ML/year)", y = "Predicted runoff volume (ML/year)",
+       title = "Test") +
+  theme_classic()
+
+p1 + p2
+```
+
+For both training and test plots, we see the points follow the 1:1 line, indicating agreement between observed and predicted. 
+
+If it were perfect prediction, we would expect the points to fit the 1:1 line exactly. We see our points are scattered a bit further away from the line, so we expect to see a moderate fit indicated by our metrics. 
+
+##### *(ii)* Overlay the confidence interval onto the training predicted vs observed plot. What does this tell us?
+
+```{r}
+# Calculate the CI for the training set
+train_ci <- predict(plant_train_fit, newdata = plant_train, interval = "confidence")
+
+ggplot(plant_train, aes(runoff_volume, pred)) +
+  geom_point() + 
+  geom_smooth(data = train_ci, aes(fit, lwr), color = "blue", se = F) +
+  geom_smooth(data = train_ci, aes(fit, upr), color = "blue", se = F) +
+  geom_abline(intercept = 0, slope = 1, color = "maroon") + # 1:1 line
+  labs(x = "Observed runoff volume (ML/year)", y = "Predicted runoff volume (ML/year)") +
+  theme_classic()
+  
+```
+
+Plotting the Confidence interval tells us that given the parameters, we are 95% certain that the mean response lies within the CI. The closer the CI is to the line, the better our model is fitted to the data. 
+
+If the CI widens in certain regions of the plot, it may indicate model instabilty or a lack of points in that region. We can see in our plot that the CI does widen slightly towards the lower and upper regions of the plot area.
+
+NOTE: we only overlay the CI onto the plot produced for the training set as this is the data that our model was fitted to. The CI can only give us information about how well the model is estimating the true mean, not how well the model is predicting. 
+
+##### *(iii)* Overlay the prediction interval onto the predicted vs observed plot produced using the test subset. What does this tell us?
+
+```{r}
+test_pi <- predict(plant_train_fit, newdata = plant_test, interval = "prediction")
+
+ggplot(plant_test, aes(runoff_volume, pred)) +
+  geom_point() + 
+  geom_smooth(data = test_pi, aes(fit, lwr), color = "red", se = F) +
+  geom_smooth(data = test_pi, aes(fit, upr), color = "red", se = F) +
+  geom_abline(intercept = 0, slope = 1, color = "maroon")  + # 1:1 line +
+  labs(x = "Observed runoff volume (ML/year)", y = "Predicted runoff volume (ML/year)") +
+  theme_classic()  
+  
+```
+
+The predictions obtained using the test data shows us how well the model can predict new values. This is possible because the model was only fitted with the training data, not the test data. 
+
+We overlay the prediction interval onto the predicted vs observed plot for the test set, so we can see how many predictions fell within the prediction interval. At a 95% PI, we expect 95% of points to fall within the range. Fewer points falling within the range would indicate that the model is not very precise. 
+
+In our plot, we can see that all of the points lie within the PI, which is good. The PI tells us likely range of where predictions will lie and in this case, as all predictions lie within the range, the model is looking like it predicts with a decent amount of precision. 
+
+
+##### *(iv)* Calculate the mean error for predictions obtained with the training and test subsets. Are they similar to each other? Is the Mean Error close to 0? 
+
+```{r}
+mean(plant_train$runoff_volume - plant_train$pred) |> round(2)
+mean(plant_test$runoff_volume - plant_test$pred) |> round(2)
+```
+
+Mean error is close to zero for both and the values are similar between training and test subsets, indicating a stable model (no evidence of overfitting).
+
+Close to zero tells us the model isn't over- or under-predicting. 
+
+Positive values indicate the model is over-predicting
+
+Negative values indicate under-prediction.
+
+From our predicted vs observed plot, we can see most of the points sit under the 1:1 line, indicating that the model is overpredicting
+
+
+##### *(v)* Calculate the Mean Absolute Error. Are the values close to zero? what does this tell us?
+
+```{r}
+mean(abs(plant_train$runoff_volume - plant_train$pred)) |> round(2)
+mean(abs(plant_test$runoff_volume - plant_test$pred)) |> round(2)
+```
+
+The MAE is close to zero for predictions obtained for the test and training sets. This tells us that the prediction error is low overall. Mean Error gives us direction, but MAE can give us a better idea of the magnitude of the error. 
+
+
+##### *(vi)* Calculate the Root Mean Square Error. Are the values close to zero? what additional information can this tell us about the accuracy of our predictions?
+
+HINT: you can use the `RMSE()` function from the `caret` package
+
+```{r}
+library(caret)
+RMSE(plant_train$runoff_volume, plant_train$pred) |> round(2)
+RMSE(plant_test$runoff_volume, plant_test$pred) |> round(2)
+```
+
+if RMSE is much larger than MAE, then model is making huge mistakes. In our case, the values aren't too different to the MAE and they care close to zero so it tells us the model is predicting well. We can also see the values are similar between training and test predictions, indicating a stable model. 
+
+##### *(vii)* Calculate the r^2^ value. What does this metric tell us about our model? Is the r^2^ good for our predictions?
+
+HINT: you can either calculate this by squaring the correlation coefficient between observed and predicted, or you can use the `R2()` function from the `caret` package.
+
+Option 1: squaring the correlation coefficient: 
+
+```{r}
+(cor(plant_train$runoff_volume, plant_train$pred))^2 |> round(2)
+(cor(plant_test$runoff_volume, plant_test$pred))^2 |> round(2)
+```
+
+Option 2: `R2()` function from the `caret` package.
+
+```{r}
+R2(plant_train$runoff_volume, plant_train$pred) |> round(2)
+R2(plant_test$runoff_volume, plant_test$pred) |> round(2)
+```
+
+The r^2^ tells us about the strength of the relationship between observed and predicted values. The closer to 1, the better. 
+
+In this case, we see that the r^2^ for the training set is 0.89 and the test set is 0.81. 
+
+Both values are close to 1, indicating a strong relationship. 
+
+The r^2^ for the training set is higher than the test set, suggesting the model may be overfitted and may not predict new values too well. 
+
+This is different to our narrative with our error metrics so far, which highlights the importance of not relying on a single metric to make decisions. 
+
+##### *(viii)* Calculate Lin's Correlation Coefficient for our predictions. What does this metric tell us about our model? How is this different from our r^2^ value? Do our values indicate strong agreement between observed and predicted for our training and test predictions?
+
+HINT: you can calculate the LCCC via the `epiR` package
+
+```{r}
+library(epiR)
+epi.ccc(plant_train$runoff_volume, plant_train$pred)$rho.c$est |> round(2)
+epi.ccc(plant_test$runoff_volume, plant_test$pred)$rho.c$est |> round(2)
+```
+
+LCCC tells us about the strength of agreement between predicted and observed, or how well the points fit the 1:1 line in our plot. This is a bit different between our r^2^ which instead tells us about the strength of the linear relationship between predicted and observed, and it may not always follow the 1:1 line. 
+
+The LCCC for the predictions obtained using the training set is 0.94 and the LCCC for the predictions obtained using the test set is 0.87. 
+
+Both of these values indicate a strong level of agreement between predicted and observed. 
+
+##### *(ix)* Create a summary table of the metrics above and use it to make a conclusion about the prediction quality of our model. 
+
+```{r}
+
+training <- c(mean(plant_train$runoff_volume - plant_train$pred) |> round(3),
+          mean(abs(plant_train$runoff_volume - plant_train$pred)) |> round(3),
+          RMSE(plant_train$runoff_volume, plant_train$pred) |> round(3),
+          R2(plant_train$runoff_volume, plant_train$pred) |> round(3),
+          epi.ccc(plant_train$runoff_volume, plant_train$pred)$rho.c$est |> round(3))
+
+test <- c(mean(plant_test$runoff_volume - plant_test$pred) |> round(3),
+          mean(abs(plant_test$runoff_volume - plant_test$pred)) |> round(3),
+          RMSE(plant_test$runoff_volume, plant_test$pred) |> round(3),
+          R2(plant_test$runoff_volume, plant_test$pred) |> round(3),
+          epi.ccc(plant_test$runoff_volume, plant_test$pred)$rho.c$est |> round(3))
+
+table <- data.frame(training, test)
+colnames(table)<- c("Training", "Test")
+
+labels <- c("Mean Error", "MAE", "RMSE", "R^2^", "LCCC")
+```
+
+```{r}
+#| table.caption: "Table 1. Summary of prediction quality metrics for training and test predictions."
+knitr::kable(t(table), col.names = labels, align = "c")
+
+```
+
+As we can see from Table 1, The errors are close to zero and the r^2^ and LCCC values are close to 1, indicating that our model is predicting new values with a good level of accuracy and precision.
+
+There is a difference between metrics between the training and test subsets, with the training predictions having a lower error and higher r^2^ and LCCC values compared to the test predictions. This suggests that our model may be overfitted to the training data, and may not predict new values as well as it predicts the training data.
+
+:::
 
 
 
