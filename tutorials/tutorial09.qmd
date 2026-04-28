@@ -15,8 +15,28 @@ library(tidyverse)
 
 ## Welcome to week 9! {.unnumbered}
 
+This week's lecture introduced you to how we use models for prediction and how we assess the quality of the predictions.We will follow similar steps in today's tutorial and lab class. 
 
-**NEED TO CREATE NEW TUT!!! MAKE CONSISTENT FROM LAST WEEK**
+
+In this tutorial we will cover the key steps to fit a model, use it to make predictions, and then check assumptions, and select the most appropriate model.
+
+**You will learn how to:**
+
+1.  Split data into training and test subsets
+2.  Fit your model to the training data and check assumptions are met
+3.  Use the trained model to make predictions using the training and the test subsets
+4.  Observe the quality of the predictions using appropriate statistics and plots
+
+
+# Data splitting
+
+Making predictions involves substituting in new values of x into our model equation to get new values of y.
+
+We could use single values for each of our predictor variables and substitute each into the equation, but this is unrealistic and time consuming when we have a large number of observations. We therefore use a dataset containing our new observations of x to make the predictions and feed this into our model. 
+
+To understand the true capability of our model to predict new values of y from values of x that have not been seen by the model, we need to test this on data that has not been used to fit the model. This is because if we test our model on the same data that we used to fit the model, we are likely to get an over-optimistic estimate of the model's predictive performance, as the model has already seen this data and may have overfitted to it.
+
+To understand how well our model can predict new values of y from values of x which have not been used to fit the modeTo understand how well our model can predict new values of y from new values of x, there are a number of metrics and plots we can use, but 
 
 Why are we separating the dataset?
 
