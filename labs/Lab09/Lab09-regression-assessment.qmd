@@ -41,9 +41,9 @@ This module links to the following unit learning outcomes:
 
 In this lab, we will learn how to:
 
-**1. Use the parsimonious models we produced last week to predict new values**
+1. Use the parsimonious models we produced last week to predict new values
 
-**2. Interpret key prediction quality metrics - do our models predict well?**
+2. Interpret key prediction quality metrics - do our models predict well?
 
 
 ## Specific goals
@@ -73,7 +73,14 @@ install.packages(c("epiR", "caret", "tidyverse", "readxl", "moments", "psych", "
 
 If a package is already installed, R will simply reinstall it — no harm done.
 
+### Downloads
 
+| File | Used in | Download |
+|---|---|---|
+| `california_streamflow.xlsx` | Section 1 | [Download](data/california_streamflow.xlsx) |
+| `plant_aridity.csv` | Section 2 | [Download](data/plant_aridity.csv) |
+
+Save both files into a folder called `data` inside your project folder.
 
 # 1. Making predictions with California streamflow (~45 min)
 
@@ -264,15 +271,21 @@ head(stream_test)
 
 *(vi)* Calculate the Root Mean Square Error. Are the values close to zero? what additional information can this tell us about the accuracy of our predictions?
 
+::: {.column-margin}
 HINT: you can use the `RMSE()` function from the `caret` package
+:::
 
 *(vii)* Calculate the r^2^ value. What does this metric tell us about our model? Is the r^2^ good for our predictions?
 
+::: {.column-margin}
 HINT: you can either calculate this by squaring the correlation coefficient between observed and predicted, or you can use the `R2()` function from the `caret` package.
+:::
 
 *(viii)* Calculate Lin's Correlation Coefficient for our predictions. What does this metric tell us about our model? How is this different from our r^2^ value? Do our values indicate strong agreement between observed and predicted for our training and test predictions?
 
+::: {.column-margin}
 HINT: you can calculate the LCCC via the `epiR` package
+:::
 
 *(ix)* Create a summary table of the metrics above and use it to make a conclusion about the prediction quality of our model. 
 
@@ -382,7 +395,9 @@ The MAE is close to zero for predictions obtained for the test and training sets
 
 ##### *(vi)* Calculate the Root Mean Square Error. Are the values close to zero? what additional information can this tell us about the accuracy of our predictions?
 
+::: {.column-margin}
 HINT: you can use the `RMSE()` function from the `caret` package
+:::
 
 ```{r}
 library(caret)
@@ -394,7 +409,9 @@ if RMSE is much larger than MAE, then model is making huge mistakes. In our case
 
 ##### *(vii)* Calculate the r^2^ value. What does this metric tell us about our model? Is the r^2^ good for our predictions?
 
+::: {.column-margin}
 HINT: you can either calculate this by squaring the correlation coefficient between observed and predicted, or you can use the `R2()` function from the `caret` package.
+:::
 
 Option 1: squaring the correlation coefficient: 
 
@@ -422,7 +439,9 @@ This is different to our narrative with our error metrics so far, which highligh
 
 ##### *(viii)* Calculate Lin's Correlation Coefficient for our predictions. What does this metric tell us about our model? How is this different from our r^2^ value? Do our values indicate strong agreement between observed and predicted for our training and test predictions?
 
+::: {.column-margin}
 HINT: you can calculate the LCCC via the `epiR` package
+:::
 
 ```{r}
 library(epiR)
@@ -664,15 +683,21 @@ head(plant_test)
 
 *(vii)* Calculate the Root Mean Square Error. Are the values close to zero? what additional information can this tell us about the accuracy of our predictions?
 
+::: {.column-margin}
 HINT: you can use the `RMSE()` function from the `caret` package
+:::
 
 *(viii)* Calculate the r^2^ value. What does this metric tell us about our model? Is the r^2^ good for our predictions?
 
+::: {.column-margin}
 HINT: you can either calculate this by squaring the correlation coefficient between observed and predicted, or you can use the `R2()` function from the `caret` package.
+:::
 
 *(ix)* Calculate Lin's Correlation Coefficient for our predictions. Do our values indicate strong agreement between observed and predicted for our training and test predictions?
 
+::: {.column-margin}
 HINT: you can calculate the LCCC via the `epiR` package
+:::
 
 *(x)* Create a summary table of the metrics above and use it to make a conclusion about the prediction quality of our model. 
 
@@ -798,7 +823,9 @@ The MAE is close to zero for predictions obtained for the test and training sets
 
 ##### *(vii)* Calculate the Root Mean Square Error. Are the values close to zero? what additional information can this tell us about the accuracy of our predictions?
 
+::: {.column-margin}
 HINT: you can use the `RMSE()` function from the `caret` package
+:::
 
 ```{r}
 RMSE(plant_train$exp_log_rel_fitness, plant_train$exp_pred) 
@@ -809,7 +836,9 @@ if RMSE is much larger than MAE, then model is making huge mistakes. In our case
 
 ##### *(viii)* Calculate the r^2^ value. What does this metric tell us about our model? Is the r^2^ good for our predictions?
 
+::: {.column-margin}
 HINT: you can either calculate this by squaring the correlation coefficient between observed and predicted, or you can use the `R2()` function from the `caret` package.
+:::
 
 Option 1: squaring the correlation coefficient: 
 
@@ -833,7 +862,9 @@ The r^2^ for the training set is slightly higher than the test set, suggesting t
 
 ##### *(ix)* Calculate Lin's Correlation Coefficient for our predictions. Do our values indicate strong agreement between observed and predicted for our training and test predictions?
 
+::: {.column-margin}
 HINT: you can calculate the LCCC via the `epiR` package
+:::
 
 ```{r}
 epi.ccc(plant_train$exp_log_rel_fitness, plant_train$exp_pred)$rho.c$est 
