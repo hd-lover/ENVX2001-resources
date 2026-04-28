@@ -10,7 +10,9 @@ resources:
   - data/plant_aridity.csv
 ---
 
-```{r setup, include=FALSE}
+```{r}
+#| label: setup
+#| include: false
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 ```
@@ -46,7 +48,7 @@ In this lab, we will learn how to:
 
 ## Specific goals
 
-**By the end of this lab, you should be able to:**
+By the end of this lab, you should be able to:
 
 - [ ] Subset data into training and test sets 
 - [ ] Fit models to the training set and make predictions
@@ -73,7 +75,7 @@ If a package is already installed, R will simply reinstall it — no harm done.
 
 
 
-# 1. Making predictions with California streamflow (~ 45 mins)
+# 1. Making predictions with California streamflow (~45 min)
 
 ![Little Lakes Valley in the Eastern Sierra Nevada Mountains outside of Bishop, California. Source: Adobe Stock.](images/AdobeStock_668401555.jpeg)
 Last week we found that precipitation at Lake Sabrina was not a significant predictor of runoff volume near Bishop, California. 
@@ -470,11 +472,9 @@ There is a difference between metrics between the training and test subsets, wit
 
 ::::
 
-::: callout-tip
-Before moving on to the next section, take a short break and stretch your legs.
-:::
+Before we move on, now is a good time to take a 5-minute break.
 
-# 2. Making predictions with the plant aridity data (~ 45 mins)
+# 2. Making predictions with the plant aridity data (~45 min)
 
 ![Image of invasive capeweed. Source: Adobe Stock.](images/AdobeStock_659883118.jpeg)
 
@@ -510,7 +510,7 @@ Paper: Carvalho C, Davis R, Connallon T, Gleadow RM, Moore JL, Uesugi A. Multiva
 
 ##
 ::: {.question}
-### Exercise 1 - Making predictions
+### Exercise 3 - Making predictions
 
 *(i)* Read the data in. What is the sample size? How do you think the sample size might impact the prediction quality?
 
@@ -648,7 +648,7 @@ head(plant_test)
 
 ##
 ::: {.question}
-### Exercise 2 - How well does our model predict new values?
+### Exercise 4 - How well does our model predict new values?
 
 *(i)* Before we continue, we will need to backtransform our predicted and observed values for the training and test subsets by exponentiating them.
 
