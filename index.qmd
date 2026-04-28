@@ -30,7 +30,7 @@ This site hosts lectures, tutorials, and labs for ENVX2001. Some content is stil
 |------|---------|----------|-----|
 | 7  | [Regression modelling][L07] | [Tutorial 07][T07] [{{< fa file-pdf >}}][T07pdf] | [Lab 07][Lab07] [{{< fa file-pdf >}}][Lab07pdf] |
 | 8  | [Regression model development][L08] | [Tutorial 08][T08] [{{< fa file-pdf >}}][T08pdf] | [Lab 08][Lab08] [{{< fa file-pdf >}}][Lab08pdf] |
-| 9  | [Regression model assessment][L09] | -- | [Lab 09][Lab09] [{{< fa file-pdf >}}][Lab09pdf] |
+| 9  | [Regression model assessment][L09] | [Tutorial 09][T09] [{{< fa file-pdf >}}][T09pdf] | [Lab 09][Lab09] [{{< fa file-pdf >}}][Lab09pdf] |
 | 10 | Principle component analysis | [Tutorial 10][T10] [{{< fa file-pdf >}}][T10pdf] | [Lab 10][Lab10] [{{< fa file-pdf >}}][Lab10pdf] |
 | 11 | Clustering | [Tutorial 11][T11] [{{< fa file-pdf >}}][T11pdf] | [Lab 11][Lab11] [{{< fa file-pdf >}}][Lab11pdf] |
 | 12 | Multidimensional scaling | [Tutorial 12][T12] [{{< fa file-pdf >}}][T12pdf] | [Lab 12][Lab12] [{{< fa file-pdf >}}][Lab12pdf] |
@@ -54,6 +54,7 @@ This site hosts lectures, tutorials, and labs for ENVX2001. Some content is stil
 [T06]: tutorials/tutorial06.qmd
 [T07]: tutorials/tutorial07.qmd
 [T08]: tutorials/tutorial08.qmd
+[T09]: tutorials/tutorial09.qmd
 [T10]: tutorials/tutorial10.qmd
 [T11]: tutorials/tutorial11.qmd
 [T12]: tutorials/tutorial12.qmd
@@ -65,6 +66,7 @@ This site hosts lectures, tutorials, and labs for ENVX2001. Some content is stil
 [T06pdf]: tutorials/tutorial06.pdf
 [T07pdf]: tutorials/tutorial07.pdf
 [T08pdf]: tutorials/tutorial08.pdf
+[T09pdf]: tutorials/tutorial09.pdf
 [T10pdf]: tutorials/tutorial10.pdf
 [T11pdf]: tutorials/tutorial11.pdf
 [T12pdf]: tutorials/tutorial12.pdf
