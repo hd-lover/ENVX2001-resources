@@ -53,7 +53,7 @@
   paper: "us-letter",
   lang: "en",
   region: "US",
-  font: (),
+  font: ("Libertinus Serif",),
   fontsize: 11pt,
   sectionnumbering: none,
   toc: false,

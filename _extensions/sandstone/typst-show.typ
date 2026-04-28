@@ -49,7 +49,9 @@ $if(papersize)$
   paper: "$papersize$",
 $endif$
 $if(mainfont)$
-  font: ("$mainfont$",),
+  font: ("$mainfont$", "Lato", "Libertinus Serif"),
+$else$
+  font: ("Lato", "Libertinus Serif"),
 $endif$
 $if(fontsize)$
   fontsize: $fontsize$,
