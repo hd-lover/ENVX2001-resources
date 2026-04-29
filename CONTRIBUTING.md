@@ -18,6 +18,15 @@ If you are sending a pull request instead, you will need a local copy of the pro
 - A code editor, such as [RStudio](https://posit.co/downloads/) or [VS Code](https://code.visualstudio.com/) with the Quarto extension
 - [R](https://cloud.r-project.org/) — only required if you are editing R code blocks
 
+If you will be editing R code blocks, install the R packages used by the project (one-time, ~10 min):
+
+```r
+install.packages("pak")
+pak::local_install_dev_deps()
+```
+
+This reads `DESCRIPTION` at the repo root and installs everything (CRAN packages and the two GitHub-only ones).
+
 In short:
 
 ```bash

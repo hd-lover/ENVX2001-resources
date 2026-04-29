@@ -1,0 +1,50 @@
+Package: envx2001resources
+Title: ENVX2001 Applied Statistical Methods (course site)
+Version: 0.0.0.9000
+Authors@R: c(
+    person("Januar", "Harianto", role = c("aut", "cre")),
+    person("Si Yang", "Han", role = "aut"),
+    person("Liana", "Pozza", role = "aut"),
+    person("Aaron", "Greenville", role = "aut"))
+Description: Source for the ENVX2001 open handbook, a Quarto-based course
+    site for the University of Sydney unit ENVX2001. Not an R package;
+    this DESCRIPTION exists only to declare runtime dependencies for local
+    development and CI.
+License: CC-BY-4.0 + file LICENSE
+Encoding: UTF-8
+Depends:
+    R (>= 4.2)
+Imports:
+    broom,
+    car,
+    caret,
+    corrplot,
+    cowplot,
+    DAAG,
+    devtools,
+    easystats,
+    EFAtools,
+    emmeans,
+    epiR,
+    equatiomatic,
+    ggfortify,
+    gridExtra,
+    HistData,
+    infer,
+    knitr,
+    moments,
+    pacman,
+    pairwiseAdonis,
+    palmerpenguins,
+    patchwork,
+    performance,
+    psych,
+    readxl,
+    see,
+    sjPlot,
+    tidymodels,
+    tidyverse,
+    vegan
+Remotes:
+    datalorax/equatiomatic,
+    pmartinezarbizu/pairwiseAdonis/pairwiseAdonis
