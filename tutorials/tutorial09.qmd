@@ -32,15 +32,17 @@ In this tutorial we will cover the key steps to fit a model, use it to make pred
 
 Making predictions involves substituting in new values of x into our model equation to get new values of y.
 
-We could use single values for each of our predictor variables and substitute each into the equation, but this is unrealistic and time consuming when we have a large number of observations. We therefore use a dataset containing our new observations of x to make the predictions and feed this into our model. 
+We could use single values for each of our predictor variables and substitute them into the equation, but this is unrealistic and time consuming when we have a large number of observations. We therefore use a dataset containing our new observations of x to make the predictions and feed this into our model. 
 
-To understand the true capability of our model to predict new values of y from values of x that have not been seen by the model, we need to test this on data that has not been used to fit the model. This is because if we test our model on the same data that we used to fit the model, we are likely to get an over-optimistic estimate of the model's predictive performance, as the model has already seen this data and may have overfitted to it.
+To understand the true capability of our model to predict new values of y from values of x that have not been seen by the model, we need to test this on data that has not been used to fit the model. If we test our model on the same data used fit the model, we are likely to get an over-optimistic estimate of the model's predictive performance, as the model has already seen this data.
 
-To understand how well our model can predict new values of y from values of x which have not been used to fit the modeTo understand how well our model can predict new values of y from new values of x, there are a number of metrics and plots we can use, but 
+It is common practice to split the data we have into two parts: a training (or calibration) subset and a test (or validation) subset.
 
-Why are we separating the dataset?
+The training set is what we use to fit the model and check assumptions. We can also use this subset to make predictions and check the quality of the predictions.  As the observed y value has been used in model fitting, the predictions made with this subset will often look quite good, so we do not assess the true predictive performance of the model using the training set alone. Instead we can compare the prediction quality statistics and plots with those of the test set to get an indication of overfitting.  
 
-What if we want to know how well the model predicts new data, i.e. data that we did not use to fit the model?
+The test subset is a set of values which are not used to fit the model, and is therefore unseen by the model. This allows us to  pretend we have a new set of values, but then we have the advantage of the actual observed y variable sitting within the dataset too, so we are able to test how similar the predictions are to our real observation. 
+
+
 
 We build the model with one dataset (calibration).
 
