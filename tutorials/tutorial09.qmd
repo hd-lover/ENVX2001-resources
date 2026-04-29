@@ -30,12 +30,12 @@ In this tutorial we will cover the key steps to fit a model, use it to make pred
 
 ## Packages
 
-This tutorial uses `tidyverse`, `readxl`, `moments`, `psych`, `performance` and `car`. Install any you are missing by running the following **in the console**:
+This tutorial uses `tidyverse`, `readxl`, `moments`, `psych`, `performance`, `car`, `caret` and `epiR`. Install any you are missing by running the following **in the console**:
 
 ```{r}
 #| eval: false
 
-install.packages(c("tidyverse", "readxl", "moments", "psych", "performance", "car"))
+install.packages(c("tidyverse", "readxl", "moments", "psych", "performance", "car", "caret", "epiR"))
 ```
 
 If a package is already installed, R will simply reinstall it — no harm done.
@@ -121,7 +121,7 @@ Because the sample size is very small, we will use 80% of the data for training 
 
 You are more than welcome to explore how model quality measures change based on changing ratio of training:test splits You can do this by changing the values in the chunk below.  For now though, we will stick to the 80/20 split.
 
-*(ii)* Take a random sample from the larger dataset containing 20% of observations. This will be the test set. The remaining 80% will be the test set.
+*(ii)* Take a random sample from the larger dataset containing 20% of observations. This will be the test set. The remaining 80% will be the training set.
 
 ```{r}
 set.seed(42)
@@ -135,7 +135,7 @@ dippers_test <- dippers[indexes, ] # select the 20% - test dataset
 In the code above, we first set a seed to ensure that we can reproduce the same random sample if we were to rerun the code chunk. 
 Then we use the `sample()` function to randomly select 20% of the row indices from the dataset. 
 
-We create the training dataset by removing these selected indices from the original dataset ( [-index,] says "exclude everything but these indices"), and we create the test dataset by selecting only those indices.
+We create the training dataset by removing these selected indices from the original dataset (`[-indexes, ]` says "exclude these indices, keep everything else"), and we create the test dataset by selecting only those indices.
 
 *(iii)* Check the sample size and distribution of each subset. Does the sample size of each subset reflect the 80/20 split?  Are the distributions (mean, median, min, max) similar between the two subsets?
 
@@ -481,7 +481,7 @@ tibble(
 
 Drawing upon this table, we might say: 
 
-"The model performed well at predicting the observed values in the training set (Table 1), with a low mean error (<0.01), low MAE (0.56), low RMSE (0.64), high r^2^ (0.81) and high LCCC (0.89). However, the model did not perform well at predicting the observed values in the test set, with a higher mean error (0.23), a lower MAE (0.30), lower RMSE (0.22), lower r^2^ (0.25) and lower LCCC (0.41). This suggests that the model is overfitted to the training data and does not predict new values well."
+"The model performed well at predicting the observed values in the training set (Table 1), with a low mean error (<0.01), low MAE (0.56), low RMSE (0.64), high r^2^ (0.81) and high LCCC (0.89). However, the model did not perform well at predicting the observed values in the test set. The r^2^ dropped from 0.81 to 0.25 and the LCCC dropped from 0.89 to 0.41 — large drops that point to overfitting. The error metrics (mean error 0.23, MAE 0.30, RMSE 0.22) look superficially fine, but with only four test observations the absolute errors are not a reliable comparison to the 18 training observations."
 
 ::: callout-note
 ## Checkpoint
