@@ -28,7 +28,6 @@ In this tutorial we will cover the key steps to fit a model, use it to make pred
 4.  Observe the quality of the predictions using appropriate statistics and plots
 
 
-
 ## Packages
 
 This tutorial uses `tidyverse`, `readxl`, `moments`, `psych`, `performance` and `car`. Install any you are missing by running the following **in the console**:
@@ -83,8 +82,9 @@ Model assumptions were met and the model explained 76% of variation in dipper br
 
 We will use this model in our walkthrough today. 
 
+# Analysis walkthrough
 
-# Data splitting
+## Data splitting
 
 Making predictions involves substituting in new values of x into our model equation to get new values of y.
 
@@ -94,7 +94,7 @@ To understand the ability our model to predict new values of y from values of x 
 
 It is common practice to split the data we have into two parts: a training (or calibration) subset and a test (or validation) subset.  For each subset, we feed the predictor values into the model to get predictions of the y variable. We can then compare the predicted y with the observed y contained within each subset to get an indication of how well our model is performing.
 
-Let's read the data in and start splitting!
+*(i)* Read in the dippers dataset and check the data. How many observations are there?
 
 ```{r}
 # read in the data
@@ -104,6 +104,7 @@ library(tidyverse)
 glimpse(dippers) # check the data
 ```
 
+We can see there are 22 observations with 8 variables; all numeric as expected. The number of observations will help inform how we set up our training and test subsets. 
 
 There are different ways of splitting data, but what you choose generally depends on your dataset and the question you are trying to answer.
 
@@ -114,9 +115,13 @@ For example, we might split our dataset based on:
 - spatial location
 - time 
 
-For today, we will be making a random split of the data, which is the most common method. 
+For the tutorial and lab sessions, we will be making a random split of the data, which is the most common method. 
 
 Because the sample size is very small, we will use 80% of the data for training and 20% for testing. The more observations we have to train the model, the better. 
+
+You are more than welcome to explore how model quality measures change based on changing ratio of training:test splits You can do this by changing the values in the chunk below.  For now though, we will stick to the 80/20 split.
+
+*(ii)* Take a random sample from the larger dataset containing 20% of observations. This will be the test set. The remaining 80% will be the test set.
 
 ```{r}
 set.seed(42)
@@ -131,6 +136,8 @@ In the code above, we first set a seed to ensure that we can reproduce the same 
 Then we use the `sample()` function to randomly select 20% of the row indices from the dataset. 
 
 We create the training dataset by removing these selected indices from the original dataset ( [-index,] says "exclude everything but these indices"), and we create the test dataset by selecting only those indices.
+
+*(iii)* Check the sample size and distribution of each subset. Does the sample size of each subset reflect the 80/20 split?  Are the distributions (mean, median, min, max) similar between the two subsets?
 
 Once we have split the data, we need to check the subsets. First ensure the structure and number of observations in each subset is correct, and then check the distribution of the variables (max, mean, median, min) in each subset to ensure they are similar.
 
@@ -148,11 +155,20 @@ Because of the limited sample size, we can see that the max and min values vary,
 
 From here we can proceed to model fitting. 
 
-# Fit the model to the training data
+::: callout-note
+## Checkpoint
+
+You should now be able to split observations into training and test subsets. 
+
+:::
+
+## Fit the model to the training data
 
 We only use the training data to fit the model. For this tutorial we will use the model we optimised last week: 
 
 **Br_Dens ~ Hardness + RiverSlope + LogCadd + LogStone + LogOther**
+
+*(i)* Fit the linear model to the training subset using Br_Dens as the response, and Hardness, RiverSlope, LogCadd, LogStone, and LogOther as the predictor variables. 
 
 ```{r}
 # fit the model to the training data
@@ -160,6 +176,8 @@ We only use the training data to fit the model. For this tutorial we will use th
 train_model <- lm(Br_Dens ~ Hardness + RiverSlope + LogCadd + LogStone + LogOther, data = dippers_train)
 
 ```
+
+*(ii)* Check the model assumptions. Could they tell us much despite the small sample size?
 
 We can do a quick assumption check to ensure the model is appropriate for the training data, but we won't go through this in detail as we have already done this for the full dataset last week. 
 
@@ -196,361 +214,297 @@ par(mfrow=c(1,1))
 
 ```
 
+One could argue that our assumptions have not been met (residuals do not appear to be linear or perfectly normal), but given the small sample size, it is difficult to accurately assess the assumptions. We can say that the assumptions are not grossly violated, but we should be cautious when interpreting the results.
 
-* Linearity: The relationship between the predictors and the response variable appears to be potentially nonlinear, because although the points are scattered, the line is indicating a possible trend. 
+## Making predictions
 
-* Independence: The residuals appear to be independent.
+We have already used the the training set to fit the model and check assumptions. We can also use this subset to make predictions and check the quality of the predictions.  The predictions made with this subset will often look quite good, but this is because the observed y value has been used in model fitting. 
 
-* Normality: The residuals appear to be approximately normally distributed, as the points in the Q-Q plot roughly follow a straight line. When we look at the `check_model()` version of the plot we a slight n-shape to the points, but this is only small compared to the overall distribution of the points, so we are not too concerned about this.
+The test subset is a set of values which are not used to fit the model, and is therefore unseen by the model. This allows us to pretend we have a new set of values, but then we have the advantage of the actual observed y variable sitting within the dataset too, so we are able to test how similar the predictions are to our real observations. 
 
-* Equal variance: The residuals appear to have constant variance, as there is no clear pattern or fanning present in the standardised residuals vs fitted plot (scale-location in the base plot).
-
-* Leverage: No single observations lying outside the Cook's distance line, indicating no influential observations.
-
-We use the training set to fit the model and check assumptions. We can also use this subset to make predictions and check the quality of the predictions.  The predictions made with this subset will often look quite good, but this is because the observed y value has been used in model fitting; therefore we do not assess the true predictive performance of the model using the training set alone. Instead we can compare the prediction quality statistics and plots with those of the test set to get an indication of overfitting.  
-
-The test subset is a set of values which are not used to fit the model, and is therefore unseen by the model. This allows us to  pretend we have a new set of values, but then we have the advantage of the actual observed y variable sitting within the dataset too, so we are able to test how similar the predictions are to our real observation. 
-
-We will run through this using last week's data: 
-
-
-
-
-
-
-
-
-
-
-
-
-
-If the model is good, we expect the predictions to be close to the actual values.
-
-If the model is bad, we expect the predictions to be far from the actual values.
-
-The dataset can be obtained by:
-
-Collecting new data.
-
-Splitting the existing data into two parts before model building.
-
-Data splitting
-
-Cross-validation
-
-*use cars dataset?*
-
-This week's lecture introduced you to variable selection and how to produce a more parsimonious model. We explored developing our models by fitting the full model, checking assumptions and deciding whether anything needed transformation. Once we were happy assumptions were met we could consider whether all of our predictors were useful in explaining the variation in our response variable.
-
-In this tutorial, we will explore a new dataset and follow the steps of model selection to produce a model that explains a sufficient amount of variation, without being unnecessarily complex. 
-
-**You will learn how to:**
-
-1.  Check for collinearity and influential observations in a MLR model
-2.  Run partial F-tests to compare nested models
-3.  Implement stepwise regression using the `step()` function in R
-
-
-# Setting up for our analysis
-
-## Workflow for fitting parsimonious models
-
-*1. Model development*
-
-* Start with full model and check assumptions (e.g. normality, homoscedasticity, linearity, etc.)
-* Look for additional issues (e.g. multicollinearity, outliers, etc.) 
-  <br> -–> correlations, leverage plot, VIF plots and statistics
-* Consider transformations (e.g. log, sqrt, etc.).
-  <br> --> Response: if assumptions aren't met, transform the response variable
-  <br> --> Predictors: it may help to explore transformations of skewed predictors before fitting the model to explore if there is a relationship present. Transforming predictors generally does not affect assumptions, but it can help to linearise relationships and make them easier to interpret.
-* Following any transformations, test assumptions again.
-
-*2. Model selection*
-
-- Use VIF as an initial step to get rid of highly correlated predictors.
-- Perform variable selection using backward elimination (good and fast), because:
-- Using r^2^2 as a criterion is not recommended (it is not a good measure of model fit, only a good measure of variance explained).
-- Using partial F-test is good, but slow.
-
-## Packages
-
-This tutorial uses `tidyverse`, `readxl`, `moments`, `psych`, `performance` and `car`. Install any you are missing by running the following **in the console**:
+*(i)* Use the `predict()` function to obtain new estimates of Br_Dens using the training and test subsets. 
 
 ```{r}
-#| eval: false
+dippers_train$pred <- predict(train_model, newdata = dippers_train)
 
-install.packages(c("tidyverse", "readxl", "moments", "psych", "performance", "car"))
-```
-
-If a package is already installed, R will simply reinstall it — no harm done.
-
-## The data
-
-![Cute little Dipper (bird) standing on a rock by the water. Image source: markmedcalf via Adobe Stock.](images/AdobeStock_93907188.jpeg)
-
-[Dippers](https://en.wikipedia.org/wiki/Dipper) are thrush-sized birds living mainly in the upper reaches of rivers, which feed on benthic invertebrates by probing the river beds with their beaks. The dataset in this exercise contains data from a biological survey which examined the nature of the variables thought to influence the breeding of British dippers. 
-
-Twenty-two sites were included in the survey. Some of the variables have been transformed. 
-
-Data can be found in: **Dippers.csv**
-
-The variables measured were:  
-
-- `Altitude` site altitude
-- `Hardness` water hardness
-- `RiverSlope` river-bed slope
-- `LogCadd` the numbers of caddis fly larvae, transformed
-- `LogStone` the numbers of stonefly larvae, transformed
-- `LogMay` the numbers of mayfly larvae, transformed
-- `LogOther` the numbers of all other invertebrates collected, transformed
-- `Br_Dens` the number of breeding pairs of dippers per 10 km of river  
-
-In the analyses, the four invertebrate variables were transformed using a $log(x+1)$ transformation.
-
-`Br_Dens` will be the response variable in our models. 
-
-# Analysis
-
-## Model development
-
-*(i)* Read in the data and investigate the relationship between each of your variables. Describe the relationships, supported by values (correlation coefficient) and plots.
-
-```{r}
-
-# read in the data
-dippers <- read.csv("data/Dippers.csv")
-
-library(tidyverse)
-glimpse(dippers) # check the data
-
-# Correlations and scatterplots all in one (+ histograms for each variable)
-library(psych)
-pairs.panels(dippers)
-
-# can also get the same results separately
-cor(dippers)
-pairs(dippers)
-
-```
-
-Between Br_Dens and other variables, there are a number of relatively stong correlations, particularly with LogStone (r = 763), RiverSlope (r = 0.710) and LogCadd (r = 0.613). 
-
-There are also some strong correlations between the predictor variables themselves, particularly between RiverSlope and LogStone (r = 0.575) and LogOther and Hardness (r = 0.554). This could be an issue for our model, as collinearity can make it difficult to interpret the model parameters and can inflate the standard errors of the estimates.
-
-We can confirm if correlations between predictors may be an issue with the model by observing the Variance inflation factor (VIF) later on when we check our model assumptions.
-
-*(ii)* Fit a multiple linear regression model to the data using all variables. Set  `Br_Dens` as the response variable and the remaining variables as the predictors.  This will be known as the 'full model'. 
-
-```{r}
-# fit the full model
-
-full_model <- lm(Br_Dens ~ Altitude + Hardness + RiverSlope + LogCadd + LogStone + LogMay + LogOther, data = dippers)
-
+dippers_test$pred <- predict(train_model, newdata = dippers_test)
 ```
 
 
-*(iii)* Check the assumptions of your model. Do you need to transform any variables? What does the Variance Inflation Factor (VIF) tell you about the collinearity between predictor variables?
-
-The VIF will appear as one of the plots in the `check_model()` function, but it can also be helpful to get the values. You can use the `vif()` function from the `car` package to get the VIF values for each predictor variable. 
-
-The check_model function has been squishing plots, so it may be better at times to plot them individually. You may use the following code, adapted to your model object names:
+*(ii)* Have a look at the subsets. You should see a new column has been created, named `pred` in both datasets.
 
 ```{r}
-
-library(performance)
-
-# Linearity
-check_model(full_model, check = c("linearity"))
-
-# Normality
-check_model(full_model, check = c("qq", "normality"))
-
-# Equal variance
-check_model(full_model, check = c("homogeneity"))
-
-# Outliers
-check_model(full_model, check = c("outliers", "pp_check"))
-
-# VIF - visual
-plot(performance::check_collinearity(full_model))
-
-# VIF - numbers
-# comes from the car package
-car::vif(full_model)
-
-
-#### ALTERNATIVE: plot() function to check assumptions 
-
-par(mfrow=c(2,2))
-
-plot(full_model)
-
-par(mfrow=c(1,1))
-
+head(dippers_train)
+head(dippers_test)
 ```
 
-* Linearity: The relationship between the predictors and the response variable appears to be linear, as the residuals are mostly scattered around the horizontal line at zero in the residuals vs fitted plot.
-
-* Independence: The residuals appear to be independent, as there is no clear pattern in the residuals vs fitted plot.
-
-* Normality: The residuals appear to be approximately normally distributed, as the points in the Q-Q plot roughly follow a straight line. When we look at the `check_model()` version of the plot we a slight n-shape to the points, but this is only small compared to the overall distribution of the points, so we are not too concerned about this.
-
-* Equal variance: The residuals appear to have constant variance, as there is no clear pattern or fanning present in the standardised residuals vs fitted plot (scale-location in the base plot).
-
-* Leverage: No single observations lying outside the Cook's distance line, indicating no influential observations.
-
-**VIF and collinearity**
-
-VIF Thresholds vary, depending on who you ask. General rule is that if it is greater than 10, then you need to remove the associated predictor. Some conservative people prefer a value of 5, so we will go with this. 
-
-Our threshold is 5, so given all of our VIFs are below this, we are not too concerned about collinearity. However, because they are close to the threshold it is something to keep in mind when interpreting the model parameters.
-
-*(iv)* Make a note of the model parameters and fit statistics for the full model. 
-
-```{r}
-summary(full_model)
-```
-
-We can see that there are two significant predictors (RiverSlope and LogStone) in the full model, but there are also a number of non-significant predictors. The adjusted R^2^ value is 0.77, which indicates that the model explains 77% of the variation in the response variable.
-
-Because there are so many non-significant predictors in the model, we may want to consider removing some of them to produce a more parsimonious model. 
-
-*(v)*  Select the least significant predictor and remove it from the model. 
-
-In this case, the least significant predictor is `Altitude` (P = 0.619). Remove it from the model and run the model again. This will be known as the 'reduced model'.
-
-```{r}
-
-reduced_model <- lm(Br_Dens ~ Hardness + RiverSlope + LogCadd + LogStone + LogMay + LogOther, data = dippers)
-
-```
-
-*(vi)* Is the reduced model an improvement on the full model? How can you tell? What statistics would you look at to determine this?
-
-```{r}
-summary(full_model)
-summary(reduced_model)
-```
-
-Removing the `Altitude` predictor from the model has slightly increased the adjusted R^2^ value. This is an improvement in terms of parsimony, but we will need to use hypothesis testing to determine whether the reduced model is a *significant* improvement on the full model. We can do this using an F-test. 
+In each of the subsets, the `Br_Dens` column will serve as the 'observed' values, and the `pred` column will serve as the 'predicted' values. You will use these to assess prediction quality in the next steps. 
 
 ::: callout-note
 ## Checkpoint
 
-You should now be able to prepare an appropriate model by refining it, checking your assumptions, and ensuring collinearity is not an issue.
+You should now be able to fit your model to the training data and make predictions using training and test subsets.  
 
 :::
 
-## Model selection with F-tests
+## Prediction quality: Observed vs Predicted plots
 
-We wil use the partial F-test to determine whether there is a significant difference between the models. 
+Once we have obtained our predictions, it is important to obtain a visual understanding of how our predicted and observed values compare. We can do this using a scatterplot of observed vs predicted values with a 1:1 line overlaid. 
 
-*(i)* State hypotheses
-
-H0: no significant difference between the full and reduced models
-H1: There is a significant difference between the full and reduced models
-
-If we fail to reject H0, then we would opt for the reduced model as it is more parsimonious (i.e. it is explaining a similar amount of variation with fewer predictors). 
-
-If we reject H0, then we would opt for the full model as it is a significant improvement on the reduced model.
-
-*(ii)* Run the test
-
-Once we have established our hypotheses, we can perform the F-test using the `anova()` function to compare the full and reduced models. 
+*(i)* Create a scatterplot of observed vs predicted values for the training and test subsets, with a 1:1 line overlaid.
 
 ```{r}
+#| code-fold: true
+p1 <- ggplot(dippers_train, aes(Br_Dens, pred)) +
+  geom_point() +
+  geom_abline(intercept = 0, slope = 1, color = "red") +
+  labs(x = "Observed number of breeding pairs of dippers", 
+       y = "Predicted number of breeding pairs of dippers",
+       title = "Training") +
+  theme_classic()
 
-anova(full_model, reduced_model)
+p2 <- ggplot(dippers_test, aes(Br_Dens, pred)) +
+  geom_point() +
+  geom_abline(intercept = 0, slope = 1, color = "red") +
+  labs(x = "Observed number of breeding pairs of dippers", 
+       y = "Predicted number of breeding pairs of dippers",
+       title = "Test") +
+  theme_classic()
 
+p1 + p2
 ```
 
-*(iii)* Are the models significantly different?
+For the training set, the points are quite close to the 1:1 line, which suggests that the model is doing a good job of predicting the observed values.
 
-The P-value is 0.6186, which is larger than 0.05, so we fail to reject the null hypothesis.
-
-This means that the full model is not a significant improvement on the reduced model, and we would opt for the reduced model as it is more parsimonious.
+For the test set, the points are further away from the 1:1 line, which suggests that the model is not doing a good job of predicting the observed values, but it is important to also acknowledge that there are only four points present in the plot, so our understanding of the prediction quality is limited. 
 
 
-::: callout-note
-## Checkpoint
+## Prediction quality: precision
 
-You should now be able to use an F-test to determine whether the reduced model is a significant improvement on the full model. 
+When using the predict() function, we can also obtain confidence and prediction intervals for the predictions. This gives us an indication of how precise our predictions and the model are. 
 
-**Remember:** the F-test is only useful if comparing nested models. 
+*(i)* Use the `predict()` function to obtain confidence intervals when predicting with the training set, and prediction intervals when predicting using the test subset.
+
+```{r}
+train_ci <- predict(train_model, newdata = dippers_train, interval = "confidence")
+
+test_pi <- predict(train_model, newdata = dippers_test, interval = "prediction")
+```
+
+*(ii)* Have a look at the confidence and prediction intervals using the head() function. 
+
+```{r}
+head(train_ci)
+head(test_pi)
+```
+
+For both train_ci and test_pi, there are three columns. The first contains the estimate (our predicted value), the second contains the lower bound of the relevant interval, and the third contains the upper bound of the relevant interval. These are much easier to interpret when shown in a plot.
+
+*(iii)* Create a plot of observed vs predicted values for the training and test subsets, with the confidence and prediction intervals overlaid. What do these plots tell us?
+
+```{r}
+#| code-fold: true
+
+p1 <- ggplot(dippers_train, aes(Br_Dens, pred)) +
+  geom_point() + 
+  geom_smooth(data = train_ci, aes(fit, lwr), color = "blue", se = F) +
+  geom_smooth(data = train_ci, aes(fit, upr), color = "blue", se = F) +
+  geom_abline(intercept = 0, slope = 1, color = "maroon") + # 1:1 line
+  labs(x = "Observed number of breeding pairs of dippers", y = "Predicted number of breeding pairs of dippers") +
+  theme_classic()
+
+p2 <- ggplot(dippers_test, aes(Br_Dens, pred)) +
+  geom_point() + 
+  geom_smooth(data = test_pi, aes(fit, lwr), color = "red", se = F) +
+  geom_smooth(data = test_pi, aes(fit, upr), color = "red", se = F) +
+  geom_abline(intercept = 0, slope = 1, color = "maroon")  + # 1:1 line +
+  labs(x = "Observed number of breeding pairs of dippers", y = "Predicted number of breeding pairs of dippers") +
+  theme_classic()  
+
+p1 + p2
+```
+
+The confidence intervals give us an indication of how precise our estimate of the mean response is for a given set of predictor values, while the prediction intervals give us an indication of how precise our predictions are for individual observations.
+
+You should see that the confidence intervals are narrower than the prediction intervals, which is what we would expect.
+
+The straighter the lines, the better and if the lines fan out, it may be an indication that the model is not performing well for certain ranges of the predictor variables. 
+
+Overall, we can say that the model is doing a reasonable job of predicting the observed values in the training set, but it is not doing a so well at predicting the observed values in the test set.
+
+
+## Prediction quality: accuracy
+
+We can compare the predicted and observed values for training and test subsets using appropriate metrics to get an indication of the accuracy of the predictions.
+
+Before we start, we know that the predictions for the training set will generally look better than those for the test set, because the model has been fitted to the training data, so it is not surprising that the predictions are more accurate for this subset.
+
+But if the metrics and plots for the training set look substantially better than those for the test set, we could say the model has been overfitted to the training set observations and therefore does not predict new values well. 
+
+There are two types of metrics we will cover this week: error and linearity. 
+
+### Error metrics
+
+There are a number of error metrics we can use to assess the accuracy of our predictions. These include:
+
+- Mean Error (Bias)
+- Mean Absolute Error (MAE)
+- Root Mean Square Error (RMSE) 
+
+The closer the metrics are to 0, the better the predictions are, but since the metrics are in the same units as the response, we may also need to take the range of values into account. 
+
+For example, 
+
+- If we had a dataset with values that ranged from 0 to 100, then an error of 0.5 would be really good. 
+
+- If we had a dataset with values that ranged from 0 to 1, then an error of 0.5 would be quite bad.
+
+In addition to deciding how good the values are for a subset, we also need to compare the values between the training and test subsets so we can assess whether the model is overfitting to the training data.
+
+
+*(i)* Calculate the mean error for predictions obtained with the training and test subsets. Are they similar to each other? Is the Mean Error close to 0? 
+
+```{r}
+mean(dippers_train$Br_Dens - dippers_train$pred) 
+mean(dippers_test$Br_Dens - dippers_test$pred) 
+```
+
+Mean error is close to zero for both and the values are somewhat different between training and test subsets, suggesting overfitting. 
+
+*(ii)* Calculate the Mean Absolute Error. Are the values close to zero? what does this tell us?
+
+```{r}
+mean(abs(dippers_train$Br_Dens - dippers_train$pred)) 
+mean(abs(dippers_test$Br_Dens - dippers_test$pred)) 
+```
+
+The MAE is close to zero for predictions obtained for the test and training sets. This tells us that the prediction error is low overall. Mean Error gives us direction, but MAE can give us a better idea of the magnitude of the error. 
+
+*(iii)* Calculate the Root Mean Square Error. Are the values close to zero? what additional information can this tell us about the accuracy of our predictions?
+
+::: {.column-margin}
+HINT: you can use the `RMSE()` function from the `caret` package
 :::
 
-# Model selection using Stepwise regression
-
-When we have many predictors, this manual testing can become time consuming, so we can choose to use the `step()` function in R, which performs stepwise regression. This function will automatically remove the least significant predictor and test the model again, until it finds the best model based on the AIC criterion.
-
-*(i)* Run the `step()` function on the full model to perform stepwise regression.
-
 ```{r}
-step_model <- step(full_model, direction = "backward")
-
+library(caret)
+RMSE(dippers_train$Br_Dens, dippers_train$pred)
+RMSE(dippers_test$Br_Dens, dippers_test$pred)  
 ```
 
-*(ii)* What is the final model that the `step()` function has produced? How does it compare to the full and reduced models?
+If the RMSE is much larger than MAE, then the model is making huge mistakes. In our case, the values aren't too different to the MAE and they are close to zero so it tells us the model is predicting well. We can also see the values are similar between training and test predictions, indicating a stable model. 
 
-Since we have stored the step() output as an object, we can just call the object, which will show us the final model: 
+### Linearity
 
-```{r}
-step_model
+The linearity metrics help us understand whether the model is predicting consistently (i.e. linear relationship between predicted and observed), and whether the predictions are close to the 1:1 line (i.e. agreement between predicted and observed).
 
-## OR
+*(i)* Calculate the r^2^ value. What does this metric tell us about our model? Is the r^2^ good for our predictions?
 
-summary(step_model)
-```
+::: {.column-margin}
+HINT: you can either calculate this by squaring the correlation coefficient between observed and predicted, or you can use the `R2()` function from the `caret` package.
+:::
 
-We can see that the selected model is: 
-
-Br_Dens ~ Hardness + RiverSlope + LogCadd + LogStone + 
-    LogOther
-    
-Or with the addition of the partial regression coefficients, our equation is: 
-
-Br_Dens = -0.725 + 0.012 * Hardness + 0.065 * RiverSlope + 0.549 * LogCadd + 0.512 * LogStone - 0.268 * LogOther
-
-We can see there has also been a marginal change in the adjusted R^2^ value, which is now 0.7765, compared to 0.765 for the full model and 0.7766 for the reduced model. This supports the idea that the full model explained a similar amount of variation in the response compared to the simplest model obtained from the `step()` function. Therefore it makes sense to select the simpler model. 
-
-*(iii)* How does the AIC of the stepwise regression model compare to the full and reduced models?
-
-We can test this using the AIC() function: 
+Option 1: squaring the correlation coefficient: 
 
 ```{r}
-AIC(full_model, reduced_model, step_model)
-
+(cor(dippers_train$Br_Dens, dippers_train$pred))^2 
+(cor(dippers_test$Br_Dens, dippers_test$pred))^2 
 ```
 
-Full_model AIC = 56.1
+Option 2: `R2()` function from the `caret` package.
 
-Reduced_model AIC = 54.5
+```{r}
+R2(dippers_train$Br_Dens, dippers_train$pred) 
+R2(dippers_test$Br_Dens, dippers_test$pred) 
+```
 
-step_model AIC = 53.9
+The r^2^ tells us about the strength of the relationship between observed and predicted values. The closer to 1, the better. 
 
-As we select the model with the smallest AIC, we can confirm that the model selected by the `step()` function is better. 
+In this case, we see that the r^2^ for the training set is 0.81, which is high and indicates the model is making consistent predictions. The r^2^ for the test set is 0.25 which indicates a weak relationship between observed and predicted values, suggesting the model is not predicting new values well at all. 
 
-You may notice that the AIC values are different between the `step()` function and the `AIC()` function. This is because the `step()` function uses a different method to calculate the AIC values, which is based on the likelihood of the model, while the `AIC()` function uses a different method based on the residual sum of squares.
+This inconsistency between predicted and observed is suggesting that the training model has indeed been overfitted and this is why we are seeing such poor predictions. 
+
+*(ii)* Calculate Lin's Correlation Coefficient for our predictions. Do our values indicate strong agreement between observed and predicted for our training and test predictions?
+
+::: {.column-margin}
+HINT: you can calculate the LCCC via the `epiR` package
+:::
+
+```{r}
+library(epiR)
+epi.ccc(dippers_train$Br_Dens, dippers_train$pred)$rho.c$est 
+epi.ccc(dippers_test$Br_Dens, dippers_test$pred)$rho.c$est 
+```
+
+LCCC tells us about the strength of agreement between predicted and observed, or how well the points fit the 1:1 line in our plot. This is a bit different between our r^2^ which instead tells us about the strength of the linear relationship between predicted and observed, and it may not always follow the 1:1 line. 
+
+The LCCC for the predictions obtained using the training set is 0.89, which indicates a strong amount of agreement between observed and predicted values. In contrast, the LCCC for the predictions obtained using the test set is 0.41, suggesting poor agreement between predicted and observed values. 
+
+This disparity is supporting what we have said so far that the model is overfitted to the training data and is not predicting new values well. 
+
+
+### Place everything into a nice summary table for presentation
+
+When writing reports and papers, it is best to present your results as a neat table and refer back to it within the text. This is much easier for readers to understand than having to read through a list of numbers in the text.
+
+*(i)* Create a table summarising the prediction quality metrics for the training and test subsets. Have a go at writing up a few sentences interpreting the results in the table.
+
+```{r}
+#| code-fold: true
+#| table-caption: "Table 1. Summary of prediction quality metrics for training and test subsets."
+# put all data into a tible and kable it
+tibble(
+    Dataset = c("Training", "Test"),
+    ME = c(
+        mean(dippers_train$Br_Dens - dippers_train$pred),
+        mean(dippers_test$Br_Dens - dippers_test$pred)
+    ),
+    MAE = c(
+        mean(abs(dippers_train$Br_Dens - dippers_train$pred)),
+        mean(abs(dippers_test$Br_Dens - dippers_test$pred))
+    ),
+    RMSE = c(
+        RMSE(dippers_train$Br_Dens, dippers_train$pred),
+        RMSE(dippers_test$Br_Dens, dippers_test$pred)
+    ),
+    R2 = c(
+        R2(dippers_train$Br_Dens, dippers_train$pred),
+        R2(dippers_test$Br_Dens, dippers_test$pred)
+    ),
+    LCCC = c(
+        epi.ccc(dippers_train$Br_Dens, dippers_train$pred)$rho.c$est,
+        epi.ccc(dippers_test$Br_Dens, dippers_test$pred)$rho.c$est
+    )
+) %>%
+    knitr::kable(digits = 2)
+```
+
+Drawing upon this table, we might say: 
+
+"The model performed well at predicting the observed values in the training set (Table 1), with a low mean error (<0.01), low MAE (0.56), low RMSE (0.64), high r^2^ (0.81) and high LCCC (0.89). However, the model did not perform well at predicting the observed values in the test set, with a higher mean error (0.23), a lower MAE (0.30), lower RMSE (0.22), lower r^2^ (0.25) and lower LCCC (0.41). This suggests that the model is overfitted to the training data and does not predict new values well."
 
 ::: callout-note
 ## Checkpoint
 
-You should now be able to run the `step()` function to select the most appropriate model. 
+You should now be able to assess the prediction quality of a model using metrics and plots. 
 
 :::
 
 ## Wrap-up {.unnumbered}
 
-In this tutorial, we used the dippers dataset to get some practice testing model assumptions and checking for collinearity. We then used partial F-tests and stepwise regression to select a more parsimonious model. 
+In this tutorial, we used the dippers dataset to get some practice data splitting, prediction and assessing the quality of the predictions. 
+
+This will hopefully set you up for the lab exercises, where you will use similar code to answer the questions. 
+
+Great work everyone!
 
 
 ### Example exam questions
 
-1. What assumptions do we need to check for when fitting a multiple linear regression?
+1. State two reasons why we might we choose to split our dataset instead of obtaining new observations to serve as a validation subset?
 
-2. Why don't we just rely on the adjusted r^2^ to compare models?
+2. Why do we look at more than one metric when interpreting prediction quality?
 
-3. Can F-tests be run on non-nested models? Why or why not?
+3. When looking at an observed vs predicted plot, what can we conclude about our model if all of our points follow the 1:1 line?
 
 
