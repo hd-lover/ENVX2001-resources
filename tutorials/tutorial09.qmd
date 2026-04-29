@@ -28,6 +28,52 @@ In this tutorial we will cover the key steps to fit a model, use it to make pred
 4.  Observe the quality of the predictions using appropriate statistics and plots
 
 
+
+## Packages
+
+This tutorial uses `tidyverse`, `readxl`, `moments`, `psych`, `performance` and `car`. Install any you are missing by running the following **in the console**:
+
+```{r}
+#| eval: false
+
+install.packages(c("tidyverse", "readxl", "moments", "psych", "performance", "car"))
+```
+
+If a package is already installed, R will simply reinstall it — no harm done.
+
+## The data
+
+![Cute little Dipper (bird) standing on a rock by the water. Image source: markmedcalf via Adobe Stock.](images/AdobeStock_93907188.jpeg)
+
+[Dippers](https://en.wikipedia.org/wiki/Dipper) are thrush-sized birds living mainly in the upper reaches of rivers, which feed on benthic invertebrates by probing the river beds with their beaks. The dataset in this exercise contains data from a biological survey which examined the nature of the variables thought to influence the breeding of British dippers. 
+
+Twenty-two sites were included in the survey. Some of the variables have been transformed. 
+
+Data can be found in: **Dippers.csv**
+
+The variables measured were:  
+
+- `Altitude` site altitude
+- `Hardness` water hardness
+- `RiverSlope` river-bed slope
+- `LogCadd` the numbers of caddis fly larvae, transformed
+- `LogStone` the numbers of stonefly larvae, transformed
+- `LogMay` the numbers of mayfly larvae, transformed
+- `LogOther` the numbers of all other invertebrates collected, transformed
+- `Br_Dens` the number of breeding pairs of dippers per 10 km of river  
+
+In the analyses, the four invertebrate variables were transformed using a $log(x+1)$ transformation.
+
+`Br_Dens` will be the response variable in our models. 
+
+Last week following use of the step() function, we found the most parsimonious model to be:
+
+Br_Dens ~ Hardness + RiverSlope + LogCadd + LogStone + LogOther
+
+Assumptions were met and the model explained 76% of variation in dipper breeding pair density. 
+
+We will use this model in our walkthrough today. 
+
 # Data splitting
 
 Making predictions involves substituting in new values of x into our model equation to get new values of y.
@@ -36,17 +82,25 @@ We could use single values for each of our predictor variables and substitute th
 
 To understand the true capability of our model to predict new values of y from values of x that have not been seen by the model, we need to test this on data that has not been used to fit the model. If we test our model on the same data used fit the model, we are likely to get an over-optimistic estimate of the model's predictive performance, as the model has already seen this data.
 
-It is common practice to split the data we have into two parts: a training (or calibration) subset and a test (or validation) subset.
+It is common practice to split the data we have into two parts: a training (or calibration) subset and a test (or validation) subset.  For each subset, we feed the predictor values into the model to get predictions of the y variable. We can then compare the predicted y with the observed y contained within each subset to get an indication of how well our model is performing.
 
-The training set is what we use to fit the model and check assumptions. We can also use this subset to make predictions and check the quality of the predictions.  As the observed y value has been used in model fitting, the predictions made with this subset will often look quite good, so we do not assess the true predictive performance of the model using the training set alone. Instead we can compare the prediction quality statistics and plots with those of the test set to get an indication of overfitting.  
+We use the training set to fit the model and check assumptions. We can also use this subset to make predictions and check the quality of the predictions.  The predictions made with this subset will often look quite good, but this is because the observed y value has been used in model fitting; therefore we do not assess the true predictive performance of the model using the training set alone. Instead we can compare the prediction quality statistics and plots with those of the test set to get an indication of overfitting.  
 
 The test subset is a set of values which are not used to fit the model, and is therefore unseen by the model. This allows us to  pretend we have a new set of values, but then we have the advantage of the actual observed y variable sitting within the dataset too, so we are able to test how similar the predictions are to our real observation. 
 
+We will run through this using last week's data: 
 
 
-We build the model with one dataset (calibration).
 
-We validate the model's predictions with an independent dataset.
+
+
+
+
+
+
+
+
+
 
 If the model is good, we expect the predictions to be close to the actual values.
 
