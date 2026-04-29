@@ -132,10 +132,80 @@ Then we use the `sample()` function to randomly select 20% of the row indices fr
 
 We create the training dataset by removing these selected indices from the original dataset ( [-index,] says "exclude everything but these indices"), and we create the test dataset by selecting only those indices.
 
+Once we have split the data, we need to check the subsets. First ensure the structure and number of observations in each subset is correct, and then check the distribution of the variables (max, mean, median, min) in each subset to ensure they are similar.
+
+```{r}
+str(dippers_train)
+str(dippers_test)
+
+summary(dippers_train)
+summary(dippers_test)
+```
+
+We can see that the training dataset contains 18 observations and the test dataset contains 4 observations, which is very small, so we don't expect to get very reliable information from the prediction quality statistics, but it still worth continuing to understand the process and see how we go. 
+
+Because of the limited sample size, we can see that the max and min values vary, but the distributions aren't too different (e.g. we don't have our response in one subset following a log distribution and the other following a normal distribution.) 
+
+From here we can proceed to model fitting. 
+
+# Fit the model to the training data
+
+We only use the training data to fit the model. For this tutorial we will use the model we optimised last week: 
+
+**Br_Dens ~ Hardness + RiverSlope + LogCadd + LogStone + LogOther**
+
+```{r}
+# fit the model to the training data
+
+train_model <- lm(Br_Dens ~ Hardness + RiverSlope + LogCadd + LogStone + LogOther, data = dippers_train)
+
+```
+
+We can do a quick assumption check to ensure the model is appropriate for the training data, but we won't go through this in detail as we have already done this for the full dataset last week. 
+
+```{r}
+
+library(performance)
+# Linearity
+check_model(train_model, check = c("linearity"))
+
+# Normality
+check_model(train_model, check = c("qq", "normality"))
+
+# Equal variance
+check_model(train_model, check = c("homogeneity"))
+
+# Outliers
+check_model(train_model, check = c("outliers", "pp_check"))
+
+# VIF - visual
+plot(performance::check_collinearity(train_model))
+
+# VIF - numbers
+# comes from the car package
+car::vif(train_model)
 
 
+#### ALTERNATIVE: plot() function to check assumptions 
+
+par(mfrow=c(2,2))
+
+plot(train_model)
+
+par(mfrow=c(1,1))
+
+```
 
 
+* Linearity: The relationship between the predictors and the response variable appears to be potentially nonlinear, because although the points are scattered, the line is indicating a possible trend. 
+
+* Independence: The residuals appear to be independent.
+
+* Normality: The residuals appear to be approximately normally distributed, as the points in the Q-Q plot roughly follow a straight line. When we look at the `check_model()` version of the plot we a slight n-shape to the points, but this is only small compared to the overall distribution of the points, so we are not too concerned about this.
+
+* Equal variance: The residuals appear to have constant variance, as there is no clear pattern or fanning present in the standardised residuals vs fitted plot (scale-location in the base plot).
+
+* Leverage: No single observations lying outside the Cook's distance line, indicating no influential observations.
 
 We use the training set to fit the model and check assumptions. We can also use this subset to make predictions and check the quality of the predictions.  The predictions made with this subset will often look quite good, but this is because the observed y value has been used in model fitting; therefore we do not assess the true predictive performance of the model using the training set alone. Instead we can compare the prediction quality statistics and plots with those of the test set to get an indication of overfitting.  
 
