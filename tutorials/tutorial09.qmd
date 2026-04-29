@@ -41,6 +41,15 @@ install.packages(c("tidyverse", "readxl", "moments", "psych", "performance", "ca
 
 If a package is already installed, R will simply reinstall it — no harm done.
 
+### Downloads
+
+| File | Used in | Download |
+|---|---|---|
+| `Dippers.csv` | all exercises | [Download](data/Dippers.csv) |
+
+Save the file into a folder called `data` inside your project folder.
+
+
 ## The data
 
 ![Cute little Dipper (bird) standing on a rock by the water. Image source: markmedcalf via Adobe Stock.](images/AdobeStock_93907188.jpeg)
@@ -68,11 +77,12 @@ In the analyses, the four invertebrate variables were transformed using a $log(x
 
 Last week following use of the step() function, we found the most parsimonious model to be:
 
-Br_Dens ~ Hardness + RiverSlope + LogCadd + LogStone + LogOther
+**Br_Dens ~ Hardness + RiverSlope + LogCadd + LogStone + LogOther**
 
-Assumptions were met and the model explained 76% of variation in dipper breeding pair density. 
+Model assumptions were met and the model explained 76% of variation in dipper breeding pair density, which was quite good. 
 
 We will use this model in our walkthrough today. 
+
 
 # Data splitting
 
@@ -80,9 +90,52 @@ Making predictions involves substituting in new values of x into our model equat
 
 We could use single values for each of our predictor variables and substitute them into the equation, but this is unrealistic and time consuming when we have a large number of observations. We therefore use a dataset containing our new observations of x to make the predictions and feed this into our model. 
 
-To understand the true capability of our model to predict new values of y from values of x that have not been seen by the model, we need to test this on data that has not been used to fit the model. If we test our model on the same data used fit the model, we are likely to get an over-optimistic estimate of the model's predictive performance, as the model has already seen this data.
+To understand the ability our model to predict new values of y from values of x previously unseen by the model, we need to test this on data that has not been used to fit the model. 
 
 It is common practice to split the data we have into two parts: a training (or calibration) subset and a test (or validation) subset.  For each subset, we feed the predictor values into the model to get predictions of the y variable. We can then compare the predicted y with the observed y contained within each subset to get an indication of how well our model is performing.
+
+Let's read the data in and start splitting!
+
+```{r}
+# read in the data
+dippers <- read.csv("data/Dippers.csv")
+
+library(tidyverse)
+glimpse(dippers) # check the data
+```
+
+
+There are different ways of splitting data, but what you choose generally depends on your dataset and the question you are trying to answer.
+
+For example, we might split our dataset based on: 
+
+- a random selection of observations (random sampling)
+- certain factors or groups within the dataset (stratified sampling)
+- spatial location
+- time 
+
+For today, we will be making a random split of the data, which is the most common method. 
+
+Because the sample size is very small, we will use 80% of the data for training and 20% for testing. The more observations we have to train the model, the better. 
+
+```{r}
+set.seed(42)
+
+indexes <- sample(1:nrow(dippers), size = 0.2 * nrow(dippers)) # randomly sample 20% of rows in the dataset
+
+dippers_train <- dippers[-indexes, ] # remove the 20% - training dataset
+dippers_test <- dippers[indexes, ] # select the 20% - test dataset
+```
+
+In the code above, we first set a seed to ensure that we can reproduce the same random sample if we were to rerun the code chunk. 
+Then we use the `sample()` function to randomly select 20% of the row indices from the dataset. 
+
+We create the training dataset by removing these selected indices from the original dataset ( [-index,] says "exclude everything but these indices"), and we create the test dataset by selecting only those indices.
+
+
+
+
+
 
 We use the training set to fit the model and check assumptions. We can also use this subset to make predictions and check the quality of the predictions.  The predictions made with this subset will often look quite good, but this is because the observed y value has been used in model fitting; therefore we do not assess the true predictive performance of the model using the training set alone. Instead we can compare the prediction quality statistics and plots with those of the test set to get an indication of overfitting.  
 
