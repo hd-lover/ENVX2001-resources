@@ -3,6 +3,7 @@ title: "Lecture 03"
 subtitle: ENVX2001 Applied Statistical Methods
 date: last-modified
 date-format: "MMM YYYY"
+format: html
 ---
 
 **Lecture 03a -- *t*-tests** [Full Screen](Lecture-03a.qmd) | [PDF](Lecture-03a.pdf)

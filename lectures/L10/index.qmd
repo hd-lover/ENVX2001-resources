@@ -3,6 +3,7 @@ title: "Lecture 10"
 subtitle: ENVX2001 Applied Statistical Methods
 date: last-modified
 date-format: "MMM YYYY"
+format: html
 ---
 
 **Lecture 10 -- Principal component analysis**

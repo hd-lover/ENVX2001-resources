@@ -3,6 +3,7 @@ title: "Lecture 05"
 subtitle: ENVX2001 Applied Statistical Methods
 date: last-modified
 date-format: "MMM YYYY"
+format: html
 resources:
   - "ENVX2001_Week5_lecture_notes.qmd"
 ---
