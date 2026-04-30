@@ -4,46 +4,25 @@ project:
     - "*.qmd"
     - "!*.md"
     - "!**/ENVX2001_*.qmd"
-editor:
-  render-on-save: true
+
 execute:
-  freeze: auto # re-render only when source changes
+  freeze: auto
 
 profile:
   default: exercise
   group:
-    - [exercise, solution]
+    - [exercise, solution] # `--profile solution` activates BOTH; pairs with _quarto-solution.yml
 
 website:
   page-navigation: true
-  # title: SOLES-TEMLPATE-001
-  # site-url: https://sydney-informatics-hub.github.io/AgReFed-Workshop
-  # repo-url: https://github.com/Sydney-Informatics-Hub/AgReFed-Workshop
-  # repo-actions: [issue]
-
   page-footer:
-    # center: "Site built with [Quarto](https://quarto.org/)."
     right: The University of Sydney
-
   navbar:
     title: ENVX2001 Resources
-    # background: "#F1F1F1" # "#ff3333" "#424242"
-    # logo: "images/logo_white.png"
-    pinned: false
-    left:
-      - text: "{{< fa house-chimney >}}"
-        file: index.qmd
-    # right:
-    #   - text: "{{< fa brands python >}} Python Workshop"
-    #     file: pydocs/py00-workshop.qmd
-    #   - text: "{{< fa brands r-project >}} Workshop"
-    #     file: rdocs/r00-workshop.qmd
 
 format:
   html:
-    theme:
-      light: [cosmo] # from https://github.com/sta210-s22/website/blob/main/_quarto.yml
-      # dark: [cosmo, theme-dark.scss]
+    theme: cosmo
     fontsize: 12pt
     code-copy: true
     code-overflow: wrap
