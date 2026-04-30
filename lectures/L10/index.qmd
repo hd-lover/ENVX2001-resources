@@ -5,12 +5,12 @@ date: last-modified
 date-format: "MMM YYYY"
 ---
 
+**Lecture 10 -- Principal component analysis**
 
-<!-- [Full Screen](lecture-10.qmd) | [PDF]() 
+## Part A
 
-```{=html}
-<iframe class="slide-deck" src="lecture-10.html" height="450" width="747" style="border: 1px solid #2e3846;"></iframe>
-``` -->
+{{< pdf Lecture-10a.pdf width="100%" height="600" button="Download PDF" >}}
 
+## Part B
 
-
+{{< pdf Lecture-10b.pdf width="100%" height="600" button="Download PDF" >}}

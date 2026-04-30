@@ -31,9 +31,9 @@ This site hosts lectures, tutorials, and labs for ENVX2001. Some content is stil
 | 7  | [Regression modelling][L07] | [Tutorial 07][T07] [{{< fa file-pdf >}}][T07pdf] | [Lab 07][Lab07] [{{< fa file-pdf >}}][Lab07pdf] |
 | 8  | [Regression model development][L08] | [Tutorial 08][T08] [{{< fa file-pdf >}}][T08pdf] | [Lab 08][Lab08] [{{< fa file-pdf >}}][Lab08pdf] |
 | 9  | [Regression model assessment][L09] | [Tutorial 09][T09] [{{< fa file-pdf >}}][T09pdf] | [Lab 09][Lab09] [{{< fa file-pdf >}}][Lab09pdf] |
-| 10 | Principle component analysis | [Tutorial 10][T10] [{{< fa file-pdf >}}][T10pdf] | [Lab 10][Lab10] [{{< fa file-pdf >}}][Lab10pdf] |
-| 11 | Clustering | [Tutorial 11][T11] [{{< fa file-pdf >}}][T11pdf] | [Lab 11][Lab11] [{{< fa file-pdf >}}][Lab11pdf] |
-| 12 | Multidimensional scaling | [Tutorial 12][T12] [{{< fa file-pdf >}}][T12pdf] | [Lab 12][Lab12] [{{< fa file-pdf >}}][Lab12pdf] |
+| 10 | [Principal component analysis][L10] | [Tutorial 10][T10] [{{< fa file-pdf >}}][T10pdf] | [Lab 10][Lab10] [{{< fa file-pdf >}}][Lab10pdf] |
+| 11 | [Clustering][L11] | [Tutorial 11][T11] [{{< fa file-pdf >}}][T11pdf] | [Lab 11][Lab11] [{{< fa file-pdf >}}][Lab11pdf] |
+| 12 | [Multidimensional scaling][L12] | [Tutorial 12][T12] [{{< fa file-pdf >}}][T12pdf] | [Lab 12][Lab12] [{{< fa file-pdf >}}][Lab12pdf] |
 :::
 
 <!-- Links -->
@@ -46,6 +46,9 @@ This site hosts lectures, tutorials, and labs for ENVX2001. Some content is stil
 [L07]: lectures/L07/index.qmd
 [L08]: lectures/L08/index.qmd
 [L09]: lectures/L09/index.qmd
+[L10]: lectures/L10/index.qmd
+[L11]: lectures/L11/index.qmd
+[L12]: lectures/L12/index.qmd
 [T01]: tutorials/tutorial01.qmd
 [T02]: tutorials/tutorial02.qmd
 [T03]: tutorials/tutorial03.qmd

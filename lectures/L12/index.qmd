@@ -5,12 +5,12 @@ date: last-modified
 date-format: "MMM YYYY"
 ---
 
-<!-- 
-[Full Screen](lecture-12.qmd) | [PDF]() 
+**Lecture 12 -- Multidimensional scaling**
 
-```{=html}
-<iframe class="slide-deck" src="lecture-12.html" height="450" width="747" style="border: 1px solid #2e3846;"></iframe>
-```
+## Part A
 
+{{< pdf Lecture-12a.pdf width="100%" height="600" button="Download PDF" >}}
 
- -->
+## Part B
+
+{{< pdf Lecture-12b.pdf width="100%" height="600" button="Download PDF" >}}

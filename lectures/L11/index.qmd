@@ -5,12 +5,12 @@ date: last-modified
 date-format: "MMM YYYY"
 ---
 
-<!-- 
-[Full Screen](lecture-11.qmd) | [PDF]() 
+**Lecture 11 -- Clustering**
 
-```{=html}
-<iframe class="slide-deck" src="lecture-11.html" height="450" width="747" style="border: 1px solid #2e3846;"></iframe>
-```
+## Part A
 
+{{< pdf Lecture-11a.pdf width="100%" height="600" button="Download PDF" >}}
 
- -->
+## Part B
+
+{{< pdf Lecture-11b.pdf width="100%" height="600" button="Download PDF" >}}
