@@ -84,7 +84,7 @@ Save both files into a folder called `data` inside your project folder.
 
 # 1. Making predictions with California streamflow (~45 min)
 
-![Little Lakes Valley in the Eastern Sierra Nevada Mountains outside of Bishop, California. Source: Adobe Stock.](images/AdobeStock_668401555.jpeg)
+![Little Lakes Valley in the Eastern Sierra Nevada Mountains outside of Bishop, California. Source: Adobe Stock.](../../assets/images/AdobeStock_668401555.jpeg)
 Last week we found that precipitation at Lake Sabrina was not a significant predictor of runoff volume near Bishop, California. 
 
 Our Partial F-test between our full and reduced model resulted in a P-value< 0.05, so we failed to reject the null hypothesis. This told us that there was no significant difference between full and reduced models, so we selected the reduced model as it was less complex and therefore more parsimonious.  
@@ -495,7 +495,7 @@ Before we move on, now is a good time to take a 5-minute break.
 
 # 2. Making predictions with the plant aridity data (~45 min)
 
-![Image of invasive capeweed. Source: Adobe Stock.](images/AdobeStock_659883118.jpeg)
+![Image of invasive capeweed. Source: Adobe Stock.](../../assets/images/AdobeStock_659883118.jpeg)
 
 We used this dataset last week as an example of model selection. 
 

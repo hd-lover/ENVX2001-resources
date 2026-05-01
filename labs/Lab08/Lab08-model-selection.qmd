@@ -68,7 +68,7 @@ If a package is already installed, R will simply reinstall it — no harm done.
 
 # 1. Variable selection for California streamflow (~ 45 mins)
 
-![Little Lakes Valley in the Eastern Sierra Nevada Mountains outside of Bishop, California. Source: Adobe Stock.](images/AdobeStock_668401555.jpeg)
+![Little Lakes Valley in the Eastern Sierra Nevada Mountains outside of Bishop, California. Source: Adobe Stock.](../../assets/images/AdobeStock_668401555.jpeg)
 
 Last week you were investigating the relationship between precipitation at three sites (Lake Sabrina, Pine Creek, and Rock Creek) and stream runoff volume at a site near Bishop, California. You found that Lake Sabrina was not a significant predictor of runoff volume, but Pine Creek and Rock Creek were.
 
@@ -361,7 +361,7 @@ Before moving on to the next section, take a short break and stretch your legs.
 
 # 2. Variable selection for plant aridity (~ 45 mins)
 
-![Image of invasive capeweed. Source: Adobe Stock.](images/AdobeStock_659883118.jpeg)
+![Image of invasive capeweed. Source: Adobe Stock.](../../assets/images/AdobeStock_659883118.jpeg)
 
 This dataset examines the adaptation of invasive capeweed (*Arctotheca calendula*) populations to aridity gradients across southern Australia. A common garden experiment was conducted from 2018-2019 with populations sourced from varying aridity levels, subjecting them to wet and dry treatments to measure traits related to drought escape, avoidance, and tolerance. 
 
