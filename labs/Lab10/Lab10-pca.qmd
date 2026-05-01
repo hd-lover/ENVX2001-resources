@@ -533,6 +533,46 @@ summary(pca_iris)
 :::
 ::::
 
+#### Visualising the iris PCA
+
+The PCA summary tells us how much variation each principal component explains, but the easiest way to understand the result is to plot the first two principal components.
+
+```{r}
+iris_scores <- data.frame(
+  pca_iris$x,
+  Species = iris$Species
+)
+
+head(iris_scores)
+
+ggplot(iris_scores, aes(x = PC1, y = PC2, colour = Species, shape = Species)) +
+  geom_point(size = 3, alpha = 0.8) +
+  theme_classic() +
+  labs(
+    title = "PCA of iris flower measurements",
+    x = "PC1",
+    y = "PC2"
+  )
+```
+
+We can also use a scree plot to visualise how much variation is explained by each component.
+
+```{r}
+screeplot(pca_iris, type = "lines")
+```
+
+::: {.callout-note}
+#### Interpreting the iris PCA plot
+
+Each point is one iris flower, plotted according to its scores on PC1 and PC2. Points close together have similar combinations of sepal and petal measurements.
+
+The plot usually shows that *Iris setosa* separates clearly from the other two species. This tells us that *setosa* has a distinct combination of floral traits, especially petal traits.
+
+*Iris versicolor* and *Iris virginica* usually overlap more. This does not mean they are identical. It means their differences are weaker or more subtle along the main PCA axes.
+
+Because PC1 explains most of the variation and is strongly influenced by petal length and petal width, PC1 can be interpreted mainly as a petal-size axis.
+:::
+
 That's it! You have just performed your first PCA. Do you think you can do the whole thing by yourself without any hints? Give it a try:
 
 ::: callout-note
@@ -565,6 +605,54 @@ Summarise the results:
 ```{r}
 summary(pca_kangaroo)
 ```
+:::
+
+#### Visualising the kangaroo PCA
+
+Now we can plot the first two principal components for the kangaroo skull measurements. This lets us ask whether Eastern and Western grey kangaroos separate in multivariate space.
+
+```{r}
+kangaroo_scores <- data.frame(
+  pca_kangaroo$x,
+  SPECIES = kangaroo$SPECIES
+)
+
+kangaroo_scores$Species_name <- factor(
+  kangaroo_scores$SPECIES,
+  levels = c(1, 2),
+  labels = c("Eastern grey kangaroo", "Western grey kangaroo")
+)
+
+head(kangaroo_scores)
+
+ggplot(kangaroo_scores, aes(x = PC1, y = PC2, colour = Species_name, shape = Species_name)) +
+  geom_point(size = 3, alpha = 0.8) +
+  theme_classic() +
+  labs(
+    title = "PCA of kangaroo skull measurements",
+    x = "PC1",
+    y = "PC2",
+    colour = "Species",
+    shape = "Species"
+  )
+```
+
+A biplot shows both the sample scores and the variable loadings in the same figure.
+
+```{r}
+biplot(pca_kangaroo, xlabs = kangaroo$SPECIES)
+```
+
+::: {.callout-note}
+#### Interpreting the kangaroo PCA plot
+
+The kangaroo PCA plot is different from the iris plot. PC1 explains almost all of the variation, and the points usually form one long cloud rather than two clearly separated species groups.
+
+This tells us that the dominant pattern in the skull measurements is overall skull size. Kangaroos with larger skulls tend to have larger values for most skull measurements.
+
+Because the two species overlap strongly, these skull measurements do not clearly separate Eastern and Western grey kangaroos in the PCA. The PCA is mainly finding a size gradient, not a species-separation gradient.
+
+This is an important lesson: PCA finds the strongest source of variation in the data, but that source of variation is not always the grouping variable we are interested in.
 :::
 
 How did you go?
