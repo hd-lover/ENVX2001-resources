@@ -2,6 +2,9 @@
 title: Lab 10
 # revised-by: alex
 subtitle: ENVX2001 Applied Statistical Methods
+authors:
+  - Alex Shu
+  - Mathew Crowther
 description: The University of Sydney
 toc: true
 toc-depth: 3
@@ -348,9 +351,6 @@ PCA deals with this by creating new set of response variables called principle c
 
 I'll stop tempting you with food for now. Let's get back to beer instead. Here are seven variables that people normally use to judge the quality of a beer:
 
-::: {.callout-note collapse="true"}
-#### Seven influential variables in a beer
-
 1.  Cost
 2.  Bottle size
 3.  Alcohol content
@@ -358,7 +358,6 @@ I'll stop tempting you with food for now. Let's get back to beer instead. Here a
 5.  Colour
 6.  Aroma
 7.  Taste
-:::
 
 220 customers were asked to rate each of these variables from 0 to 100 based on how important they judge that variable to be. For example, a customer who scores "Cost" as 0 and "Brand Reputation" as 100 cares more about beer clout than financial security; whereas a customer who scores "Cost" as 100 and "Brand Reputation" as 0 just wants some free booze.
 
@@ -401,13 +400,9 @@ As strange as it might seem, we *can* in fact treat all 7 variables in `FactBeer
 Researchers often use descriptive studies to refine their research questions. Then, they follow up on these questions with more rigorous, inferential tests. Think of descriptive statistics as a special case of Exploratory Data Analysis (EDA), if you will.
 :::
 
-::: callout-warning
-#### How do I know if my study is multivariate?
-
 No strict rule dictates whether your study should be univariate or multivariate. As a researcher, you are free to choose your response and explanatory variables depending on your research question. Whether you decide to choose multiple response variables or not is up to you.
 
-As a rule of thumb, whenever you are given a large dataset with more than three numeric variables, be aware that multivariate analysis is an option available to you. 
-:::
+As a rule of thumb, whenever you are given a large dataset with more than three numeric variables, be aware that multivariate analysis is an option available to you.
 
 Our `beer` dataset definitely fits the criteria for multivariate analysis. We will treat all 7 variables in this dataset as response variables, and see if we can spot any patterns in them using a PCA.
 
@@ -536,9 +531,6 @@ We can also use a scree plot to visualise how much variation is explained by eac
 screeplot(pca_iris, type = "lines")
 ```
 
-::: {.callout-note}
-#### Interpreting the iris PCA plot
-
 Each point is one iris flower, plotted according to its scores on PC1 and PC2. Points close together have similar combinations of sepal and petal measurements.
 
 The plot usually shows that *Iris setosa* separates clearly from the other two species. This tells us that *setosa* has a distinct combination of floral traits, especially petal traits.
@@ -546,7 +538,6 @@ The plot usually shows that *Iris setosa* separates clearly from the other two s
 *Iris versicolor* and *Iris virginica* usually overlap more. This does not mean they are identical. It means their differences are weaker or more subtle along the main PCA axes.
 
 Because PC1 explains most of the variation and is strongly influenced by petal length and petal width, PC1 can be interpreted mainly as a petal-size axis.
-:::
 
 That's it! You have just performed your first PCA. Do you think you can do the whole thing by yourself without any hints? Give it a try.
 
@@ -625,9 +616,6 @@ A biplot shows both the sample scores and the variable loadings in the same figu
 biplot(pca_kangaroo, xlabs = kangaroo$SPECIES)
 ```
 
-::: {.callout-note}
-#### Interpreting the kangaroo PCA plot
-
 The kangaroo PCA plot is different from the iris plot. PC1 explains almost all of the variation, and the points usually form one long cloud rather than two clearly separated species groups.
 
 This tells us that the dominant pattern in the skull measurements is overall skull size. Kangaroos with larger skulls tend to have larger values for most skull measurements.
@@ -635,7 +623,6 @@ This tells us that the dominant pattern in the skull measurements is overall sku
 Because the two species overlap strongly, these skull measurements do not clearly separate Eastern and Western grey kangaroos in the PCA. The PCA is mainly finding a size gradient, not a species-separation gradient.
 
 This is an important lesson: PCA finds the strongest source of variation in the data, but that source of variation is not always the grouping variable we are interested in.
-:::
 
 How did you go?
 
@@ -836,35 +823,30 @@ At this point, we can consider our exploratory PCA more or less complete. Out of
 
 Pretty neat, right?
 
-:::: callout-warning
-#### Other forms of factor analysis
+### Other forms of factor analysis
 
 PCA is one of many techniques that fall under the broad category of **factor analysis**. Factor analysis, in turn, is a subtopic under multivariate statistics.
 
-For your interest, here is a different function in R (called `factanal`) that executes a slightly different type of factor analysis using a type of rotation called "varimax rotation". (Note: varimax rotation can be applied to PCAs as well, but we chose not to do so.) 
+For your interest, here is a different function in R (called `factanal`) that executes a slightly different type of factor analysis using a type of rotation called "varimax rotation". (Note: varimax rotation can be applied to PCAs as well, but we chose not to do so.)
 
-The outputs of this factor analysis are similar to those of a PCA; but instead of creating PCs, `factanal` creates **latent variables** (also called factors). 
+The outputs of this factor analysis are similar to those of a PCA; but instead of creating PCs, `factanal` creates **latent variables** (also called factors).
 
-Here is `factanal` applied to our `beer` dataset. See if you can spot some key differences between the loadings tables of this analysis and the PCA we performed earlier.  
+Here is `factanal` applied to our `beer` dataset. See if you can spot some key differences between the loadings tables of this analysis and the PCA we performed earlier.
 
-::: {.callout-note collapse="true"}
-##### Factor analysis with Varimax rotation, applied to our beer dataset
 ```{r}
 fa1 <- factanal(beer, 3, rotation="varimax")
 fa1$loadings
 ```
-:::
 
 ::: {.callout-tip collapse="true"}
-##### What you might notice
+### What you might notice
 
-It seems that the factors from our factor analysis are a little bit easier to interpret than the PCs from our PCA. This is because the varimax rotation constructed each factor so that they are influenced by only a few of the original variables. 
+It seems that the factors from our factor analysis are a little bit easier to interpret than the PCs from our PCA. This is because the varimax rotation constructed each factor so that they are influenced by only a few of the original variables.
 
 Recall that in our PCA, all 7 original variables contributed to PC1 in roughly equal proportions. In our factor analysis, however, Factor 1 is made up mostly of colour, aroma, and taste, with very little contribution from the other four variables.
 
 Sometimes this is a good thing, sometimes not. For more on this topic, please see the week 10 lectures.
 :::
-::::
 
 ## Sparrows
 
