@@ -1,6 +1,12 @@
 ---
 title: "Tutorial 10: PCA and Factor Analysis"
-# reviewed-by:
+author: "Professor Mathew Crowther"
+format:
+  sandstone-html:
+    code-tools: true
+resources:
+  - data/football_player_performance.csv
+  - images/football.jpg
 ---
 
 ```{r setup, include=FALSE}
@@ -9,37 +15,20 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # PCA and Factor Analysis
 
-Students in class gave "Characteristics of a good ecology lecturer". They scored from 1-10 on a range of characteristics:
+This tutorial uses football-player performance data from Wilson et al. (2017), *Skill not athleticism predicts individual variation in match performance of soccer players*. The study measured semi-professional football players from the University of Queensland Football Club and asked whether morphology, balance, athleticism and motor skill predicted performance in soccer-tennis and 11-a-side matches.
 
-- accessible
-- attractive
-- Wide range of topics
-- Do teaching research
-- Dress well
-- Complex issues
-- Example exam questions
-- Notes before
-- humour
-- Easy marking
-- Move around lecture
-- Detailed lecture notes
-- Clear objective to lecture
-- Solicit questions
-- Use textbook closely
-- Focus on primary research
-- Use their own research
-- Teach in team
-- Understand principles of teaching
-- Use pointers
-- respected
+![](images/football.jpg)
 
-The students also indicated whether they were:
 
-- a gender (male/female)
-- studied mainly a system (marine/terrestrial)
-- studied mainly an organismal group (plants/animals)
+In the paper, the authors measured:
 
-We are going to use principal components analysis and factor analysis to interpret this dataset.
+- **Balance**: average time before losing balance while standing on high-density foam with eyes closed.
+- **Athletic performance**: 1500 m speed, wall-squat endurance, jump distance, 40 m sprint speed and agility-course speed.
+- **Motor skill**: dribbling speed, juggling ability, volley accuracy, passing accuracy and heading accuracy.
+
+The key biological question is whether complex match performance is better explained by general athletic capacity or football-specific motor skill.
+
+We are going to use principal components analysis and factor analysis to interpret the multivariate structure of these player performance traits.
 
 ## Setup
 
@@ -55,42 +44,83 @@ library(ggfortify)
 
 ## Load the data
 
-First open your dataset:
+First open your dataset. The CSV file should be saved in the same folder as this `.qmd` file.
 
 ```{r}
-lecturers <- read.csv("data/lecturers.csv", header = TRUE)
+players <- read.csv("data/football_player_performance.csv", header = TRUE)
 ```
+
+Check the variable names:
+
+```{r}
+names(players)
+```
+
+Because R changes column names that begin with a number, `1500m` may appear as `X1500m`.
+
+```{r}
+head(players)
+str(players)
+```
+
+## Description of the variables
+
+```{r}
+summary(players)
+```
+
+The variables are:
+
+- `balance`: static balance score
+- `X1500m`: speed over 1500 m
+- `squat`: wall-squat endurance time
+- `jump`: standing jump distance
+- `sprint`: 40 m sprint speed
+- `agility`: speed through an agility course
+- `drib`: dribbling speed through an agility course
+- `jugg`: juggling or keep-up ability
+- `voll`: volley-kick accuracy
+- `pass`: passing accuracy
+- `head`: heading accuracy
+
+Higher values generally indicate better performance on that trait.
 
 ## Correlation matrix
 
-Let's first do a correlation matrix:
+Let's first do a correlation matrix. We exclude the player ID column and analyse the performance traits only.
 
 ```{r}
-cor(lecturers[, 8:28])
-Corrmatrix <- cor(lecturers[, 8:28])
+cor(players[, 2:12])
+Corrmatrix <- cor(players[, 2:12])
 ```
+
+A correlation matrix lets us see which traits tend to vary together. For example, if several skill traits are positively correlated, this suggests that some players have generally high technical ability across multiple football-specific tasks.
 
 ## Bartlett's Test of Sphericity
 
-Now we can do the Bartlett's Test of Sphericity. This test compares the correlation matrix to an identity matrix. If it is significant, it is worth doing a PCA.
+Now we can do Bartlett's Test of Sphericity. This test compares the correlation matrix to an identity matrix. If it is significant, it is worth doing a PCA.
 
 ```{r}
-BARTLETT(Corrmatrix, N = 34, cor_method = c("pearson"))
+BARTLETT(Corrmatrix, N = nrow(players), cor_method = c("pearson"))
 ```
+
+A significant result means the variables are sufficiently correlated for a dimension-reduction method such as PCA or factor analysis.
 
 ## Principal Components Analysis
 
 Note: to make this a PCA based on a correlation matrix, we have to scale the variables, hence `scale = TRUE`. There are two main principal components functions, but they are very similar. Note `prcomp` calls the loadings "rotations", not to be confused with rotations below.
 
 ```{r}
-pca1 <- prcomp(lecturers[, 8:28], scale = TRUE)
-pca2 <- princomp(lecturers[, 8:28], cor = TRUE)
+pca1 <- prcomp(players[, 2:12], scale = TRUE)
+pca2 <- princomp(players[, 2:12], cor = TRUE)
 ```
 
 ```{r}
 summary(pca1)
 summary(pca2)
 ```
+
+The first principal component describes the major axis of variation among players. In the Wilson et al. paper, separate PCAs were used to summarise athletic performance and motor skill. Here, we are doing one combined PCA across balance, athletic performance and motor skill traits, so the first few components may separate general performance, athleticism and football-specific skill.
 
 ## Loadings
 
@@ -101,6 +131,12 @@ pca1
 loadings(pca2)
 ```
 
+Interpretation:
+
+- Variables with large positive or negative loadings contribute strongly to that component.
+- If all traits load in the same direction on PC1, PC1 can be interpreted as general player performance.
+- If athletic traits load in one direction and skill traits load in another, the component may represent a contrast between athletic capacity and football-specific skill.
+
 ## Screeplot
 
 To do a screeplot, follow the commands below. Note this is the standard deviations, which are just square root of the variances or eigenvalues.
@@ -108,6 +144,8 @@ To do a screeplot, follow the commands below. Note this is the standard deviatio
 ```{r}
 screeplot(pca1, type = "lines")
 ```
+
+The screeplot helps decide how many components are worth interpreting. A common rule of thumb is to keep components before the curve flattens out.
 
 ## Principal Component Scores
 
@@ -120,46 +158,77 @@ pca1$x
 So to combine them with the original variables, do this:
 
 ```{r}
-lecturerpcscores <- cbind(lecturers, pca1$x)
+playerpcscores <- cbind(players, pca1$x)
 ```
+
+Each player now has a score on each principal component. These scores tell us where each player sits on the multivariate axes of football performance.
 
 ## Biplot
 
-We can produce a biplot in ggplot2, using the factor gender as the colour:
+We can produce a biplot in ggplot2. Here the player number is used as a label.
 
 ```{r}
-autoplot(pca1, data = lecturerpcscores, colour = 'gender')
+autoplot(pca1, data = playerpcscores, label = TRUE, label.label = "player")
 ```
 
-We could add the loadings, but they are a bit messy, best to look at loadings or rotations tables.
+We could add the loadings, but they can be a bit messy. It is often best to look at the loadings or rotations tables directly.
 
 You can make the plot using different symbols, change background etc through reading the ggplot2 documentation.
 
-## ANOVA on PC scores
+## Regression using PC scores
 
-You can use this file to do the ANOVAs, you will have to do yourself. For example for differences in PC scores for gender:
+In the lecturer dataset, we used ANOVA to test whether PC scores differed among groups. This football dataset does not include grouping variables such as team grade or playing position, so here we use a regression example instead.
+
+For example, we can ask whether PC1 is associated with juggling ability:
 
 ```{r}
-AOV1 <- aov(lecturerpcscores$PC1 ~ gender, data = lecturerpcscores)
-summary(AOV1)
+LM1 <- lm(PC1 ~ jugg, data = playerpcscores)
+summary(LM1)
 ```
 
-You can do something similar for your projects and regression, using your PC scores as the predictors.
+This is only an example. In a full analysis, you might use PC scores as predictors of match success, soccer-tennis score or network centrality.
 
-## Boxplot
+## Scatterplot
 
-To do a boxplot of variables use ggplot2:
+To do a scatterplot of variables use ggplot2:
 
 ```{r}
-ggplot(lecturerpcscores, aes(x = gender, y = PC1)) +
-  geom_boxplot()
+ggplot(playerpcscores, aes(x = jugg, y = PC1)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(x = "Juggling ability", y = "PC1 score")
 ```
 
 ## Factor Analysis with Varimax Rotation
 
-To do a Varimax rotation on your principal components, follow these commands. Do a factor analysis with the rotation being Varimax:
+To do a Varimax rotation on your principal components, follow these commands. Do a factor analysis with the rotation being Varimax.
+
+Here we start with three factors because the paper describes three broad biological domains: balance, athletic performance and motor skill.
 
 ```{r}
-fa1 <- factanal(lecturers[, 8:28], 10, rotation = "varimax")
+fa1 <- factanal(players[, 2:12], 3, rotation = "varimax")
 fa1
 ```
+
+The rotated factor loadings may help identify clusters of variables. For example:
+
+- one factor may represent athletic performance
+- one factor may represent football-specific motor skill
+- one factor may represent balance or a narrower technical component
+
+Try changing the number of factors and compare whether the interpretation becomes clearer or less clear:
+
+```{r}
+fa2 <- factanal(players[, 2:12], 2, rotation = "varimax")
+fa2
+```
+
+```{r}
+fa4 <- factanal(players[, 2:12], 4, rotation = "varimax")
+fa4
+```
+
+## Final interpretation
+
+Wilson et al. found that motor skill was a stronger predictor of soccer-tennis and 11-a-side match performance than general athleticism. In this tutorial, PCA and factor analysis are used to explore the same biological idea from the trait data: whether football players vary mostly along a general performance axis, or whether athletic and technical skill traits form separate multivariate dimensions.
+

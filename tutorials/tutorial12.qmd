@@ -1,112 +1,365 @@
 ---
-title: "Tutorial 12: nMDS and PERMANOVA"
-# reviewed-by:
+title: "Tutorial 12: nMDS, PERMANOVA and SIMPER"
+author: "Professor Mathew Crowther"
+format:
+  sandstone-html:
+    code-tools: true
+resources:
+  - data/macnally.csv
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-# PERMANOVA, SIMPER and nMDS Analysis
+# Aim of this tutorial
 
-We are going to use the same dataset as last tutorial, but do very different analyses.
+In the previous tutorial we used **hierarchical clustering** to ask whether sites with similar bird communities group together.
 
-## Setup
+In this tutorial we use the **same Mac Nally bird data**, but analyse it using three related multivariate methods:
 
-To do these in R, you need to use the vegan package, so first load it and the MASS package:
+1. **nMDS** — to visualise similarity among bird communities.
+2. **ANOSIM** — to test whether communities differ among habitat groups.
+3. **PERMANOVA** — to test whether habitat type explains multivariate differences in bird assemblages.
+4. **SIMPER** — to identify which bird species contribute most to differences among habitat groups.
+
+The data are based on Mac Nally's study of forest and woodland birds along a 250 km transect in south-eastern Australia. The paper examined bird assemblages across contrasting forest and woodland habitats, including river red gum/grey box woodlands, foothill forests, montane forests, red ironbark forests, manna gum woodlands and coastal banksia woodland.
+
+Mac Nally used multivariate approaches to understand habitat structure, bird occurrence and abundance across sites. Here, we focus on the **bird community matrix**: rows are sites and columns are bird species.
+
+# Load packages
 
 ```{r}
-#| message: false
-#| warning: false
 library(vegan)
 library(MASS)
 library(ggplot2)
+library(dplyr)
 ```
 
-## Load the data
+# Load the data
 
-Next load the bird data:
+The dataset contains:
+
+- `SITE` = site name
+- `HABITAT` = habitat category
+- bird species columns = abundance/density estimates for each bird species
 
 ```{r}
+
 Birds <- read.csv("data/macnally.csv", header = TRUE)
+
+
+head(Birds)
+str(Birds)
 ```
 
-## Transform the data
-
-Let's transform the data using a fourth-root transformation:
+Check the habitat groups:
 
 ```{r}
-TransBirdsData <- (Birds[, 3:104])^(1/4)
+table(Birds$HABITAT)
 ```
 
-## Bray-Curtis Dissimilarity Matrix
+# Create the community matrix
 
-Now let's generate a Bray-Curtis dissimilarity matrix on this data and perform a nMDS. Note this data has already been standardised.
+For multivariate community analyses, we need only the species abundance columns.
+
+The first two columns are site information, so the bird species matrix starts at column 3.
+
+```{r}
+BirdsData <- Birds[, 3:ncol(Birds)]
+
+head(BirdsData[, 1:8])
+dim(BirdsData)
+```
+
+Each row is a site.  
+Each column is a bird species.
+
+# Transform the data
+
+Community data often contain many zeros and some very abundant species. If we analyse raw abundance data, the ordination may be dominated by only the most abundant species.
+
+A **fourth-root transformation** reduces the influence of very abundant species while still retaining quantitative abundance information.
+
+```{r}
+TransBirdsData <- BirdsData^(1/4)
+```
+
+# Bray-Curtis dissimilarity
+
+Bray-Curtis dissimilarity is commonly used for ecological community data.
+
+It compares sites based on differences in species composition and abundance.
 
 ```{r}
 Bird.dis <- vegdist(TransBirdsData, method = "bray")
+
+Bird.dis
 ```
 
-## nMDS Ordination
+Interpretation:
 
-Let's plot the nMDS and label with Habitat Type:
+- values close to 0 = sites have similar bird communities
+- values close to 1 = sites have very different bird communities
 
-```{r}
-pchs <- c(0:5)
-Bird_Factor <- factor(Birds$HABITAT)
-nMDS_Bird <- metaMDS(TransBirdsData, distance = "bray", k = 2)
+# nMDS ordination
 
-plot_Bird <- ordiplot(nMDS_Bird, display = "sites", type = "n")
-points(nMDS_Bird, col = "black", pch = pchs[Bird_Factor])
-legend("topright", bty = "n", legend = levels(Bird_Factor), pch = pchs)
-```
+nMDS attempts to place sites in a low-dimensional plot so that distances among points reflect their Bray-Curtis dissimilarities.
+
+Sites close together have similar bird assemblages.  
+Sites far apart have different bird assemblages.
 
 ```{r}
+set.seed(123)
+nMDS_Bird <- metaMDS(TransBirdsData,
+                     distance = "bray",
+                     k = 2,
+                     trymax = 100)
+
 nMDS_Bird
 ```
 
-## ANOSIM
+## Stress value
 
-Let's do an ANOSIM, using Habitat as the Factor:
+The stress value tells us how well the two-dimensional nMDS represents the multivariate dissimilarities.
+
+As a guide:
+
+- stress < 0.10 = good representation
+- stress 0.10–0.20 = usable but interpret with care
+- stress > 0.20 = poor representation
+
+# Base R nMDS plot
 
 ```{r}
-Bird.anosim <- with(TransBirdsData, anosim(Bird.dis, Birds$HABITAT))
+Bird_Factor <- factor(Birds$HABITAT)
+pchs <- seq_along(levels(Bird_Factor))
+
+plot(nMDS_Bird,
+     display = "sites",
+     type = "n",
+     main = "nMDS of bird communities")
+
+points(nMDS_Bird,
+       display = "sites",
+       pch = pchs[Bird_Factor],
+       col = "black",
+       cex = 1.2)
+
+legend("topright",
+       bty = "n",
+       legend = levels(Bird_Factor),
+       pch = pchs)
+```
+
+## Interpretation
+
+If sites from the same habitat type cluster together, this suggests that habitat type is associated with bird community composition.
+
+If habitat groups strongly overlap, this suggests that bird communities are not clearly separated by habitat type.
+
+# ggplot nMDS plot
+
+First extract the nMDS site scores.
+
+```{r}
+nmds_scores <- as.data.frame(scores(nMDS_Bird, display = "sites"))
+nmds_scores$SITE <- Birds$SITE
+nmds_scores$HABITAT <- Birds$HABITAT
+
+head(nmds_scores)
+```
+
+Now plot the ordination.
+
+```{r}
+ggplot(nmds_scores, aes(x = NMDS1, y = NMDS2, shape = HABITAT)) +
+  geom_point(size = 3) +
+  theme_classic() +
+  labs(title = "nMDS ordination of Mac Nally bird communities",
+       x = "nMDS axis 1",
+       y = "nMDS axis 2",
+       shape = "Habitat")
+```
+
+# Add habitat ellipses
+
+Ellipses help visualise whether habitat groups occupy different regions of ordination space.
+
+```{r}
+ggplot(nmds_scores, aes(x = NMDS1, y = NMDS2, shape = HABITAT)) +
+  geom_point(size = 3) +
+  stat_ellipse(aes(group = HABITAT), type = "t", linetype = 2) +
+  theme_classic() +
+  labs(title = "nMDS with habitat group ellipses",
+       x = "nMDS axis 1",
+       y = "nMDS axis 2",
+       shape = "Habitat")
+```
+
+Note: ellipses are only a visual guide. Formal tests are below.
+
+# ANOSIM
+
+ANOSIM tests whether differences among habitat groups are greater than differences within habitat groups.
+
+```{r}
+Bird.anosim <- anosim(Bird.dis, Birds$HABITAT, permutations = 999)
+
 summary(Bird.anosim)
+plot(Bird.anosim)
 ```
 
-## PERMANOVA
+## Interpreting ANOSIM
 
-Let's do a PERMANOVA, with HABITAT as a factor. PERMANOVA is called `adonis` in the vegan package. Note `adonis` is being replaced by `adonis2`, which is basically the same.
+The main statistic is **R**.
+
+- R close to 0 = little separation among groups
+- R close to 1 = strong separation among groups
+- p-value = whether the observed separation is greater than expected by chance
+
+# PERMANOVA
+
+PERMANOVA tests whether habitat type explains variation in the multivariate bird community data.
+
+In `vegan`, PERMANOVA is run using `adonis2()`.
 
 ```{r}
-adonis2(TransBirdsData ~ HABITAT, data = Birds, permutations = 999)
+Bird.permanova <- adonis2(TransBirdsData ~ HABITAT,
+                          data = Birds,
+                          method = "bray",
+                          permutations = 999)
+
+Bird.permanova
 ```
 
-## Pairwise Comparisons
+## Interpreting PERMANOVA
 
-If we find an overall significant p-value, we need to see which level is significant from which other level. Here we can do pairwise tests (a bit like post-hoc tests in ANOVAs), with the p-value adjusted with a Bonferroni correction.
+Important columns:
 
-To do the pairwise tests, there is a new R command on GitHub. Note the first time you do this, you need to first install Rtools from [here](https://cran.r-project.org/bin/windows/Rtools/).
+- `Df` = degrees of freedom
+- `SumOfSqs` = multivariate variation explained
+- `R2` = proportion of variation explained by habitat
+- `F` = pseudo-F statistic
+- `Pr(>F)` = permutation p-value
+
+If the p-value is significant, bird communities differ among habitat types.
+
+# Check dispersion
+
+PERMANOVA can be sensitive to differences in multivariate spread among groups. Therefore, we should check whether habitat groups differ in dispersion.
+
+```{r}
+Bird.disp <- betadisper(Bird.dis, Birds$HABITAT)
+
+anova(Bird.disp)
+plot(Bird.disp)
+```
+
+## Interpretation
+
+If this test is significant, habitat groups differ in their within-group variability.
+
+That does not invalidate PERMANOVA, but it means the PERMANOVA result may reflect differences in spread as well as differences in group centroids.
+
+# Pairwise PERMANOVA comparisons
+
+If the overall PERMANOVA is significant, we may want to know which habitat groups differ from each other.
+
+The package `pairwiseAdonis` is useful, but it may not be installed on all computers. The installation code is shown but not run automatically.
 
 ```{r}
 #| eval: false
-library(devtools)
-install_github("pmartinezarbizu/pairwiseAdonis/pairwiseAdonis")
+# Install only once, if needed:
+# install.packages("devtools")
+# devtools::install_github("pmartinezarbizu/pairwiseAdonis/pairwiseAdonis")
 ```
+
+Load the package if it is already installed:
 
 ```{r}
 #| eval: false
 library(pairwiseAdonis)
-pairwise.adonis(TransBirdsData, Birds$HABITAT)
+
+pairwise.adonis(TransBirdsData,
+                Birds$HABITAT,
+                sim.method = "bray",
+                p.adjust.m = "bonferroni")
 ```
 
-## SIMPER Analysis
+If this package is not available, you can still interpret the overall PERMANOVA and the nMDS plot.
 
-To see what species are contributing to the differences between the vegetation communities, we can use a SIMPER analysis (Similarity Percentages):
+# SIMPER analysis
+
+SIMPER stands for **Similarity Percentages**.
+
+It identifies which species contribute most to differences between habitat groups.
 
 ```{r}
 Birdsim <- simper(TransBirdsData, Birds$HABITAT)
+
 summary(Birdsim)
 ```
 
-The SIMPER analysis shows which species contribute most to the dissimilarity between habitat groups. This helps identify indicator species or species that drive community differences.
+## Extract one comparison
+
+The output can be long. The following code extracts the first pairwise habitat comparison.
+
+```{r}
+first_comparison <- summary(Birdsim)[[1]]
+head(first_comparison, 10)
+```
+
+## Interpretation
+
+Species with larger average contributions are those that most strongly separate two habitat types.
+
+These may be habitat-associated species, but SIMPER should be interpreted carefully because common and abundant species often contribute strongly.
+
+# Questions for students
+
+## Question 1
+
+What does it mean if two sites are close together in the nMDS plot?
+
+### Answer guide
+
+They have similar bird community composition based on Bray-Curtis dissimilarity.
+
+## Question 2
+
+Why did we transform the bird abundance data before calculating Bray-Curtis dissimilarities?
+
+### Answer guide
+
+The transformation reduces the dominance of very abundant species and allows less abundant species to contribute more to the multivariate pattern.
+
+## Question 3
+
+What does a significant PERMANOVA tell us?
+
+### Answer guide
+
+It tells us that bird community composition differs among habitat types more than expected by chance.
+
+## Question 4
+
+Why should we check dispersion with `betadisper()`?
+
+### Answer guide
+
+Because PERMANOVA can be influenced by differences in the spread of groups, not only differences in their centres.
+
+## Question 5
+
+What does SIMPER add to the analysis?
+
+### Answer guide
+
+SIMPER helps identify which species contribute most to the observed differences among habitat types.
+
+# Key take-home message
+
+Hierarchical clustering, nMDS, ANOSIM, PERMANOVA and SIMPER all use the same basic idea: sites can be compared based on their whole community composition.
+
+For the Mac Nally bird data, these tools let us ask whether forest and woodland habitat types support distinct bird assemblages, and which species contribute most to those differences.
