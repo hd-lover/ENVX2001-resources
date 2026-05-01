@@ -4,11 +4,24 @@ title: Lab 10
 subtitle: ENVX2001 Applied Statistical Methods
 description: The University of Sydney
 toc: true
+toc-depth: 3
 resources:
-  - data/water.xlsx
+  - data/bumpus_sparrows_clean.csv
+  - data/FactBeer.csv
+  - data/kangaroo.csv
 ---
 
-## Learning Outcomes
+# Buckle up!
+
+Welcome to week 10. We hope you've had fun so far in ENVX2001 :) From now until the end of the course, we will dive into the world of multivariate statistics.
+
+We've saved the best for last. Out of all the topics in this unit, multivariate statistics might just be the coolest one. In the beginning, you may find some aspects of this topic a little confusing; if that's the case, please approach one of your demonstrators -- they will happily help you out.
+
+By the end of this lab, you will know how to explore multivariate datasets in a simple and intuitive way.
+
+In particular, we will learn about a very common multivariate analysis technique: Principle Component Analysis, or PCA.
+
+## Learning outcomes
 
 In this lab, we will learn how to:
 
@@ -24,26 +37,30 @@ By the end of this lab, you should be able to:
 -   [ ] Make a scree plot
 -   [ ] Interpret loadings
 
-## Buckle Up!
-
-Welcome to week 10. We hope you've had fun so far in ENVX2001 :) From now until the end of the course, we will dive into the world of multivariate statistics.
-
-We've saved the best for last. Out of all the topics in this unit, multivariate statistics might just be the coolest one. In the beginning, you may find some aspects of this topic a little confusing; if that's the case, please approach one of your demonstrators -- they will happily help you out.
-
-By the end of this lab, you will know how to explore multivariate datasets in a simple and intuitive way. 
-
-In particular, we will learn about a very common multivariate analysis technique: Principle Component Analysis, or PCA.
-
 ## Preparation
 
-To prepare for this lab, please activate the following packages:
+This lab uses `readr` and `ggplot2`. Install any you are missing by running the following **in the console**:
+
+```r
+install.packages(c("readr", "ggplot2"))
+```
+
+Then load them in your script:
 
 ```{r}
 library(readr)
 library(ggplot2)
 ```
 
-And download these files: [bumpus_sparrows_clean.csv](data/bumpus_sparrows_clean.csv), [FactBeer.csv](data/FactBeer.csv), [kangaroo.csv](data/kangaroo.csv)
+### Downloads
+
+| File | Used in | Download |
+|---|---|---|
+| `kangaroo.csv` | Sections 1--2 | [Download](data/kangaroo.csv) |
+| `FactBeer.csv` | Section 2 | [Download](data/FactBeer.csv) |
+| `bumpus_sparrows_clean.csv` | Section 3 | [Download](data/bumpus_sparrows_clean.csv) |
+
+Save all files into a folder called `data` inside your project folder.
 
 If you are a fan of learning from textbooks, here are some we recommend:
 
@@ -55,7 +72,7 @@ It is also a good idea to have pen and paper (or stylus and ipad) in hand while 
 
 Ready? Let's get started!
 
-## Part 1: Why PCA? When PCA? Who PCA?
+# 1. Why PCA? When PCA? Who PCA? (~30 min)
 
 In the last 9 weeks of ENVX2001, we learned about t-tests, ANOVAs, simple linear regressions, multiple linear regressions, interactions, blocking terms ...
 
@@ -63,13 +80,9 @@ That's a lot of statistical tools already. Do we really need more?
 
 Well, let's see.
 
-### Exercise: Irises
+## Irises
 
-```{r, echo = FALSE}
-knitr::include_graphics('images/iris-versicolor.jpg')
-```
-
-*The beautiful* Iris versicolor *, also called the harlequin blueflag, a species of wildflower native to the marshes of North America. From Wikimedia Commons (2016), by R. A. Nonenmacher.*
+![*The beautiful* Iris versicolor*, also called the harlequin blueflag, a species of wildflower native to the marshes of North America. From Wikimedia Commons (2016), by R. A. Nonenmacher.*](images/iris-versicolor.jpg)
 
 One of my personal favourite datasets to explore, for almost any kind of analysis, is the iris dataset, which contains floral measurements from three different species of irises: *Iris versicolour*, *Iris setosa*, and *Iris virginica*.
 
@@ -95,15 +108,15 @@ iris # It's LONG
 ```
 :::
 
-::: callout-note
-#### Building Habits
+##
+::: {.question}
+### Worked Example 1
 
-Check the structure of the iris dataset using the str() function.
+Build the habit of inspecting your data before you do anything else. Check the structure of the iris dataset using the `str()` function.
 :::
 
-:::: {.content-visible when-profile="solution"}
-::: {.ans}
-##### Food for thought
+::: {.callout-tip collapse="true"}
+### Solution
 
 ```{r}
 str(iris) # All variables are numeric, except for 'Species', which is a factor.
@@ -111,21 +124,20 @@ str(iris) # All variables are numeric, except for 'Species', which is a factor.
 
 Everything in this dataset is either a number or a factor. Perfect. We are ready for analysis.
 :::
-::::
 
 It looks like the `iris` dataset contains quite a few variables. In particular, we have four response variables to test: sepal width, sepal length, petal width, and petal length (check out [this page](https://australian.museum/learn/teachers/learning/bugwise/plant2pollinator-support-materials/) to learn more about flower anatomy). All of these are measured in centimeters.
 
 Our first instinct might be to analyse them one at a time. Let's see how that works out:
 
-::: callout-note
-#### Building Habits
+##
+::: {.question}
+### Worked Example 2
 
 Choose one of the four response variables in `iris`, and use `ggplot2` to make a box plot. What do you think? Is there a difference between the three iris species?
 :::
 
-:::: {.content-visible when-profile="solution"}
-::: {.ans}
-##### Food for thought
+::: {.callout-tip collapse="true"}
+### Solution
 
 Here is a box plot for sepal length:
 
@@ -137,7 +149,6 @@ ggplot(iris, aes(x = Species, y = Sepal.Length)) +
 
 There seems to be a difference in sepal length between the three species, but we need to run statistical tests to be sure.
 :::
-::::
 
 Depending on which response variable you chose, you may or may not have seen much of a difference between the three species.
 
@@ -151,31 +162,32 @@ ggplot(iris, aes(x = Species, y = Petal.Length)) +
 
 Let's run a one-way ANOVA to check.
 
-:::: callout-note
-#### Sharpen your skills
+##
+::: {.question}
+### Exercise 1
 
 Use a one-way ANOVA to test whether petal length differs between the three iris species.
-
-::: {.callout-tip collapse="true"}
-To run a one-way ANOVA in R, use the function `aov()`. Remember that petal length is the response variable in this case, and iris species is the explanatory variable.
-
-Structure your data as: `aov(response_variable ~ explanatory_variable, data = iris)`.
 :::
-::::
 
-::: {.callout-tip collapse="true"}
-##### Solution
+::: {.column-margin}
+To run a one-way ANOVA in R, use `aov()`. Petal length is the response variable, iris species is the explanatory variable. Structure your call as `aov(response ~ explanatory, data = iris)`.
+:::
+
+:::: {.content-visible when-profile="solution"}
+::: {.ans}
+#### Solution
 
 Here's what we did:
 
 ```{r}
-ANOVA_petal_length <- aov(Petal.Length ~ Species, data =iris) # Runs the test
+ANOVA_petal_length <- aov(Petal.Length ~ Species, data = iris) # Runs the test
 
 summary(ANOVA_petal_length) # Prints the output
 ```
 
 We found a p-value of \< 0.001, which means that at least one of the three iris species has a different average petal length to the others.
 :::
+::::
 
 So... case closed? The irises are different, time to move on?
 
@@ -207,13 +219,9 @@ However, this time we need to deal with correlations between multiple *response*
 
 How do we do that? Enter multivariate statistics.
 
-```{r, echo = FALSE}
-knitr::include_graphics('images/city-view-bw.jpg')
-```
+![City view from the Kuala Lumpar Tower, Malaysia. The magic of photographs lie in their ability to project 3D objects onto 2D planes without losing a sense of reality. From Wikimedia Commons (2018), by itsfatxn.](images/city-view-bw.jpg)
 
-*City view from the Kuala Lumpar Tower, Malaysia. The magic of photographs lie in their ability to project 3D objects onto 2D planes without losing a sense of reality. From Wikimedia Commons (2018), by itsfatxn.*
-
-### Practice: Take a Picture
+## Take a picture
 
 All forms of multivariate statistics share a common goal: to distill a large collection of response variables into a small set of useful information.
 
@@ -223,11 +231,7 @@ To push this analogy further, think of all the different tools and techniques ar
 
 **Principle Component Analysis (PCA)** is very much like an artist's camera. Next week, we will learn about **Cluster Analysis**, which works more like a paintbrush. In week 12, we will encounter **Non-metric Multidimensional Scaling (nMDS)**, which I like to think of as the pen-and-ink doodles of the statistical world.
 
-```{r, echo = FALSE}
-knitr::include_graphics('images/vintage-cameras.jpg')
-```
-
-*A set of vintage cameras. Photography is one of many ways to compress the 3D world into a 2D image. From Wikimedia Commons (2014), by Jeff Sheldon.*
+![A set of vintage cameras. Photography is one of many ways to compress the 3D world into a 2D image. From Wikimedia Commons (2014), by Jeff Sheldon.](images/vintage-cameras.jpg)
 
 I say PCA is like a camera, because it reduces the dimension of our sample space by directly projecting each sample point onto a lower dimensional plane. In technical terms, this is known as creating a **linear map**.
 
@@ -247,23 +251,23 @@ This is how your sample points can end up in multi-dimensional space. If you mea
 In the case of the `iris` dataset, we have 4 response variables. This means our sample points live in 4-dimensional space. We have to find a way to bring them down to 3 or 2-dimensions if we want to plot them nicely.
 :::
 
-::::: callout-note
-#### Sharpen your skills
+##
+::: {.question}
+### Exercise 2
 
-Import the `kangaroo.csv` dataset using `read.csv()`, and name it `kangaroo`.
+Import the `kangaroo.csv` dataset using `read.csv()`, and name it `kangaroo`. Check the structure of this dataset using `str()`. Compare it to the structure of the `iris` dataset.
 
-Check the structure of this dataset using `str()`. Compare it to the structure of the `iris` dataset.
-
-i)  How many response variables does `kangaroo` have? Is this more or fewer than `iris`? What dimensional space do the each of these datasets occupy?
+i)  How many response variables does `kangaroo` have? Is this more or fewer than `iris`? What dimensional space does each of these datasets occupy?
 
 ii) Recall that petal width and petal length were positively correlated in `iris`. Which response variables in `kangaroo` are positively correlated with each other?
+:::
 
-::: {.callout-tip collapse="true"}
-To check which variables are correlated in a dataset, you can use the `pairs()` function. Try it with the iris dataset first: `pairs(iris)`.
+::: {.column-margin}
+To check which variables are correlated in a dataset, use the `pairs()` function. Try it with the iris dataset first: `pairs(iris)`.
 :::
 
 ::: {.callout-note collapse="true"}
-The column names in `kangaroo` are as follows:
+#### Kangaroo column names
 
 -   BLEN = basillar length
 -   PLEN = palatilar length
@@ -272,15 +276,15 @@ The column names in `kangaroo` are as follows:
 -   PWID = palate width
 -   SPECIES = 1: Eastern Grey Kangaroo *(M. giganteus)*, 2: Western Grey Kangaroo *(M. fuliginosus)*
 :::
-:::::
 
-::: {.callout-tip collapse="true"}
-##### Solution
+:::: {.content-visible when-profile="solution"}
+::: {.ans}
+#### Solution
 
 First, we read in the dataset and check its structure:
 
 ```{r}
-kangaroo <- read.csv('data/kangaroo.csv') 
+kangaroo <- read.csv('data/kangaroo.csv')
 str(kangaroo)
 ```
 
@@ -296,28 +300,21 @@ pairs(kangaroo[,1:5])
 
 It looks like just about all of our response variables are positively correlated with each other. This means that kangaroos with longer noses also had longer and wider palattes, etc.
 :::
+::::
 
 Earlier, we mentioned that a PCA works by taking a 2D photograph of a multi-dimensional situation. This is only partly true. In reality, the real power of a PCA lies in what it does *before* it takes this photograph.
 
-#### Thought Experiment
+### Thought experiment
 
 Picture a bicycle -- a real, solid bicycle that you can push around and ride. One day, you are commissioned to take a photograph of this bicycle for an information brochure. This brochure is meant to help people understand how a bicycle works by pointing out its various parts. Which angle would you take your photograph from?
 
 This angle?
 
-```{r, echo = FALSE}
-knitr::include_graphics('images/roadster-bicycle.jpg')
-```
-
-*A Roadster (Dutch) bicycle, side view. From Wikimedia Commons (2018), by Petar Milošević.*
+![A Roadster (Dutch) bicycle, side view. From Wikimedia Commons (2018), by Petar Milošević.](images/roadster-bicycle.jpg)
 
 Or this angle?
 
-```{r, echo = FALSE}
-knitr::include_graphics('images/bicycles-wall.jpg')
-```
-
-*Two bicycles on 23 Foster St, Boston, United States, front and back views. From Wikimedia Commons (2016), by Myles Tan.*
+![Two bicycles on 23 Foster St, Boston, United States, front and back views. From Wikimedia Commons (2016), by Myles Tan.](images/bicycles-wall.jpg)
 
 When we reduce the number of dimensions in our data, we inevitably **lose information**. Even the best photographs cannot show you all sides of an object. Because of this, we need to be very careful which angle we take our photograph from, so as to lose the least amount of information.
 
@@ -327,15 +324,13 @@ The real power of a PCA is in its ability to **rotate** a multidimensional sampl
 
 In our case, we will use the built-in R function `prcomp()` to perform our PCAs, which is based on singular value decomposition. Do not worry if you are not familiar with singular value decomposition; R will handle that step for you automatically.
 
-## Part 2: How to Perform a PCA Without Panicking
+Step away for 5 minutes. Grab a drink, stretch your legs, look at something that isn't your screen.
 
-```{r, echo = FALSE}
-knitr::include_graphics('images/beer-berlin.jpg')
-```
+# 2. How to perform a PCA without panicking (~30 min)
 
-*Beer in Berlin. From Wikimedia Commons (2004), by k.ivoutin; Flickr: https://www.flickr.com/photos/ivoutin/1403816845/.*
+![Beer in Berlin. From Wikimedia Commons (2004), by k.ivoutin; Flickr: https://www.flickr.com/photos/ivoutin/1403816845/.](images/beer-berlin.jpg)
 
-### Exercise: Go Home, Eigenvalues. You're Drunk.
+## Go home, eigenvalues. You're drunk.
 
 What makes a good beer? That was not my attempt to distract you -- in fact, it was questions like these that first led psychologists and mathematicians to join forces and develop multivariate techniques. [^4]
 
@@ -369,14 +364,15 @@ I'll stop tempting you with food for now. Let's get back to beer instead. Here a
 
 Let's take a look at this dataset.
 
-::: callout-note
-#### Building Habits
+##
+::: {.question}
+### Worked Example 3
 
 Read the dataset `FactBeer.csv` into R and check its structure. Rename the dataset `beer`.
 :::
 
 ::: {.callout-tip collapse="true"}
-##### Solution
+### Solution
 
 We can use the `read.csv()` function to read in our dataset, and the `str()` function to check its structure.
 
@@ -388,18 +384,19 @@ str(beer)
 All the variables in this dataset are numeric.
 :::
 
-::: callout-note
-#### Building Habits
+##
+::: {.question}
+### Worked Example 4
 
 How many variables does the `beer` dataset have? Can we treat all of them as response variables?
 :::
 
 ::: {.callout-tip collapse="true"}
-##### Solution
+### Solution
 
 This might seem like a trick question at first glance, because how can every variable be a response variable? We need an explanatory variable somewhere, don't we?
 
-As strange as it might seem, we *can* in fact treat all 7 variables in `FactBeer` as response variables, and this is exactly what we will do for this exercise. What this means, however, is that our subsequent analyses will be **descriptive** rather than **deductive/inferential**. 
+As strange as it might seem, we *can* in fact treat all 7 variables in `FactBeer` as response variables, and this is exactly what we will do for this exercise. What this means, however, is that our subsequent analyses will be **descriptive** rather than **deductive/inferential**.
 
 Researchers often use descriptive studies to refine their research questions. Then, they follow up on these questions with more rigorous, inferential tests. Think of descriptive statistics as a special case of Exploratory Data Analysis (EDA), if you will.
 :::
@@ -443,97 +440,75 @@ summary(pca_beer) # Tells us how much variance each PC explains.
 
 What do these numbers mean? We will talk about that in the next section. For now, let's practice running a few more PCAs using the `prcomp()` function to get you comfortable with the process.
 
-```{r, echo = FALSE}
-knitr::include_graphics('images/eastern-grey-kangaroo.jpg')
-```
+![*A young eastern grey kangaroo* (Macropus giganteus) *in Majura Nature Reserve, ACT. From Wikimedia Commons (2016), by Thennicke.*](images/eastern-grey-kangaroo.jpg)
 
-*A young eastern grey kangaroo* (Macropus giganteus) *in Majura Nature Reserve, ACT. From Wikimedia Commons (2016), by Thennicke.*
-
-### Practice: You're Multidimensional (I Think That's a Compliment)
+## You're multidimensional (I think that's a compliment)
 
 Your turn! Let's bring back the `iris` and `kangaroo` datasets.
 
-::::: callout-note
-#### Sharpen your skills
+##
+::: {.question}
+### Worked Example 5
 
-Re-open the `iris` and `kangaroo` datasets, and check their structure.
+Re-open the `iris` and `kangaroo` datasets and check their structure. You will notice that both have categorical variables (`Species` for `iris` and `SPECIES` for `kangaroo`) as their last columns. Remove these columns using `[,]` and give the cropped datasets their own names with `<-`.
 :::
 
 ::: {.callout-tip collapse="true"}
-##### Solution
+### Solution
 
-Easy. We named them earlier, so now we can check their structure using the `str()` function:
+We named these datasets earlier, so we can check their structure with `str()`:
+
 ```{r}
 str(iris) # the iris dataset
 str(kangaroo) # the kangaroo dataset
 ```
-:::
 
-Notice that both `iris` and `kangaroo` have categorical variables ("Species" for `iris` and "SPECIES" for `kangaroo`) as their last columns. Let's remove these columns before we proceed with our PCA.
+To filter for columns, the syntax is `dataset[, columns]`:
 
-::::: callout-note
-#### Sharpen your skills
-
-Use the `[,]` function to remove the last columns of `iris` and `kangaroo` respectively. Then, use the `<-` operator to give these newly-cropped datasets their own names.
-:::
-
-::: {.callout-tip collapse="true"}
-##### Solution
-
-Remember that to filter for columns, we use the space behind the comma `[,*]`:
 ```{r}
 iris_cropped <- iris[,1:4] # columns 1 to 4 of the iris dataset
 kangaroo_cropped <- kangaroo[,1:5] # columns 1 to 5 of the kangaroo dataset
 ```
 :::
 
-Now go for it! Run a PCA on the `iris` dataset.
+Now go for it. Run a PCA on the cropped `iris` dataset and inspect the results.
 
-::::: callout-note
-#### Sharpen your skills
+##
+::: {.question}
+### Exercise 3
 
-Use the `prcomp()` function to perform a PCA on the `iris` dataset.
-
-::: {.callout-tip collapse="true"}
-Instead of `scale = TRUE`, you can use `scale = FALSE` for this PCA. You don't have to scale your variables if they are all measured in the same units (in this case, centimeters).
+Use the `prcomp()` function to perform a PCA on the cropped `iris` dataset, then select the `rotation` column from your PCA and run `summary()` on your results.
 :::
 
-::: {.callout-tip collapse="true"}
-##### Solution
+::: {.column-margin}
+You can use `scale = FALSE` for this PCA — you do not need to scale variables that are all measured in the same units (centimeters here). Select columns by name with `$`.
+:::
 
-One line of code should do the trick. Remember to use your cropped dataset, not the original `iris`:
+:::: {.content-visible when-profile="solution"}
+::: {.ans}
+#### Solution
+
+One line of code does the trick. Remember to use the cropped dataset, not the original `iris`:
+
 ```{r}
-pca_iris <- prcomp(iris_cropped, scale = FALSE) # I used "<-" to name it "pca_iris".
+pca_iris <- prcomp(iris_cropped, scale = FALSE)
 ```
-:::
-::::
-
-Easy? Summarise your results.
-
-::::: callout-note
-#### Sharpen your skills
-
-Select the "rotation" column from your PCA, and run `summary()` on your results.
-
-::: {.callout-tip collapse="true"}
-Remember that you can select columns by name using the `$` operator.
-:::
-
-::: {.callout-tip collapse="true"}
-##### Solution
 
 The "rotation" column:
+
 ```{r}
 pca_iris$rotation
 ```
+
 Results summary:
+
 ```{r}
 summary(pca_iris)
 ```
 :::
 ::::
 
-#### Visualising the iris PCA
+### Visualising the iris PCA
 
 The PCA summary tells us how much variation each principal component explains, but the easiest way to understand the result is to plot the first two principal components.
 
@@ -573,41 +548,48 @@ The plot usually shows that *Iris setosa* separates clearly from the other two s
 Because PC1 explains most of the variation and is strongly influenced by petal length and petal width, PC1 can be interpreted mainly as a petal-size axis.
 :::
 
-That's it! You have just performed your first PCA. Do you think you can do the whole thing by yourself without any hints? Give it a try:
+That's it! You have just performed your first PCA. Do you think you can do the whole thing by yourself without any hints? Give it a try.
 
-::: callout-note
-#### Sharpen your skills
+##
+::: {.question}
+### Exercise 4
 
 Perform a PCA on the `kangaroo_cropped` dataset, extracting both the "rotation" column and the results summary.
-
 :::
 
-::: {.callout-tip collapse="true"}
-##### Solution
+:::: {.content-visible when-profile="solution"}
+::: {.ans}
+#### Solution
 
 Check the structure of `kangaroo_cropped`:
+
 ```{r}
-str(kangaroo_cropped) 
+str(kangaroo_cropped)
 ```
+
 We have 5 response variables and they are all numeric, so we can proceed with multivariate analysis.
 
 Perform the PCA:
+
 ```{r}
 pca_kangaroo <- prcomp(kangaroo_cropped)
 ```
 
 Extract the "rotation" column:
+
 ```{r}
 pca_kangaroo$rotation
 ```
 
 Summarise the results:
+
 ```{r}
 summary(pca_kangaroo)
 ```
 :::
+::::
 
-#### Visualising the kangaroo PCA
+### Visualising the kangaroo PCA
 
 Now we can plot the first two principal components for the kangaroo skull measurements. This lets us ask whether Eastern and Western grey kangaroos separate in multivariate space.
 
@@ -657,19 +639,17 @@ This is an important lesson: PCA finds the strongest source of variation in the 
 
 How did you go?
 
-## Part 3: Admiring Your Handiwork
+Take 5 minutes off. Walk around, refill your water, rest your eyes.
 
-```{r, echo = FALSE}
-knitr::include_graphics('images/french-bread.jpg')
-```
+# 3. Admiring your handiwork (~25 min)
 
-*Boule, a classic French bread. Bakers take a long time to prepare their loaves beforehand, even though the baking process itself is taken care of by their ovens. Bakers must take their loaves out of their ovens at the right time to slice, decorate, and package each loaf nicely for their customers. We should do the same with our PCA results. From Wikimedia Commons (2014), by Lehightrails.*
+![Boule, a classic French bread. Bakers take a long time to prepare their loaves beforehand, even though the baking process itself is taken care of by their ovens. Bakers must take their loaves out of their ovens at the right time to slice, decorate, and package each loaf nicely for their customers. We should do the same with our PCA results. From Wikimedia Commons (2014), by Lehightrails.](images/french-bread.jpg)
 
 Now that the technical part is done, let's take some time to admire what we have created. 
 
 We will revisit the results of our `beer` dataset and see what they tell us.
 
-### Exercise: New Year, New Me, New Variables
+## New year, new me, new variables
 
 As a reminder, here are the results from our beer PCA:
 
@@ -681,7 +661,7 @@ round(pca_beer$rotation,6)
 :::
 
 ::: {.callout-note collapse="true"}
-#### Results Summary
+#### Results summary
 ```{r}
 summary(pca_beer) 
 ```
@@ -689,15 +669,9 @@ summary(pca_beer)
 
 Let's interpret them one at a time.
 
-#### The Loadings Table
+### The loadings table
 
-::: callout-note
-##### Building Habits
-
-Take a look at `pca_beer$rotation`. What do you think the numbers stand for?
-:::
-
-The "rotation" column of `pca_beer` is also called its **loadings table**. We will refer to it as such going forward.
+Take a look at `pca_beer$rotation`. What do you think the numbers stand for? The "rotation" column of `pca_beer` is also called its **loadings table**. We will refer to it as such going forward.
 
 The easiest way to read a loadings table is to consider one column at a time. Each column in this table is a principle component, and the numbers in that column tells you which combination of variables went into creating that component.
 
@@ -709,16 +683,16 @@ However, these new axes did not come out of nothing. The PCA used combinations f
 
 Which combinations? The loadings table will tell us.
 
-::: callout-note
-##### Building Habits
+##
+::: {.question}
+### Exercise 5
 
-Look at the fourth column in our loadings table. Which of our 7 original variables went into creating PC4? 
-
-Are some number in the column larger than others? What do you think this means?
+Look at the fourth column in our loadings table. Which of our 7 original variables went into creating PC4? Are some numbers in the column larger than others? What do you think this means?
 :::
 
-::: {.callout-tip collapse="true"}
-###### Solution
+:::: {.content-visible when-profile="solution"}
+::: {.ans}
+#### Solution
 
 All 7 original variables went into creating PC4. However, some variables contributed more than others.
 
@@ -726,21 +700,23 @@ For instance, cost and alcohol contributed the most (with loadings of +0.78 and 
 
 This means that PC4 represents a preference for using cost as a way to judge beer quality (+ve loading for cost), and a preference against using alcohol levels to do the same (-ve loading for alcohol), but does not have much to do with reputation either way (~0 loading for reputation).
 :::
+::::
 
-##### Giving names to our PCs
+#### Giving names to our PCs
 
 For the moment, our principle components are named: "PC1, PC2, PC3, etc."; but we can give them new names based on our loadings table. 
 
 You can be creative with these names -- as long as they make sense. For example, let's take a look at PC1.
 
-::: callout-note
-##### Building Habits
+##
+::: {.question}
+### Worked Example 6
 
 Look at the first column in our loadings table. Which of our original variables went into creating PC1? Which ones contributed the most? Are their loadings positive or negative?
 :::
 
 ::: {.callout-tip collapse="true"}
-###### Solution
+### Solution
 
 Reputation contributed positively to PC1 (+0.40), but every other variable contributed negatively. The strength of the contributions are spread quite evenly between the variables.
 :::
@@ -753,25 +729,28 @@ In other words, PC1 separated customers who valued reputation from customers who
 
 Therefore, we can name PC1 something like "pretentiousness". 
 
-::: callout-note
-##### Building Habits
+##
+::: {.question}
+### Exercise 6
 
 What would you name the other six PCs?
 :::
 
-::: {.callout-tip collapse="true"}
-###### Solution
+:::: {.content-visible when-profile="solution"}
+::: {.ans}
+#### Solution
 
 Here's what I went with for PCs 1 to 4:
 
 PC2 = "drunk for buck". This axis separates customers who prefer to judge a beer on its taste, colour, and aroma from those who prefer to get as much alcohol as possible for the least amount of money.
 
-PC3 = "aesthetic appeal". This axis separates customers who value the reputation, size, and colour of beer from those who are indifferent to these characteristics. 
+PC3 = "aesthetic appeal". This axis separates customers who value the reputation, size, and colour of beer from those who are indifferent to these characteristics.
 
 PC4 = "financial and moral consciousness". This axis separates customers who value money from those who value alcohol.
 
 I will leave the rest up to you!
 :::
+::::
 
 At this point, you may have noticed a problem. If the point of a PCA is to reduce the number of variables in our study, why do we still have 7 PCs? 
 
@@ -779,12 +758,9 @@ It seems that while we did successfully rotate our dataset to a new perspective,
 
 The good news is that going from 7D space to 2D space is actually very *easy* now that we have our PCs. The photograph has already been taken -- all that is left is to print it out. 
 
-```{r, echo = FALSE}
-knitr::include_graphics('images/scree-slope-trail.jpg')
-```
-*Stony deposits, or scree, at the base of a mountain. There is a sudden change in slope as solid rock transitions into unconsolidated material. From Wikimedia Commons (2013), by Sergey Pashko.*
+![Stony deposits, or scree, at the base of a mountain. There is a sudden change in slope as solid rock transitions into unconsolidated material. From Wikimedia Commons (2013), by Sergey Pashko.](images/scree-slope-trail.jpg)
 
-#### The Scree Plot
+### The scree plot
 
 One very important thing to realise about our PCs is that they are ranked by the amount of variance they explain. In other words, sample points are more spread out along the PC1 axis than along the PC2 axis, and more spread out along the PC2 axis than along the PC3 axis, etc.
 
@@ -821,25 +797,28 @@ This is the key to dimension reduction -- getting rid of all the bad photography
 
 Let's use a scree plot to decide which PCs we should keep, and which ones we should remove.
 
-::: callout-note
-##### Sharpen your skills
+##
+::: {.question}
+### Exercise 7
 
-Take a look at the results summary of `pca_beer`. You should see a row in this table called "Proportion of Variance". 
-
-How much variance do each of the PCs explain? Which ones do you think we can remove without losing too much information?
+Take a look at the results summary of `pca_beer`. You should see a row in this table called "Proportion of Variance". How much variance does each of the PCs explain? Which ones do you think we can remove without losing too much information?
 :::
 
-::: {.callout-tip collapse="true"}
-###### Solution
+:::: {.content-visible when-profile="solution"}
+::: {.ans}
+#### Solution
 
-To remind you, here is the summary for `pca_beer` we extracted earlier:
+Here is the summary for `pca_beer` we extracted earlier:
+
 ```{r}
 summary(pca_beer)
 ```
+
 PC1 explains around 47% of the variance, while PC2 explains 37%. The two of them explain almost 85% of the variance together. This means that we can remove PCs 3 to 7 and still retain a lot of information about our dataset.
 
 A scree plot will show us the same information in visual form.
 :::
+::::
 
 To make a scree plot, we will use base R instead of ggplot (one of the few instances where I recommend base R over ggplot). The function we will use is called `screeplot()`.
 
@@ -858,7 +837,7 @@ At this point, we can consider our exploratory PCA more or less complete. Out of
 Pretty neat, right?
 
 :::: callout-warning
-#### Other forms of Factor Analysis
+#### Other forms of factor analysis
 
 PCA is one of many techniques that fall under the broad category of **factor analysis**. Factor analysis, in turn, is a subtopic under multivariate statistics.
 
@@ -887,35 +866,38 @@ Sometimes this is a good thing, sometimes not. For more on this topic, please se
 :::
 ::::
 
-### Practice: Sparrows
+## Sparrows
 
-We have come to the end of the lesson, so now it is time to explore a multivariate dataset on your own from start to finish. 
+We have come to the end of the lesson, so now it is time to explore a multivariate dataset on your own from start to finish.
 
-Your demonstrators will be there to help you, and so will your classmates. We strongly encourage you to collaborate with your peers on this exercise. 
+Your demonstrators will be there to help you, and so will your classmates. We strongly encourage you to collaborate with your peers on this exercise.
 
-```{r, echo = FALSE}
-knitr::include_graphics('images/house-sparrow.jpg')
-```
-*House Sparrow* (Passer domesticus), *a small bird native to the Northern Hemisphere. House sparrows are so named for their ability to live in urban settings. From Wikimedia Commons (2004), by Mathias Appel.*
+![*House Sparrow* (Passer domesticus), *a small bird native to the Northern Hemisphere. House sparrows are so named for their ability to live in urban settings. From Wikimedia Commons (2004), by Mathias Appel.*](images/house-sparrow.jpg)
 
-#### The sparrow dataset
+In 1898, after a heavy storm, Professor Hermon Bumpus of Brown University came across a collection of house sparrows that had been injured in the storm. [^6] Some of these sparrows were dead, but others had just about survived.
 
-In 1898, after a heavy storm, Professor Hermon Bumpus of Brown University came across a collection of house sparrows that had been injured in the storm. [^6] Some of these sparrows were dead, but others had just about survived. 
+Professor Bumpus wondered whether he could learn something about natural selection by studying these sparrows. In his study, he used a series of univariate analyses. Your task is to examine the same dataset using multivariate techniques.
 
-Professor Bumpus wondered whether he could learn something about natural selection by studying these sparrows. In his study, he used a series of univariate analyses. 
+##
+::: {.question}
+### Exercise 8
 
-Your task is to examine the same dataset using multivariate techniques.
-
-::: callout-note
-#### Case study
-
-The name of the dataset is "bumpus_sparrows_clean.csv". Load this dataset into R, and analyse it using multivariate techniques.
+The name of the dataset is `bumpus_sparrows_clean.csv`. Load this dataset into R and analyse it using multivariate techniques.
 
 We will leave it up to you to decide which variables to analyse and how to analyse them. Share your ideas with your classmates, and see what they think.
 :::
 
-That's all for this week! We hope you had fun :)
+# Conclusion
 
-Thanks!
+## Closing thoughts
+
+That's all for this week! We hope you had fun. Multivariate statistics opens up a whole new way of looking at data, and PCA is one of the most useful tools in the toolbox. Next week we will pick up where we left off with cluster analysis.
+
+### Attribution
+
+This lab was developed using resources that are available under a [Creative Commons Attribution 4.0 International license], made available on the [SOLES Open Educational Resources repository].
+
+  [Creative Commons Attribution 4.0 International license]: http://creativecommons.org/licenses/by/4.0/
+  [SOLES Open Educational Resources repository]: https://github.com/usyd-soles-edu/
 
 [^6]: Johnson, R. F., Niles, D. M., & Rohwer, S. A. (1972). Hermon Bumpus and Natural Selection in the House Sparrow Passer domesticus. Evolution, 26(1), 20. https://doi.org/10.2307/2406980
