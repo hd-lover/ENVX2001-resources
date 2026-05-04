@@ -3,7 +3,7 @@ title: Lab 10
 # revised-by: alex
 subtitle: ENVX2001 Applied Statistical Methods
 authors:
-  - Alex Shu
+  - Alex Sun
   - Mathew Crowther
 description: The University of Sydney
 toc: true
