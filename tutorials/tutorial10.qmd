@@ -6,6 +6,7 @@ format:
     code-tools: true
 resources:
   - data/football_player_performance.csv
+  - data/football_goals_20_games_24_players.csv
   - images/football.jpg
 ---
 
@@ -44,7 +45,9 @@ library(ggfortify)
 
 ## Load the data
 
-First open your dataset. The CSV file should be saved in the same folder as this `.qmd` file.
+First open the player performance dataset. The CSV file is saved in the `data` folder.
+
+Later in the tutorial, we will also use a second independent dataset, `football_goals_20_games_24_players.csv`, to practise prediction using regression.
 
 ```{r}
 players <- read.csv("data/football_player_performance.csv", header = TRUE)
@@ -175,29 +178,75 @@ We could add the loadings, but they can be a bit messy. It is often best to look
 
 You can make the plot using different symbols, change background etc through reading the ggplot2 documentation.
 
-## Regression using PC scores
+## Regression: Goals vs PCA
 
-In the lecturer dataset, we used ANOVA to test whether PC scores differed among groups. This football dataset does not include grouping variables such as team grade or playing position, so here we use a regression example instead.
+We now use a simple regression to link the PCA results to an outcome variable.
 
-For example, we can ask whether PC1 is associated with juggling ability:
+We will relate **goals scored over 20 games** to the first principal component (PC1), which represents overall performance.
 
-```{r}
-LM1 <- lm(PC1 ~ jugg, data = playerpcscores)
-summary(LM1)
-```
-
-This is only an example. In a full analysis, you might use PC scores as predictors of match success, soccer-tennis score or network centrality.
-
-## Scatterplot
-
-To do a scatterplot of variables use ggplot2:
+Read in the goals dataset:
 
 ```{r}
-ggplot(playerpcscores, aes(x = jugg, y = PC1)) +
-  geom_point() +
-  geom_smooth(method = "lm", se = FALSE) +
-  labs(x = "Juggling ability", y = "PC1 score")
+goals <- read.csv("data/football_goals_20_games_24_players.csv", header = TRUE)
 ```
+
+For simplicity, we will match players by row order and combine the goals dataset with the PCA scores. We avoid using the object name `data`, because `data()` is also a built-in R function.
+
+```{r}
+pca_scores <- as.data.frame(pca1$x)
+
+# Keep only PC1 for this regression
+pca_scores <- pca_scores[, "PC1", drop = FALSE]
+
+# Check that the PCA data and goals data have the same number of players
+nrow(pca_scores)
+nrow(goals)
+
+combined <- cbind(
+  pca_scores,
+  goals
+)
+```
+
+### Simple regression: Goals vs PC1
+
+```{r}
+LM_goals_PC1 <- lm(goals_20_games ~ PC1, data = combined)
+summary(LM_goals_PC1)
+```
+
+Interpretation:
+
+- The response variable is `goals_20_games`
+- The predictor is `PC1`
+- A positive relationship means players with higher overall performance (PC1) score more goals
+
+### Scatterplot
+
+```{r}
+ggplot(combined, aes(x = PC1, y = goals_20_games)) +
+  geom_point(size = 2.5, alpha = 0.8) +
+  geom_smooth(method = "lm", se = TRUE) +
+  theme_classic() +
+  labs(
+    x = "PC1 (overall performance)",
+    y = "Goals over 20 games",
+    title = "Do higher-performing players score more goals?"
+  )
+```
+
+Interpretation:
+
+- Each point is a player
+- Points close together have similar performance and goal output
+- The slope shows whether better overall players tend to score more goals
+
+### Key point
+
+This links PCA to prediction:
+
+- PCA identifies the main performance axis (PC1)
+- Regression tests whether that axis predicts goals
 
 ## Factor Analysis with Varimax Rotation
 
@@ -231,4 +280,6 @@ fa4
 ## Final interpretation
 
 Wilson et al. found that motor skill was a stronger predictor of soccer-tennis and 11-a-side match performance than general athleticism. In this tutorial, PCA and factor analysis are used to explore the same biological idea from the trait data: whether football players vary mostly along a general performance axis, or whether athletic and technical skill traits form separate multivariate dimensions.
+
+The independent goals dataset then extends the tutorial into prediction. Instead of asking only how traits group together, the regression asks whether a player's score on the main PCA axis predicts goals scored over 20 games.
 
