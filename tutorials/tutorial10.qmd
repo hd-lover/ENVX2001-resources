@@ -31,6 +31,15 @@ The key biological question is whether complex match performance is better expla
 
 We are going to use principal components analysis and factor analysis to interpret the multivariate structure of these player performance traits.
 
+### Downloads
+
+| File | Used in | Download |
+|---|---|---|
+| `football_player_performance.csv` | PCA and factor analysis | [Download](data/football_player_performance.csv) |
+| `football_goals_20_games_24_players.csv` | Goals prediction | [Download](data/football_goals_20_games_24_players.csv) |
+
+Save both files into a folder called `data` inside your project folder. The code in this tutorial expects to find them at `data/football_player_performance.csv` and `data/football_goals_20_games_24_players.csv`.
+
 ## Setup
 
 Load these packages to make the plots look better:
