@@ -292,3 +292,15 @@ Wilson et al. found that motor skill was a stronger predictor of soccer-tennis a
 
 The independent goals dataset then extends the tutorial into prediction. Instead of asking only how traits group together, the regression asks whether a player's score on the main PCA axis predicts goals scored over 20 games.
 
+## Wrap-up {.unnumbered}
+
+In this tutorial, you used PCA and factor analysis to summarise correlated performance traits, interpret loadings and scores, and connect multivariate summaries to prediction.
+
+### Example exam questions
+
+1.  Before running PCA, a researcher inspects the correlation matrix for eight plant traits and finds that most pairwise correlations are close to zero. Bartlett's test of sphericity gives $p = 0.42$. What does this suggest about whether PCA or factor analysis will be useful? What would you check before deciding whether to proceed?
+
+2.  A researcher summarises 11 football performance traits into PC1 and then uses PC1 to predict goals scored over 20 games. What is one advantage and one limitation of using PC1 instead of the original traits as predictors? In your answer, distinguish prediction from explaining a biological mechanism.
+
+3.  In a factor analysis of the football-player data, a 2-factor varimax solution gives one factor with high loadings on dribbling, juggling, volley accuracy and passing accuracy, and another factor with high loadings on 1500 m speed, sprint and agility. A 4-factor solution separates single traits into their own factors but is harder to link to biological concepts. Which solution would you prefer for explaining the data to a coach, and why?
+

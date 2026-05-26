@@ -159,3 +159,11 @@ You should be able to explain why computing a single confidence interval for a p
 ## Wrap-up {.unnumbered}
 
 In this tutorial you computed confidence intervals and saw why sample size and group structure both matter. You will use these ideas in the lab.
+
+### Example exam questions
+
+1.  A fellow student says: "If a 95% confidence interval for mean body length is [18.2, 22.6] mm, then there is a 95% probability that the true population mean lies within this interval." Explain why this statement is incorrect, and provide a more accurate interpretation of what the 95% refers to.
+
+2.  A wildlife survey estimates mean wing length of a bird species across two regions. Region A ($n = 40$): mean = 115 mm, 95% CI [112, 118]. Region B ($n = 15$): mean = 112 mm, 95% CI [106, 118]. A student concludes: "Since the confidence intervals overlap, the two region means must not differ." Is this reasoning sound? Explain why or why not.
+
+3.  A researcher measures soil pH at 60 sites across a national park. A 95% confidence interval for the mean pH is [5.8, 6.4]. If the researcher takes a second, independent sample of 60 sites from the same park, will the new 95% confidence interval necessarily contain 6.1, the midpoint of the first interval? Explain your reasoning.
