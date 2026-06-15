@@ -1,0 +1,421 @@
+---
+title: "ENVX2001 — Detailed Lecture Notes (with lab & tutorial examples)"
+author: "Generated from hd-lover/ENVX2001-resources"
+date: "2026-06-15"
+format:
+  pdf:
+    toc: true
+    number-sections: true
+    documentclass: article
+---
+
+# Overview
+
+These notes summarise Lectures 1–12 from ENVX2001 (Applied Statistical Methods) and include selected examples from the labs and tutorials to illustrate methods in R. The content was extracted and condensed from the repository `hd-lover/ENVX2001-resources` (lectures/, labs/, tutorials/).
+
+Usage: render this Quarto (`.qmd`) file to PDF with Quarto (see rendering instructions at the end).
+
+---
+
+# Lecture 1 — Welcome & course fundamentals
+
+Key themes:
+
+- Course structure, learning outcomes (LO1–LO7). Focus on applied statistics in R: t-tests, ANOVA, regression, multivariate methods, experimental design.
+- Motivation examples: elk calf birth weights (group comparisons), dog odour experiment (3-level comparisons), penguin body mass vs flipper length (regression), hawks (PCA / multivariate).
+
+Important points:
+
+- Workflow for applied analysis: explore → model → check assumptions → interpret → (if needed) transform/iterate.
+- Distinction between confidence intervals and hypothesis tests — both arise from the same estimates.
+- Practical advice: lab attendance, time commitment (~120–150 hours), practice with tutorials and labs.
+
+R examples (from Lecture-01a.qmd):
+
+- Reading data and plotting boxplots / violin plots with ggplot2.
+
+  Example: compare birth weight by migration status
+
+  ```r
+  elk <- read.csv("data/elk_calf_clean.csv")
+  ggplot(elk, aes(x = mig_status, y = birth_wt)) + geom_boxplot()
+  ```
+
+Takeaway: use visualisation to guide choice of statistical tests (t-test, ANOVA, regression, multivariate).
+
+---
+
+# Lecture 2 — Sampling designs
+
+Core concepts:
+
+- Population vs sample, parameters vs statistics.
+- Simple random sampling (SRS) vs stratified random sampling.
+- Stratified estimates: pooled mean and pooled standard error.
+- Monitoring vs survey designs; importance of paired sampling for change detection.
+
+Key formulas:
+
+- Pooled mean (stratified): x̄_s = Σ w_i * x̄_i
+- Pooled SE: SE(x̄_s) = sqrt( Σ w_i^2 * (s_i^2 / n_i) )
+- Degrees of freedom for stratified estimate: df = n - L (total samples minus number strata)
+
+Examples and tutorial/lab links:
+
+- Farmer soil-carbon example (Lecture-02a.qmd): sample values and CI calculation by hand; shows effect of small n (n=7) and t-distribution (df=6).
+- Tutorial 01 / Lab 02 use these ideas: compute CI with t.test(), simulate sample sizes.
+
+R snippet (CI by hand):
+
+```r
+soil <- c(48,56,90,78,86,71,42)
+mean_soil <- mean(soil)
+se_soil <- sd(soil)/sqrt(length(soil))
+t_crit <- qt(0.975, df = length(soil)-1)
+ci <- mean_soil + c(-1,1) * (t_crit * se_soil)
+ci
+```
+
+Takeaway: design matters — stratification can dramatically reduce variance for the same sample size.
+
+---
+
+# Lecture 3 — t-tests and one-way ANOVA
+
+Lecture 3a — t-tests (revision):
+
+- Types: one-sample, two-sample (independent), paired.
+- Relationship between t-test and confidence intervals: CI excludes 0 ⇔ p < α.
+- Assumptions: independence, normality, equal variances (for pooled t-test).
+- HATPC workflow: Hypotheses, Assumptions, Test, P-value, Conclusion.
+
+R: t.test()
+
+```r
+# two-sample pooled
+`t.test(weight ~ breed, data = cattle, var.equal = TRUE)`
+# Welch's t-test for unequal variances (default when var.equal = FALSE)
+```
+
+Lecture 3b — One-way ANOVA:
+
+- Motivation: comparing >2 groups while controlling Type I error inflation from multiple t-tests.
+- ANOVA partitions variance: SS_total = SS_trt + SS_res; F = MS_trt / MS_res.
+- For two groups F = t^2.
+- Post-hoc comparisons (pairs, Tukey) and emmeans for estimated marginal means.
+
+R: one-way ANOVA and emmeans
+
+```r
+model <- aov(weight ~ diet, data = chicks)
+summary(model)
+library(emmeans)
+emm <- emmeans(model, "diet")
+confint(pairs(emm))
+```
+
+Lab/Tutorial tie-ins:
+
+- Lab 03 / Tutorial 03 include practice fitting aov(), checking residuals, and performing post-hoc comparisons.
+
+Takeaway: use ANOVA to test for any differences across groups, then use adjusted pairwise comparisons to find which groups differ.
+
+---
+
+# Lecture 4 — Residual diagnostics and transformations
+
+Main ideas:
+
+- Why check assumptions? Normality of residuals and homogeneity of variance underpin t-tests and ANOVA.
+- Diagnostic tools: QQ-plots, residuals vs fitted, Shapiro–Wilk test, Bartlett's or Levene's test for equal variances.
+- Data transformation (e.g., log) to stabilise variance and reduce skewness; retest diagnostics after transform.
+
+Practical workflow (from Week 4 notes):
+
+1. Fit model (aov or lm).
+2. Inspect residuals: qqnorm(resid(model)); plot(fitted(model), resid(model)).
+3. If violations found, consider transformation (log, sqrt) or non-parametric alternatives.
+
+R snippets:
+
+```r
+y.aov <- aov(y ~ Treatment)
+par(mfrow=c(1,2)); qqnorm(resid(y.aov)); qqline(resid(y.aov))
+bartlett.test(y ~ Treatment, data = mydata)
+# If skewed:
+mydata$y_log <- log(mydata$y)
+```
+
+Example conclusions: synthetic right-skewed data often needs log transformation (Week 4).
+
+---
+
+# Lecture 5 — Blocking (RCBD) and paired designs
+
+Key points:
+
+- Randomised Complete Block Design (RCBD): include block term to control for known nuisance variation (e.g., site, farm).
+- Model form: response = μ + Block + Treatment + ε.
+- Paired t-test is a special case of blocking with 2 treatments per block.
+
+R examples (Week5 notes):
+
+```r
+fire.aov <- aov(SpRich ~ Site + Fire_treatment, data = fire)
+summary(fire.aov)
+# Paired t-test equivalent
+`t.test(before, after, paired = TRUE)`
+```
+
+Lab link: Lab examples and Lab 05/Week5 notes show paired designs and practical interpretation.
+
+Takeaway: blocking reduces residual variation and increases power where blocks capture major sources of variability.
+
+---
+
+# Lecture 6 — Factorial designs and higher-way ANOVA
+
+Highlights:
+
+- Factorial treatment structures: experiments with multiple factors (e.g., Nitrogen × Variety), can test main effects and interactions.
+- Model includes interactions: Yield ~ Block + Variety * Nitrogen.
+- Interpreting interactions: always inspect interactions before interpreting main effects; use emmeans and interaction plots.
+
+R examples (Week6 notes):
+
+```r
+rice.aov <- aov(Yield ~ Block + Variety*Nitrogen, data = rice)
+summary(rice.aov)
+library(emmeans)
+emmip(rice.aov, Variety ~ Nitrogen, CIs = TRUE)
+```
+
+3-way example: Fertiliser × Witchweed × Variety (maize experiment), and guidance on how to interpret significant higher-order interactions.
+
+Takeaway: factorial designs allow testing of how factors combine; interpretation requires careful treatment of interactions and post-hoc exploration.
+
+---
+
+# Lecture 7 — Regression: modelling (linear regression)
+
+Learning outcomes:
+
+- Understand simple and multiple linear regression (purpose, assumptions, interpretation).
+- Fitting: lm(y ~ x1 + x2 + ...).
+- Model checking: residual diagnostics, leverage and influential points.
+
+Important formulas:
+
+- Regression line: ŷ = β0 + β1 x1 + ...
+- Coefficients estimated by least squares (minimising sum of squared residuals).
+
+R examples (Lecture-07.qmd):
+
+```r
+fit <- lm(log(Ozone) ~ Temp + Solar.R + Wind, data = airquality)
+summary(fit)
+plot(fit) # diagnostic plots
+```
+
+Special mentions:
+
+- Anscombe's quartet: demonstrate same summary stats but different data patterns — always inspect plots.
+- Interpretation of coefficients and goodness-of-fit (R^2, residual standard error).
+
+Tutorial/Lab ties: labs include exercises fitting lm, interpreting coefficients, and checking assumptions.
+
+---
+
+# Lecture 8 — Regression: model development & variable selection
+
+Core ideas:
+
+- Principle of parsimony: prefer simpler models that explain data well (Ockham's razor).
+- Bias–variance trade-off and overfitting: complex models may fit training data well but generalise poorly.
+- Variable selection strategies: all-subsets (2^p), stepwise selection, AIC/BIC, and domain knowledge.
+- Multicollinearity: use VIF to detect redundant predictors.
+
+R examples (Lecture-08.qmd):
+
+```r
+# Full model
+full_fit <- lm(log(Ozone) ~ Temp + Solar.R + Wind, data = airquality)
+# Compare models with AIC
+AIC(fit, reduced_fit)
+# VIF
+library(car); vif(full_fit)
+```
+
+Practical guidance: visualise relationships, consider transformations, and validate predictive performance (cross-validation when appropriate).
+
+---
+
+# Lecture 9 — Predictive modelling and prediction intervals
+
+Main themes:
+
+- Distinguish between estimation/interpretation and prediction; prediction requires validation.
+- Prediction vs confidence intervals: CI for the mean response, PI for a single new observation (PI wider than CI).
+
+Key equations:
+
+- Prediction interval: ŷ ± t_{α/2} × se(ŷ)
+- CI se(ŷ): sqrt(MSE * (1/n + (x0−x̄)^2 / Σ(xi−x̄)^2))
+- PI se(ŷ): sqrt(MSE * (1 + 1/n + (x0−x̄)^2 / Σ(xi−x̄)^2))
+
+R: using predict() with interval = 'confidence' or 'prediction':
+
+```r
+predict_df <- data.frame(Temp=80, Solar.R=145, Wind=10.9)
+predict(fit, newdata = predict_df, interval = "confidence")
+predict(fit, newdata = predict_df, interval = "prediction")
+```
+
+Validation principles: train/test splits, k-fold cross-validation, and performance metrics for predictive accuracy.
+
+---
+
+# Lecture 10 — Principal Component Analysis (PCA)
+
+Summary:
+
+- PCA reduces dimensionality by finding orthogonal linear combinations (principal components) that capture maximal variance.
+- Standardise variables prior to PCA if units differ.
+- Interpret loadings and scores; look at variance explained by each PC.
+
+R example (Lecture-10 PDFs referenced in index.qmd):
+
+```r
+pca <- prcomp(hawks[, c("Wing","Weight","Culmen","Hallux")], scale. = TRUE)
+scores <- data.frame(pca$x, Species = hawks$Species)
+ggplot(scores, aes(PC1, PC2, colour = Species)) + geom_point()
+```
+
+Practical use: exploratory multivariate data analysis and visualization of group separation.
+
+---
+
+# Lecture 11 — Clustering
+
+Key ideas:
+
+- Unsupervised methods to find groups in multivariate data (hierarchical clustering, k-means).
+- Choice of distance metric and linkage method matters in hierarchical clustering.
+- Scaling variables is important when variables are on different scales.
+
+Lecture provides PDFs (Lecture-11a.pdf, Lecture-11b.pdf) embedded; see lectures/L11/ for full slides.
+
+R sketch for hierarchical clustering:
+
+```r
+mat <- scale(mydata[, vars])
+d <- dist(mat)
+hc <- hclust(d, method = "ward.D2")
+plot(hc)
+clusters <- cutree(hc, k = 3)
+```
+
+Application: cluster ecological samples or species by trait measurements.
+
+---
+
+# Lecture 12 — Multidimensional scaling (MDS)
+
+Essentials:
+
+- MDS is another dimensionality reduction method that aims to preserve pairwise dissimilarities in a low-dimensional representation.
+- Useful when you have a dissimilarity matrix (not necessarily Euclidean) and want to visualise relationships.
+- Classical (metric) MDS vs non-metric MDS.
+
+The lecture includes PDFs (Lecture-12a.pdf, Lecture-12b.pdf) with worked examples.
+
+R example (classical MDS):
+
+```r
+D <- dist(scale(mydata))
+mds <- cmdscale(D, k = 2)
+plot(mds)
+```
+
+Tie-in with multivariate modules: complements PCA and clustering for exploratory data analysis.
+
+---
+
+# Examples from labs and tutorials (selected)
+
+- Lab 01 (labs/Lab01): an introductory lab with code examples (Yellowstone_Code.R) — practice reading data, creating plots, and reproducible analysis in R.
+- Tutorial 01: Quarto basics — shows how to create a Quarto document, include YAML, load data, create charts, and render to HTML/PDF/Word. Useful for preparing assignments. (tutorials/tutorial01.qmd)
+- Tutorial 02 & 03: computing confidence intervals, checking assumptions, and understanding the ANOVA table (tutorials/tutorial02.qmd, tutorial03.qmd). They contain real data examples (possum dataset, sleep dataset) and hands-on exercises.
+
+Illustrative code excerpts:
+
+- Create a Quarto HTML and render to PDF (from tutorial01):
+
+```yaml
+format:
+  pdf:
+    toc: true
+```
+
+- Diagnostic checks (tutorial03):
+
+```r
+model <- aov(extra ~ group, data = sleep)
+qqnorm(residuals(model)); qqline(residuals(model))
+shapiro.test(residuals(model))
+boxplot(extra ~ group, data = sleep)
+```
+
+Takeaway: the tutorials are practical step-by-step guides to implement the lecture methods in R and Quarto.
+
+---
+
+# How I produced these notes
+
+I extracted lecture `.qmd` and pdf files from `lectures/`, and representative tutorial and lab `.qmd` files from `tutorials/` and `labs/` in the repository `hd-lover/ENVX2001-resources`. I condensed their key concepts, equations, and R code snippets into this single, organised Quarto document.
+
+Files used (examples):
+- lectures/L01/Lecture-01a.qmd, Lecture-01b.qmd
+- lectures/L02/Lecture-02a.qmd, Lecture-02b.qmd
+- lectures/L03/... (Lecture-03a.qmd, Lecture-03b.qmd)
+- lectures/L04/ENVX2001_week4_lecture notes.qmd
+- lectures/L05/ENVX2001_Week5_lecture_notes.qmd
+- lectures/L06/ENVX2001_Week6_lecture_notes.qmd
+- lectures/L07/Lecture-07.qmd
+- lectures/L08/Lecture-08.qmd
+- lectures/L09/Lecture-09.qmd
+- lectures/L10/index.qmd (Lecture-10 PDFs)
+- lectures/L11/index.qmd (Lecture-11 PDFs)
+- lectures/L12/index.qmd (Lecture-12 PDFs)
+- tutorials/tutorial01.qmd, tutorial02.qmd, tutorial03.qmd
+- labs/Lab01/* (Lab01-introduction.qmd, Yellowstone_Code.R)
+
+(These source files remain in the repository; links preserved.)
+
+---
+
+# Next steps — render to PDF
+
+I created this consolidated Quarto file at `notes/ENVX2001_detailed_notes.qmd` in the repository. To produce a PDF from it on your machine, follow these steps:
+
+1. Install Quarto if you do not already have it: https://quarto.org/docs/get-started/
+2. Ensure you have a TeX distribution (TinyTeX or TeX Live) if using pdf output. TinyTeX is lightweight and works well with R:
+
+   In R: `install.packages("tinytex"); tinytex::install_tinytex()`
+
+3. From the repository root, render the Quarto file:
+
+   - Option A (command line):
+     `quarto render notes/ENVX2001_detailed_notes.qmd --to pdf`
+
+   - Option B (in RStudio): open the `.qmd` file and click Render → Render to PDF.
+
+4. The PDF will be generated at `notes/ENVX2001_detailed_notes.pdf` (or similar in the `_book`/`_site` depending on your Quarto config).
+
+If you want, I can:
+
+- Render the PDF and add it to the repository for you (I cannot run Quarto here to produce a binary PDF). If you want me to commit the rendered PDF, I will instead add the `.qmd` file and detailed rendering instructions (already included). You can then run the render step locally or via GitHub Actions.
+
+- Create separate per-lecture PDFs or split the notes into multiple files.
+
+Which would you prefer: I can push this `.qmd` into the repository now (done), and then (a) provide a GitHub Actions workflow you can run to auto-render to PDF on push, or (b) give step-by-step help to render locally?
